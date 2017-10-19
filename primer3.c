@@ -888,7 +888,6 @@ struct tracer /* structure for tracebacku - unimolecular str */ {
 
 //find here
 /* get thermodynamic tables */
-static double readDouble(FILE *file, thal_results* o);
 
 static int comp3loop(const void*, const void*); /* checks if sequnece consists of specific triloop */
 
@@ -967,13 +966,6 @@ static double Sd3(int,int,double dangleEntropies3[5][5][5]); /* returns thermody
 static double Ststack(int,int,double tstack2Entropies[5][5][5][5]); /* returns entropy value for terminal stack */
 static double Htstack(int,int,double tstack2Enthalpies[5][5][5][5]); /* returns enthalpy value for terminal stack */
 
-/* memory stuff */
-static void* safe_calloc(size_t, size_t, thal_results* o);
-static void* safe_malloc(size_t, thal_results* o);
-static void* safe_realloc(void*, size_t, thal_results* o);
-static double* safe_recalloc(double* ptr, int m, int n, thal_results* o);
-
-static char* parampath = NULL; /* path to parameter files */
 static double *send5, *hend5; /* calc 5'  */
 /* w/o init not constant anymore, cause for unimolecular and bimolecular foldings there are different values */
 static double dplx_init_H; /* initiation enthalpy; for duplex 200, for unimolecular structure 0 */
@@ -1002,7 +994,6 @@ static jmp_buf _jmp_buf;
 void 
 destroy_thal_structures(struct triloop *triloopEntropies,struct triloop *triloopEnthalpies,struct tetraloop *tetraloopEntropies,struct tetraloop *tetraloopEnthalpies)
 {
-  free(parampath);
   free(triloopEntropies);
   free(triloopEnthalpies);
   free(tetraloopEntropies);
@@ -1037,13 +1028,13 @@ void thal(const unsigned char *oligo_f,const unsigned char *oligo_r,const thal_a
    o->align_end_2 = -1;
 
    if(a->type!=3) {
-      oligo1 = (unsigned char*) safe_malloc((len_f + 1) * sizeof(unsigned char), o);
-      oligo2 = (unsigned char*) safe_malloc((len_r + 1) * sizeof(unsigned char), o);
+      oligo1 = (unsigned char*)malloc((len_f + 1) * sizeof(unsigned char));
+      oligo2 = (unsigned char*)malloc((len_r + 1) * sizeof(unsigned char));
       strcpy((char*)oligo1,(const char*)oligo_f);
       strcpy((char*)oligo2,(const char*)oligo_r);
    } else  {
-      oligo1 = (unsigned char*) safe_malloc((len_r + 1) * sizeof(unsigned char), o);
-      oligo2 = (unsigned char*) safe_malloc((len_f + 1) * sizeof(unsigned char), o);
+      oligo1 = (unsigned char*)malloc((len_r + 1) * sizeof(unsigned char));
+      oligo2 = (unsigned char*)malloc((len_f + 1) * sizeof(unsigned char));
       strcpy((char*)oligo1,(const char*)oligo_r);
       strcpy((char*)oligo2,(const char*)oligo_f);
    }
@@ -1064,10 +1055,10 @@ void thal(const unsigned char *oligo_f,const unsigned char *oligo_r,const thal_a
 	 RC =1.9872* log(a->dna_conc/4000000000.0);
       }
       if(a->type!=3) {
-	 oligo2_rev = (unsigned char*) safe_malloc((strlen(oligo_r) + 1) * sizeof(unsigned char), o);
+	 oligo2_rev = (unsigned char*)malloc((strlen(oligo_r) + 1) * sizeof(unsigned char));
 	 strcpy((char*)oligo2_rev,(const char*)oligo_r);
       } else {
-	 oligo2_rev = (unsigned char*) safe_malloc((strlen(oligo_f) + 1) * sizeof(unsigned char), o);
+	 oligo2_rev = (unsigned char*)malloc((strlen(oligo_f) + 1) * sizeof(unsigned char));
 	 strcpy((char*)oligo2_rev,(const char*)oligo_f);
       }
       reverse(oligo2_rev); /* REVERSE oligo2, so it goes to dpt 3'->5' direction */
@@ -1083,16 +1074,16 @@ void thal(const unsigned char *oligo_f,const unsigned char *oligo_r,const thal_a
    len1 =strlen(oligo1);
    len2 =strlen(oligo2);
    /* convert nucleotides to numbers */
-   numSeq1 = (unsigned char*) safe_realloc(numSeq1, len1 + 2, o);
-   numSeq2 = (unsigned char*) safe_realloc(numSeq2, len2 + 2, o);
+   numSeq1 = (unsigned char*)realloc(numSeq1,len1+2);
+   numSeq2 = (unsigned char*)realloc(numSeq2,len2+2);
 
    /*** Calc part of the salt correction ***/
    saltCorrection=0.368*((log((50+120*(sqrt(fmax(0.0,4-1.4))))/1000)));
 
    if(a->type == 4){ /* monomer */
       /* terminal basepairs */
-      send5 = (double*) safe_realloc(send5, (len1 + 1) * sizeof(double), o);
-      hend5 = (double*) safe_realloc(hend5, (len1 + 1) * sizeof(double), o);
+      send5 = (double*)realloc(send5,(len1+1)*sizeof(double));
+      hend5 = (double*)realloc(hend5,(len1+1)*sizeof(double));
    }
    for(i = 0; i < len1; i++) oligo1[i] = toupper(oligo1[i]);
    for(i = 0; i < len2; i++) oligo2[i] = toupper(oligo2[i]);
@@ -1100,8 +1091,8 @@ void thal(const unsigned char *oligo_f,const unsigned char *oligo_r,const thal_a
    for(i = 1; i <= len2; ++i) numSeq2[i] = str2int(oligo2[i - 1]);
    numSeq1[0] = numSeq1[len1 + 1] = numSeq2[0] = numSeq2[len2 + 1] = 4; /* mark as N-s */
    if (a->type==4) { /* calculate structure of monomer */
-      enthalpyDPT = safe_recalloc(enthalpyDPT, len1, len2, o);
-      entropyDPT = safe_recalloc(entropyDPT, len1, len2, o);
+      enthalpyDPT =(double *)realloc(enthalpyDPT,len1*len2*sizeof(double));
+      entropyDPT =(double *)realloc(entropyDPT,len1*len2*sizeof(double));
       initMatrix2();
       fillMatrix2(a->maxLoop, o,stackEntropies,stackEnthalpies,stackint2Entropies,stackint2Enthalpies,hairpinLoopEntropies,interiorLoopEntropies,bulgeLoopEntropies,hairpinLoopEnthalpies,interiorLoopEnthalpies,bulgeLoopEnthalpies,tstackEntropies,tstackEnthalpies,tstack2Entropies,tstack2Enthalpies,triloopEntropies,triloopEnthalpies,tetraloopEntropies,tetraloopEnthalpies,numTriloops,numTetraloops,atpS,atpH);
 
@@ -1110,7 +1101,8 @@ void thal(const unsigned char *oligo_f,const unsigned char *oligo_r,const thal_a
       ms = send5[len1];
       o->align_end_1 = (int) mh;
       o->align_end_2 = (int) ms;
-      bp = (int*) safe_calloc(len1, sizeof(int), o);
+	bp=(int *)malloc(len1*sizeof(int));
+	memset(bp,'\0',len1*sizeof(int));
       for (k = 0; k < len1; ++k) bp[k] = 0;
       if(isFinite(mh)) {
 	 tracebacku(bp, a->maxLoop, o,stackEntropies,stackEnthalpies,stackint2Entropies,stackint2Enthalpies,dangleEntropies3,dangleEnthalpies3,dangleEntropies5,dangleEnthalpies5,hairpinLoopEntropies,interiorLoopEntropies,bulgeLoopEntropies,hairpinLoopEnthalpies,interiorLoopEnthalpies,bulgeLoopEnthalpies,tstackEntropies,tstackEnthalpies,tstack2Entropies,tstack2Enthalpies,triloopEntropies,triloopEnthalpies,tetraloopEntropies,tetraloopEnthalpies,numTriloops,numTetraloops,atpS,atpH);
@@ -1133,13 +1125,13 @@ void thal(const unsigned char *oligo_f,const unsigned char *oligo_r,const thal_a
       return;
    } else if(a->type!=4) { /* Hybridization of two moleculs */
       len3 = len2;
-      enthalpyDPT = safe_recalloc(enthalpyDPT, len1, len2, o); /* dyn. programming table for dS and dH */
-      entropyDPT = safe_recalloc(entropyDPT, len1, len2, o); /* enthalpyDPT is 3D array represented as 1D array */
+      enthalpyDPT =(double *)realloc(enthalpyDPT,len1*len2*sizeof(double)); /* dyn. programming table for dS and dH */
+      entropyDPT =(double *)realloc(entropyDPT,len1*len2*sizeof(double)); /* enthalpyDPT is 3D array represented as 1D array */
       initMatrix();
       fillMatrix(a->maxLoop, o,stackEntropies,stackEnthalpies,stackint2Entropies,stackint2Enthalpies,dangleEntropies3,dangleEnthalpies3,dangleEntropies5,dangleEnthalpies5,interiorLoopEntropies,bulgeLoopEntropies,interiorLoopEnthalpies,bulgeLoopEnthalpies,tstackEntropies,tstackEnthalpies,tstack2Entropies,tstack2Enthalpies,atpS,atpH);
 
       SHleft = -_INFINITY;
-      SH = (double*) safe_malloc(2 * sizeof(double), o);
+      SH = (double*)malloc(2 * sizeof(double));
       /* calculate terminal basepairs */
       bestI = bestJ = 0;
       if(a->type==1)
@@ -1159,8 +1151,8 @@ void thal(const unsigned char *oligo_f,const unsigned char *oligo_r,const thal_a
 	   }
 	}
       int *ps1, *ps2;
-      ps1 = (int*) safe_calloc(len1, sizeof(int), o);
-      ps2 = (int*) safe_calloc(len2, sizeof(int), o);
+	ps1=(int *)malloc(len1*sizeof(int));
+	ps2=(int *)malloc(len2*sizeof(int));
       for (i = 0; i < len1; ++i)
 	ps1[i] = 0;
       for (j = 0; j < len2; ++j)
@@ -1254,54 +1246,6 @@ set_thal_oligo_default_args(thal_args *a)
    a->dimer = 1; /* by default dimer structure is calculated */
 }
 
-
-/* memory stuff */
-
-static double* 
-safe_recalloc(double* ptr, int m, int n, thal_results* o)
-{
-   return (double*) safe_realloc(ptr, m * n * sizeof(double), o);
-}
-
-static void* 
-safe_calloc(size_t m, size_t n, thal_results *o)
-{
-   void* ptr;
-   if (!(ptr = calloc(m, n))) {
-#ifdef DEBUG
-      fputs("Error in calloc()\n", stderr);
-#endif
-      THAL_OOM_ERROR;
-   }
-   return ptr;
-}
-
-static void* 
-safe_malloc(size_t n, thal_results *o)
-{
-   void* ptr;
-   if (!(ptr = malloc(n))) {
-#ifdef DEBUG
-      fputs("Error in malloc()\n", stderr);
-#endif
-      THAL_OOM_ERROR;
-   }
-   return ptr;
-}
-
-static void* 
-safe_realloc(void* ptr, size_t n, thal_results *o)
-{
-   ptr = realloc(ptr, n);
-   if (ptr == NULL) {
-#ifdef DEBUG
-      fputs("Error in realloc()\n", stderr);
-#endif
-      THAL_OOM_ERROR;
-   }
-   return ptr;
-}
-
 static int 
 max5(double a, double b, double c, double d, double e)
 {
@@ -1316,7 +1260,7 @@ static void
 push(struct tracer** stack, int i, int j, int mtrx, thal_results* o)
 {
    struct tracer* new_top;
-   new_top = (struct tracer*) safe_malloc(sizeof(struct tracer), o);
+   new_top = (struct tracer*)malloc(sizeof(struct tracer));
    new_top->i = i;
    new_top->j = j;
    new_top->mtrx = mtrx;
@@ -1349,7 +1293,7 @@ p3_read_line(FILE *file, thal_results* o)
 
   if (NULL == s) {
     ssz = INIT_BUF_SIZE;
-    s = (char *) safe_malloc(ssz, o);
+    s = (char *) malloc(ssz);
   }
   p = s;
   remaining_size = ssz;
@@ -1369,26 +1313,12 @@ p3_read_line(FILE *file, thal_results* o)
     else {
       ssz *= 2;
     }
-    s = (char *) safe_realloc(s, ssz, o);
+    s = (char *)realloc(s,ssz);
     p = strchr(s, '\0');
     remaining_size = ssz - (p - s);
   }
 }
 
-
-/* These functions are needed as "inf" cannot be read on Windows directly */
-static double 
-readDouble(FILE *file, thal_results* o)
-{
-  double result;
-  char *line = p3_read_line(file, o);
-  /* skip any spaces at beginning of the line */
-  while (isspace(*line)) line++;
-  if (!strncmp(line, "inf", 3))
-    return _INFINITY;
-  sscanf(line, "%lf", &result);
-  return result;
-}
 
 static int 
 comp3loop(const void* loop1, const void* loop2)
@@ -1463,7 +1393,7 @@ fillMatrix(int maxLoop, thal_results *o,double stackEntropies[5][5][5][5],double
    int d, i, j, ii, jj;
    double* SH;
 
-   SH = (double*) safe_malloc(2 * sizeof(double), o);
+   SH = (double*)malloc(2 * sizeof(double));
    for (i = 1; i <= len1; ++i) {
       for (j = 1; j <= len2; ++j) {
 	 if(isFinite(enthalpyDPT[(i-1)*len3+j-1])) { /* if finite */
@@ -1514,7 +1444,7 @@ fillMatrix2(int maxLoop, thal_results* o,double stackEntropies[5][5][5][5],doubl
 {
    int i, j;
    double* SH;
-   SH = (double*) safe_malloc(2 * sizeof(double), o);
+   SH = (double*)malloc(2 * sizeof(double));
    for (j = 2; j <= len2; ++j)
      for (i = j - 3 - 1; i >= 1; --i) {
 	if (isFinite(enthalpyDPT[(i-1)*len3+j-1])) {
@@ -2542,9 +2472,9 @@ tracebacku(int* bp, int maxLoop,thal_results* o,double stackEntropies[5][5][5][5
    double* SH1;
    double* SH2;
    double* EntropyEnthalpy;
-   SH1 = (double*) safe_malloc(2 * sizeof(double), o);
-   SH2 = (double*) safe_malloc(2 * sizeof(double), o);
-   EntropyEnthalpy = (double*) safe_malloc(2 * sizeof(double), o);
+   SH1 = (double*)malloc(2 * sizeof(double));
+   SH2 = (double*)malloc(2 * sizeof(double));
+   EntropyEnthalpy = (double*)malloc(2 * sizeof(double));
    push(&stack,len1, 0, 1, o);
    while(stack) {
       top = stack;
@@ -2661,7 +2591,7 @@ traceback(int i, int j, double RT, int* ps1, int* ps2, int maxLoop, thal_results
 {
    int d, ii, jj, done;
    double* SH;
-   SH = (double*) safe_malloc(2 * sizeof(double), o);
+   SH = (double*)malloc(2 * sizeof(double));
    ps1[i - 1] = j;
    ps2[j - 1] = i;
    while(1) {
@@ -2745,10 +2675,10 @@ drawDimer(int* ps1, int* ps2, double temp, double H, double S, int temponly, dou
       }
    }
 
-   duplex[0] = (char*) safe_malloc(len1 + len2 + 1, o);
-   duplex[1] = (char*) safe_malloc(len1 + len2 + 1, o);
-   duplex[2] = (char*) safe_malloc(len1 + len2 + 1, o);
-   duplex[3] = (char*) safe_malloc(len1 + len2 + 1, o);
+   duplex[0] = (char*)malloc(len1 + len2 + 1);
+   duplex[1] = (char*)malloc(len1 + len2 + 1);
+   duplex[2] = (char*)malloc(len1 + len2 + 1);
+   duplex[3] = (char*)malloc(len1 + len2 + 1);
    duplex[0][0] = duplex[1][0] = duplex[2][0] = duplex[3][0] = 0;
 
    i = 0;
@@ -2872,7 +2802,7 @@ drawHairpin(int* bp, double mh, double ms, int temponly, double temp, thal_resul
    }
    /* plain-text output */
    char* asciiRow;
-   asciiRow = (char*) safe_malloc(len1, o);
+   asciiRow = (char*)malloc(len1);
    for(i = 0; i < len1; ++i) asciiRow[i] = '0';
    for(i = 1; i < len1+1; ++i) {
       if(bp[i-1] == 0) {
