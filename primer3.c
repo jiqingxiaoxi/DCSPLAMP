@@ -843,7 +843,7 @@ void tableStartATH(double atp_value,double atpH[5][5])
                         atpH[i][j] = 0.0;
         atpH[0][3] = atpH[3][0] = atp_value;
 }
-//find here
+
 #include "thal.h"
 
 #ifndef THAL_EXIT_ON_ERROR
@@ -886,16 +886,7 @@ struct tracer /* structure for tracebacku - unimolecular str */ {
   struct tracer* next;
 };
 
-/*** END STRUCTs ***/
-
-static int length_unsig_char(const unsigned char * str); /* returns length of unsigned char; to avoid warnings while compiling */
-
-//static unsigned char str2int(char c); /* converts DNA sequence to int; 0-A, 1-C, 2-G, 3-T, 4-whatever */
-
-static double saltCorrectS (double mv, double dv, double dntp); /* part of calculating salt correction
-							    for Tm by SantaLucia et al */
-static FILE* openParamFile(const char* name, thal_results* o); /* file of thermodynamic params */
-
+//find here
 /* get thermodynamic tables */
 static double readDouble(FILE *file, thal_results* o);
 
@@ -1039,8 +1030,8 @@ void thal(const unsigned char *oligo_f,const unsigned char *oligo_r,const thal_a
    o->temp = THAL_ERROR_SCORE;
    errno = 0; 
 
-   len_f = length_unsig_char(oligo_f);
-   len_r = length_unsig_char(oligo_r);
+   len_f =strlen(oligo_f);
+   len_r =strlen(oligo_r);
 
    o->align_end_1 = -1;
    o->align_end_2 = -1;
@@ -1058,7 +1049,7 @@ void thal(const unsigned char *oligo_f,const unsigned char *oligo_r,const thal_a
    }
    /*** INIT values for unimolecular and bimolecular structures ***/
    if (a->type==4) { /* unimolecular folding */
-      len2 = length_unsig_char(oligo2);
+      len2 =strlen(oligo2);
       len3 = len2 -1;
       dplx_init_H = 0.0;
       dplx_init_S = -0.00000000001;
@@ -1073,10 +1064,10 @@ void thal(const unsigned char *oligo_f,const unsigned char *oligo_r,const thal_a
 	 RC =1.9872* log(a->dna_conc/4000000000.0);
       }
       if(a->type!=3) {
-	 oligo2_rev = (unsigned char*) safe_malloc((length_unsig_char(oligo_r) + 1) * sizeof(unsigned char), o);
+	 oligo2_rev = (unsigned char*) safe_malloc((strlen(oligo_r) + 1) * sizeof(unsigned char), o);
 	 strcpy((char*)oligo2_rev,(const char*)oligo_r);
       } else {
-	 oligo2_rev = (unsigned char*) safe_malloc((length_unsig_char(oligo_f) + 1) * sizeof(unsigned char), o);
+	 oligo2_rev = (unsigned char*) safe_malloc((strlen(oligo_f) + 1) * sizeof(unsigned char), o);
 	 strcpy((char*)oligo2_rev,(const char*)oligo_f);
       }
       reverse(oligo2_rev); /* REVERSE oligo2, so it goes to dpt 3'->5' direction */
@@ -1089,15 +1080,14 @@ void thal(const unsigned char *oligo_f,const unsigned char *oligo_r,const thal_a
       errno=0;
       return;
    }
-   len1 = length_unsig_char(oligo1);
-   len2 = length_unsig_char(oligo2);
+   len1 =strlen(oligo1);
+   len2 =strlen(oligo2);
    /* convert nucleotides to numbers */
    numSeq1 = (unsigned char*) safe_realloc(numSeq1, len1 + 2, o);
    numSeq2 = (unsigned char*) safe_realloc(numSeq2, len2 + 2, o);
 
    /*** Calc part of the salt correction ***/
-   saltCorrection=saltCorrectS(a->mv,a->dv,a->dntp); /* salt correction for entropy, must be multiplied with N, which is
-						   the total number of phosphates in the duplex divided by 2; 8bp dplx N=7 */
+   saltCorrection=0.368*((log((50+120*(sqrt(fmax(0.0,4-1.4))))/1000)));
 
    if(a->type == 4){ /* monomer */
       /* terminal basepairs */
@@ -1265,23 +1255,6 @@ set_thal_oligo_default_args(thal_args *a)
 }
 
 
-/*
-static unsigned char 
-str2int(char c)
-{
-   switch (c) {
-    case 'A': case '0':
-      return 0;
-    case 'C': case '1':
-      return 1;
-    case 'G': case '2':
-      return 2;
-    case 'T': case '3':
-      return 3;
-   }
-   return 4;
-}
-*/
 /* memory stuff */
 
 static double* 
@@ -1356,42 +1329,12 @@ reverse(unsigned char *s)
 {
    int i,j;
    char c;
-   for (i = 0, j = length_unsig_char(s)-1; i < j; i++, j--) {
+   for (i = 0, j =strlen(s)-1; i < j; i++, j--) {
       c = s[i];
       s[i] = s[j];
       s[j] = c;
    }
 }
-
-static FILE* 
-openParamFile(const char* fname, thal_results* o)
-{
-   FILE* file;
-   char* paramdir;
-   file = fopen(fname, "rt");
-   if (!file) {
-      paramdir = (char*) safe_malloc(strlen(parampath) + strlen(fname) + 1, o);
-      strcpy(paramdir, parampath);
-      strcat(paramdir, fname);
-      if (!(file = fopen(paramdir, "rt"))) {
-#ifdef DEBUG
-	 perror(paramdir);
-#endif
-	 THAL_IO_ERROR(paramdir);
-	 free(paramdir);
-      }
-      free(paramdir);
-   }
-   return file;
-}
-
-static double 
-saltCorrectS (double mv, double dv, double dntp)
-{
-   if(dv<=0) dntp=dv;
-   return 0.368*((log((mv+120*(sqrt(fmax(0.0, dv-dntp))))/1000)));
-}
-
 
 #define INIT_BUF_SIZE 1024
 
@@ -2560,7 +2503,7 @@ symmetry_thermo(const unsigned char* seq)
    register char e;
    const unsigned char *seq_end=seq;
    int i = 0;
-   int seq_len=length_unsig_char(seq);
+   int seq_len=strlen(seq);
    int mp = seq_len/2;
    if(seq_len%2==1) {
       return 0;
@@ -2587,18 +2530,6 @@ symmetry_thermo(const unsigned char* seq)
       seq_end--;
    }
    return 1;
-}
-
-static int 
-length_unsig_char(const unsigned char * str)
-{
-   int i = 0;
-   while(*(str++)) {
-      i++;
-      if(i == INT_MAX)
-	return -1;
-   }
-   return i;
 }
 
 static void 
