@@ -129,7 +129,7 @@ int readTLoop(FILE *file, char *s,double *v, int triloop)
         return 0;
 }
 
-void getStack(double stackEntropies[5][5][5][5],double stackEnthalpies[5][5][5][5], char *path)
+void getStack(double stackEntropies[],double stackEnthalpies[], char *path)
 {
         int i, j, ii, jj;
         FILE *sFile, *hFile;
@@ -180,8 +180,8 @@ void getStack(double stackEntropies[5][5][5][5],double stackEnthalpies[5][5][5][
                                 {
                                         if (i == 4 || j == 4 || ii == 4 || jj == 4) //N 
                                         {
-                                                stackEntropies[i][ii][j][jj] = -1.0;
-                                                stackEnthalpies[i][ii][j][jj] =1.0*INFINITY;
+                                                stackEntropies[i*125+ii*25+j*5+jj] = -1.0;
+                                                stackEnthalpies[i*125+ii*25+j*5+jj]=1.0*INFINITY;
                                         }
                                         else 
                                         {
@@ -191,9 +191,9 @@ void getStack(double stackEntropies[5][5][5][5],double stackEnthalpies[5][5][5][
                                                         exit(1);
                                                 }
                                                 if(strncmp(line, "inf", 3)==0)
-                                                        stackEntropies[i][ii][j][jj]=1.0*INFINITY;
+                                                        stackEntropies[i*125+ii*25+j*5+jj]=1.0*INFINITY;
                                                 else
-                                                        stackEntropies[i][ii][j][jj] = atof(line);
+                                                        stackEntropies[i*125+ii*25+j*5+jj] = atof(line);
 
                                                 if(fgets(line,20,hFile)==NULL)
                                                 {
@@ -201,14 +201,14 @@ void getStack(double stackEntropies[5][5][5][5],double stackEnthalpies[5][5][5][
                                                         exit(1);
                                                 }
                                                 if(strncmp(line, "inf", 3)==0)
-                                                        stackEnthalpies[i][ii][j][jj]=1.0*INFINITY;
+                                                        stackEnthalpies[i*125+ii*25+j*5+jj]=1.0*INFINITY;
                                                 else
-                                                        stackEnthalpies[i][ii][j][jj] = atof(line);
+                                                        stackEnthalpies[i*125+ii*25+j*5+jj] = atof(line);
 
-                                                if (!isFinite(stackEntropies[i][ii][j][jj]) || !isFinite(stackEnthalpies[i][ii][j][jj])) 
+                                                if (!isFinite(stackEntropies[i*125+ii*25+j*5+jj]) || !isFinite(stackEnthalpies[i*125+ii*25+j*5+jj])) 
                                                 {
-                                                        stackEntropies[i][ii][j][jj] = -1.0;
-                                                        stackEnthalpies[i][ii][j][jj] =1.0*INFINITY;
+                                                        stackEntropies[i*125+ii*25+j*5+jj] = -1.0;
+                                                        stackEnthalpies[i*125+ii*25+j*5+jj] =1.0*INFINITY;
                                                 }
                                         }
                                 }
@@ -220,7 +220,7 @@ void getStack(double stackEntropies[5][5][5][5],double stackEnthalpies[5][5][5][
         free(line);
 }
 
-void getStackint2(double stackint2Entropies[5][5][5][5],double stackint2Enthalpies[5][5][5][5], char *path)
+void getStackint2(double stackint2Entropies[],double stackint2Enthalpies[], char *path)
 {
         int i, j, ii, jj;
         FILE *sFile, *hFile;
@@ -271,8 +271,8 @@ void getStackint2(double stackint2Entropies[5][5][5][5],double stackint2Enthalpi
                                 {
                                         if (i == 4 || j == 4 || ii == 4 || jj == 4)
                                         {
-                                                stackint2Entropies[i][ii][j][jj] = -1.0;
-                                                stackint2Enthalpies[i][ii][j][jj] =1.0*INFINITY;
+                                                stackint2Entropies[i*125+ii*25+j*5+jj] = -1.0;
+                                                stackint2Enthalpies[i*125+ii*25+j*5+jj] =1.0*INFINITY;
                                         } 
                                         else 
                                         {
@@ -282,9 +282,9 @@ void getStackint2(double stackint2Entropies[5][5][5][5],double stackint2Enthalpi
                                                         exit(1);
                                                 }
                                                 if(strncmp(line, "inf", 3)==0)
-                                                        stackint2Entropies[i][ii][j][jj]=1.0*INFINITY;
+                                                        stackint2Entropies[i*125+ii*25+j*5+jj]=1.0*INFINITY;
                                                 else
-                                                        stackint2Entropies[i][ii][j][jj] = atof(line);
+                                                        stackint2Entropies[i*125+ii*25+j*5+jj] = atof(line);
 
                                                 if(fgets(line,20,hFile)==NULL)
                                                 {
@@ -292,14 +292,14 @@ void getStackint2(double stackint2Entropies[5][5][5][5],double stackint2Enthalpi
                                                         exit(1);
                                                 }
                                                 if(strncmp(line, "inf", 3)==0)
-                                                        stackint2Enthalpies[i][ii][j][jj]=1.0*INFINITY;
+                                                        stackint2Enthalpies[i*125+ii*25+j*5+jj]=1.0*INFINITY;
                                                 else
-                                                        stackint2Enthalpies[i][ii][j][jj] = atof(line);
+                                                        stackint2Enthalpies[i*125+ii*25+j*5+jj] = atof(line);
 
-                                                if(!isFinite(stackint2Entropies[i][ii][j][jj]) || !isFinite(stackint2Enthalpies[i][ii][j][jj]))
+                                                if(!isFinite(stackint2Entropies[i*125+ii*25+j*5+jj]) || !isFinite(stackint2Enthalpies[i*125+ii*25+j*5+jj]))
                                                 {
-                                                        stackint2Entropies[i][ii][j][jj] = -1.0;
-                                                        stackint2Enthalpies[i][ii][j][jj] =1.0*INFINITY;
+                                                        stackint2Entropies[i*125+ii*25+j*5+jj] = -1.0;
+                                                        stackint2Enthalpies[i*125+ii*25+j*5+jj] =1.0*INFINITY;
                                                 }
                                         }
                                 }
@@ -311,7 +311,7 @@ void getStackint2(double stackint2Entropies[5][5][5][5],double stackint2Enthalpi
         free(line);
 }
 
-void getDangle(double dangleEntropies3[5][5][5],double dangleEnthalpies3[5][5][5],double dangleEntropies5[5][5][5],double dangleEnthalpies5[5][5][5],char *path)
+void getDangle(double dangleEntropies3[],double dangleEnthalpies3[],double dangleEntropies5[],double dangleEnthalpies5[],char *path)
 {
         int i, j, k;
         FILE *sFile, *hFile;
@@ -358,13 +358,13 @@ void getDangle(double dangleEntropies3[5][5][5],double dangleEnthalpies3[5][5][5
                         {
                                 if (i == 4 || j == 4) 
                                 {
-                                        dangleEntropies3[i][k][j] = -1.0;
-                                        dangleEnthalpies3[i][k][j] =1.0*INFINITY;
+                                        dangleEntropies3[i*25+k*5+j] = -1.0;
+                                        dangleEnthalpies3[i*25+k*5+j] =1.0*INFINITY;
                                 }
                                 else if (k == 4)
                                 {
-                                        dangleEntropies3[i][k][j] = -1.0;
-                                        dangleEnthalpies3[i][k][j] =1.0*INFINITY;
+                                        dangleEntropies3[i*25+k*5+j] = -1.0;
+                                        dangleEnthalpies3[i*25+k*5+j] =1.0*INFINITY;
                                 } 
                                 else
                                 {
@@ -374,9 +374,9 @@ void getDangle(double dangleEntropies3[5][5][5],double dangleEnthalpies3[5][5][5
                                                 exit(1);
                                         }
                                         if(strncmp(line, "inf", 3)==0)
-                                                dangleEntropies3[i][k][j]=1.0*INFINITY;
+                                                dangleEntropies3[i*25+k*5+j]=1.0*INFINITY;
                                         else
-                                                dangleEntropies3[i][k][j]=atof(line);
+                                                dangleEntropies3[i*25+k*5+j]=atof(line);
 
                                         if(fgets(line,20,hFile)==NULL)
                                         {
@@ -384,14 +384,14 @@ void getDangle(double dangleEntropies3[5][5][5],double dangleEnthalpies3[5][5][5
                                                 exit(1);        
                                         }
                                         if(strncmp(line, "inf", 3)==0)        
-                                                dangleEnthalpies3[i][k][j]=1.0*INFINITY;           
+                                                dangleEnthalpies3[i*25+k*5+j]=1.0*INFINITY;           
                                         else        
-                                                dangleEnthalpies3[i][k][j]=atof(line);
+                                                dangleEnthalpies3[i*25+k*5+j]=atof(line);
 
-                                        if(!isFinite(dangleEntropies3[i][k][j]) || !isFinite(dangleEnthalpies3[i][k][j])) 
+                                        if(!isFinite(dangleEntropies3[i*25+k*5+j]) || !isFinite(dangleEnthalpies3[i*25+k*5+j])) 
                                         {
-                                                dangleEntropies3[i][k][j] = -1.0;
-                                                dangleEnthalpies3[i][k][j] =1.0*INFINITY;
+                                                dangleEntropies3[i*25+k*5+j] = -1.0;
+                                                dangleEnthalpies3[i*25+k*5+j] =1.0*INFINITY;
                                         }
                                 }
                         }
@@ -402,13 +402,13 @@ void getDangle(double dangleEntropies3[5][5][5],double dangleEnthalpies3[5][5][5
                         {
                                 if (i == 4 || j == 4)
                                 {
-                                        dangleEntropies5[i][j][k] = -1.0;
-                                        dangleEnthalpies5[i][j][k] =1.0*INFINITY;
+                                        dangleEntropies5[i*25+j*5+k] = -1.0;
+                                        dangleEnthalpies5[i*25+j*5+k] =1.0*INFINITY;
                                 } 
                                 else if (k == 4) 
                                 {
-                                        dangleEntropies5[i][j][k] = -1.0;
-                                        dangleEnthalpies5[i][j][k] =1.0*INFINITY;
+                                        dangleEntropies5[i*25+j*5+k] = -1.0;
+                                        dangleEnthalpies5[i*25+j*5+k] =1.0*INFINITY;
                                 }
                                 else
                                 {
@@ -418,9 +418,9 @@ void getDangle(double dangleEntropies3[5][5][5],double dangleEnthalpies3[5][5][5
                                                 exit(1);
                                         }
                                         if(strncmp(line, "inf", 3)==0)
-                                                dangleEntropies5[i][j][k]=1.0*INFINITY;
+                                                dangleEntropies5[i*25+j*5+k]=1.0*INFINITY;
                                         else
-                                                dangleEntropies5[i][j][k]=atof(line);
+                                                dangleEntropies5[i*25+j*5+k]=atof(line);
 
                                         if(fgets(line,20,hFile)==NULL)
                                         {
@@ -428,14 +428,14 @@ void getDangle(double dangleEntropies3[5][5][5],double dangleEnthalpies3[5][5][5
                                                 exit(1);        
                                         }
                                         if(strncmp(line, "inf", 3)==0)        
-                                                dangleEnthalpies5[i][j][k]=1.0*INFINITY;           
+                                                dangleEnthalpies5[i*25+j*5+k]=1.0*INFINITY;           
                                         else        
-                                                dangleEnthalpies5[i][j][k]=atof(line);
+                                                dangleEnthalpies5[i*25+j*5+k]=atof(line);
 
-                                        if(!isFinite(dangleEntropies5[i][j][k]) || !isFinite(dangleEnthalpies5[i][j][k]))
+                                        if(!isFinite(dangleEntropies5[i*25+j*5+k]) || !isFinite(dangleEnthalpies5[i*25+j*5+k]))
                                         {
-                                                dangleEntropies5[i][j][k] = -1.0;
-                                                dangleEnthalpies5[i][j][k] =1.0*INFINITY;
+                                                dangleEntropies5[i*25+j*5+k] = -1.0;
+                                                dangleEnthalpies5[i*25+j*5+k] =1.0*INFINITY;
                                         }
                                 }
                         }
@@ -492,7 +492,7 @@ void getLoop(double hairpinLoopEntropies[30],double interiorLoopEntropies[30],do
         fclose(hFile);
 }
 
-void getTstack(double tstackEntropies[5][5][5][5],double tstackEnthalpies[5][5][5][5],char *path)
+void getTstack(double tstackEntropies[],double tstackEnthalpies[],char *path)
 {
         int i1, j1, i2, j2;
         FILE *sFile, *hFile;
@@ -539,13 +539,13 @@ void getTstack(double tstackEntropies[5][5][5][5],double tstackEnthalpies[5][5][
                                 for (j2 = 0; j2 < 5; ++j2)
                                         if (i1 == 4 || j1 == 4)
                                         {
-                                                tstackEnthalpies[i1][i2][j1][j2]=1.0*INFINITY;
-                                                tstackEntropies[i1][i2][j1][j2] = -1.0;
+                                                tstackEnthalpies[i1*125+i2*25+j1*5+j2]=1.0*INFINITY;
+                                                tstackEntropies[i1*125+i2*25+j1*5+j2] = -1.0;
                                         }
                                         else if (i2 == 4 || j2 == 4)
                                         {
-                                                tstackEntropies[i1][i2][j1][j2] = 0.00000000001;
-                                                tstackEnthalpies[i1][i2][j1][j2] = 0.0;
+                                                tstackEntropies[i1*125+i2*25+j1*5+j2] = 0.00000000001;
+                                                tstackEnthalpies[i1*125+i2*25+j1*5+j2] = 0.0;
                                         }
                                         else
                                         {
@@ -555,9 +555,9 @@ void getTstack(double tstackEntropies[5][5][5][5],double tstackEnthalpies[5][5][
                                                         exit(1);
                                                 }
                                                 if(strncmp(line, "inf", 3)==0)
-                                                        tstackEntropies[i1][i2][j1][j2]=1.0*INFINITY;
+                                                        tstackEntropies[i1*125+i2*25+j1*5+j2]=1.0*INFINITY;
                                                 else
-                                                        tstackEntropies[i1][i2][j1][j2]=atof(line);
+                                                        tstackEntropies[i1*125+i2*25+j1*5+j2]=atof(line);
 
                                                 if(fgets(line,20,hFile)==NULL)
                                                 {
@@ -565,14 +565,14 @@ void getTstack(double tstackEntropies[5][5][5][5],double tstackEnthalpies[5][5][
                                                         exit(1);
                                                 }
                                                 if(strncmp(line, "inf", 3)==0)
-                                                        tstackEnthalpies[i1][i2][j1][j2]=1.0*INFINITY;
+                                                        tstackEnthalpies[i1*125+i2*25+j1*5+j2]=1.0*INFINITY;
                                                 else
-                                                        tstackEnthalpies[i1][i2][j1][j2]=atof(line);
+                                                        tstackEnthalpies[i1*125+i2*25+j1*5+j2]=atof(line);
 
-                                                if (!isFinite(tstackEntropies[i1][i2][j1][j2]) || !isFinite(tstackEnthalpies[i1][i2][j1][j2]))
+                                                if (!isFinite(tstackEntropies[i1*125+i2*25+j1*5+j2]) || !isFinite(tstackEnthalpies[i1*125+i2*25+j1*5+j2]))
                                                 {
-                                                        tstackEntropies[i1][i2][j1][j2] = -1.0;
-                                                        tstackEnthalpies[i1][i2][j1][j2] =1.0*INFINITY;
+                                                        tstackEntropies[i1*125+i2*25+j1*5+j2] = -1.0;
+                                                        tstackEnthalpies[i1*125+i2*25+j1*5+j2] =1.0*INFINITY;
                                                 }
                                         }
         fclose(sFile);
@@ -580,7 +580,7 @@ void getTstack(double tstackEntropies[5][5][5][5],double tstackEnthalpies[5][5][
         free(line);
 }
 
-void getTstack2(double tstack2Entropies[5][5][5][5],double tstack2Enthalpies[5][5][5][5],char *path)
+void getTstack2(double tstack2Entropies[],double tstack2Enthalpies[],char *path)
 {
         int i1, j1, i2, j2;
         FILE *sFile, *hFile;
@@ -627,13 +627,13 @@ void getTstack2(double tstack2Entropies[5][5][5][5],double tstack2Enthalpies[5][
                                 for (j2 = 0; j2 < 5; ++j2)
                                         if (i1 == 4 || j1 == 4)
                                         {
-                                                tstack2Enthalpies[i1][i2][j1][j2] =1.0*INFINITY;
-                                                tstack2Entropies[i1][i2][j1][j2] = -1.0;
+                                                tstack2Enthalpies[i1*125+i2*25+j1*5+j2] =1.0*INFINITY;
+                                                tstack2Entropies[i1*125+i2*25+j1*5+j2] = -1.0;
                                         }
                                         else if (i2 == 4 || j2 == 4)
                                         {
-                                                tstack2Entropies[i1][i2][j1][j2] = 0.00000000001;
-                                                tstack2Enthalpies[i1][i2][j1][j2] = 0.0;
+                                                tstack2Entropies[i1*125+i2*25+j1*5+j2] = 0.00000000001;
+                                                tstack2Enthalpies[i1*125+i2*25+j1*5+j2] = 0.0;
                                         }
                                         else
                                         {
@@ -643,9 +643,9 @@ void getTstack2(double tstack2Entropies[5][5][5][5],double tstack2Enthalpies[5][
                                                         exit(1);
                                                 }
                                                 if(strncmp(line, "inf", 3)==0)
-                                                        tstack2Entropies[i1][i2][j1][j2]=1.0*INFINITY;
+                                                        tstack2Entropies[i1*125+i2*25+j1*5+j2]=1.0*INFINITY;
                                                 else
-                                                        tstack2Entropies[i1][i2][j1][j2]=atof(line);
+                                                        tstack2Entropies[i1*125+i2*25+j1*5+j2]=atof(line);
 
                                                 if(fgets(line,20,hFile)==NULL)
                                                 {
@@ -653,15 +653,15 @@ void getTstack2(double tstack2Entropies[5][5][5][5],double tstack2Enthalpies[5][
                                                         exit(1);
                                                 }
                                                 if(strncmp(line, "inf", 3)==0)
-                                                        tstack2Enthalpies[i1][i2][j1][j2]=1.0*INFINITY;
+                                                        tstack2Enthalpies[i1*125+i2*25+j1*5+j2]=1.0*INFINITY;
                                                 else
-                                                        tstack2Enthalpies[i1][i2][j1][j2]=atof(line);
+                                                        tstack2Enthalpies[i1*125+i2*25+j1*5+j2]=atof(line);
 
 
-                                                if (!isFinite(tstack2Entropies[i1][i2][j1][j2]) || !isFinite(tstack2Enthalpies[i1][i2][j1][j2]))
+                                                if (!isFinite(tstack2Entropies[i1*125+i2*25+j1*5+j2]) || !isFinite(tstack2Enthalpies[i1*125+i2*25+j1*5+j2]))
                                                 {
-                                                        tstack2Entropies[i1][i2][j1][j2] = -1.0;
-                                                        tstack2Enthalpies[i1][i2][j1][j2] =1.0*INFINITY;
+                                                        tstack2Entropies[i1*125+i2*25+j1*5+j2] = -1.0;
+                                                        tstack2Enthalpies[i1*125+i2*25+j1*5+j2] =1.0*INFINITY;
                                                 }
                                         }
         fclose(sFile);
@@ -824,24 +824,24 @@ void getTetraloop(struct tetraloop** tetraloopEntropies, struct tetraloop** tetr
         fclose(hFile);
 }
 
-void tableStartATS(double atp_value, double atpS[5][5])
+void tableStartATS(double atp_value, double atpS[])
 {
         int i, j;
 
         for (i = 0; i < 5; ++i)
                 for (j = 0; j < 5; ++j)
-                        atpS[i][j] = 0.00000000001;
-        atpS[0][3] = atpS[3][0] = atp_value;
+                        atpS[i*5+j] = 0.00000000001;
+        atpS[3] = atpS[15] = atp_value;
 }
 
-void tableStartATH(double atp_value,double atpH[5][5])
+void tableStartATH(double atp_value,double atpH[])
 {
         int i, j;
 
         for (i = 0; i < 5; ++i)
                 for (j = 0; j < 5; ++j)
-                        atpH[i][j] = 0.0;
-        atpH[0][3] = atpH[3][0] = atp_value;
+                        atpH[i*5+j] = 0.0;
+        atpH[3] = atpH[15] = atp_value;
 }
 
 #include "thal.h"
@@ -896,34 +896,34 @@ static void initMatrix(int Initint[],double *enthalpyDPT,double *entropyDPT,char
 
 static void initMatrix2(int Initint[],double *enthalpyDPT,double *entropyDPT,char *numSeq1);
 
-static void fillMatrix(int maxLoop, thal_results* o,double stackEntropies[5][5][5][5],double stackEnthalpies[5][5][5][5],double stackint2Entropies[5][5][5][5],double stackint2Enthalpies[5][5][5][5],double dangleEntropies3[5][5][5],double dangleEnthalpies3[5][5][5],double dangleEntropies5[5][5][5],double dangleEnthalpies5[5][5][5],double interiorLoopEntropies[],double bulgeLoopEntropies[],double interiorLoopEnthalpies[],double bulgeLoopEnthalpies[],double tstackEntropies[5][5][5][5],double tstackEnthalpies[5][5][5][5],double tstack2Entropies[5][5][5][5],double tstack2Enthalpies[5][5][5][5],double atpS[5][5],double atpH[5][5],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,char *numSeq1,char *numSeq2);
+static void fillMatrix(int maxLoop, thal_results* o,double stackEntropies[],double stackEnthalpies[],double stackint2Entropies[],double stackint2Enthalpies[],double dangleEntropies3[],double dangleEnthalpies3[],double dangleEntropies5[],double dangleEnthalpies5[],double interiorLoopEntropies[],double bulgeLoopEntropies[],double interiorLoopEnthalpies[],double bulgeLoopEnthalpies[],double tstackEntropies[],double tstackEnthalpies[],double tstack2Entropies[],double tstack2Enthalpies[],double atpS[],double atpH[],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,char *numSeq1,char *numSeq2);
 
-static void fillMatrix2(int maxLoop, thal_results* o,double stackEntropies[5][5][5][5],double stackEnthalpies[5][5][5][5],double stackint2Entropies[5][5][5][5],double stackint2Enthalpies[5][5][5][5],double hairpinLoopEntropies[],double interiorLoopEntropies[],double bulgeLoopEntropies[],double hairpinLoopEnthalpies[],double interiorLoopEnthalpies[],double bulgeLoopEnthalpies[],double tstackEntropies[5][5][5][5],double tstackEnthalpies[5][5][5][5],double tstack2Entropies[5][5][5][5],double tstack2Enthalpies[5][5][5][5],struct triloop *triloopEntropies,struct triloop *triloopEnthalpies,struct tetraloop *tetraloopEntropies,struct tetraloop *tetraloopEnthalpies,int numTriloops,int numTetraloops,double atpS[5][5],double atpH[5][5],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,char *numSeq1,char *numSeq2);
+static void fillMatrix2(int maxLoop, thal_results* o,double stackEntropies[],double stackEnthalpies[],double stackint2Entropies[],double stackint2Enthalpies[],double hairpinLoopEntropies[],double interiorLoopEntropies[],double bulgeLoopEntropies[],double hairpinLoopEnthalpies[],double interiorLoopEnthalpies[],double bulgeLoopEnthalpies[],double tstackEntropies[],double tstackEnthalpies[],double tstack2Entropies[],double tstack2Enthalpies[],struct triloop *triloopEntropies,struct triloop *triloopEnthalpies,struct tetraloop *tetraloopEntropies,struct tetraloop *tetraloopEnthalpies,int numTriloops,int numTetraloops,double atpS[],double atpH[],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,char *numSeq1,char *numSeq2);
 
-static void maxTM(int i, int j,double stackEntropies[5][5][5][5],double stackEnthalpies[5][5][5][5],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,char *numSeq1,char *numSeq2);
+static void maxTM(int i, int j,double stackEntropies[],double stackEnthalpies[],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,char *numSeq1,char *numSeq2);
 
-static void maxTM2(int i, int j,double stackEntropies[5][5][5][5],double stackEnthalpies[5][5][5][5],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,char *numSeq1,char *numSeq2);
+static void maxTM2(int i, int j,double stackEntropies[],double stackEnthalpies[],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,char *numSeq1,char *numSeq2);
 
 /* calculates bulges and internal loops for dimer structures */
-static void calc_bulge_internal(int ii, int jj, int i, int j, double* EntropyEnthalpy, int traceback, int maxLoop,double stackEntropies[5][5][5][5],double stackEnthalpies[5][5][5][5],double stackint2Entropies[5][5][5][5],double stackint2Enthalpies[5][5][5][5],double interiorLoopEntropies[],double bulgeLoopEntropies[],double interiorLoopEnthalpies[],double bulgeLoopEnthalpies[],double tstackEntropies[5][5][5][5],double tstackEnthalpies[5][5][5][5],double atpS[5][5],double atpH[5][5],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,char *numSeq1,char *numSeq2);
+static void calc_bulge_internal(int ii, int jj, int i, int j, double* EntropyEnthalpy, int traceback, int maxLoop,double stackEntropies[],double stackEnthalpies[],double stackint2Entropies[],double stackint2Enthalpies[],double interiorLoopEntropies[],double bulgeLoopEntropies[],double interiorLoopEnthalpies[],double bulgeLoopEnthalpies[],double tstackEntropies[],double tstackEnthalpies[],double atpS[],double atpH[],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,char *numSeq1,char *numSeq2);
 
 /* calculates bulges and internal loops for monomer structures */
-static void calc_bulge_internal2(int ii, int jj, int i, int j, double* EntropyEnthalpy, int traceback, int maxLoop,double stackEntropies[5][5][5][5],double stackEnthalpies[5][5][5][5],double stackint2Entropies[5][5][5][5],double stackint2Enthalpies[5][5][5][5],double interiorLoopEntropies[],double bulgeLoopEntropies[],double interiorLoopEnthalpies[],double bulgeLoopEnthalpies[],double tstackEntropies[5][5][5][5],double tstackEnthalpies[5][5][5][5],double atpS[5][5],double atpH[5][5],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,char *numSeq1,char *numSeq2);
+static void calc_bulge_internal2(int ii, int jj, int i, int j, double* EntropyEnthalpy, int traceback, int maxLoop,double stackEntropies[],double stackEnthalpies[],double stackint2Entropies[],double stackint2Enthalpies[],double interiorLoopEntropies[],double bulgeLoopEntropies[],double interiorLoopEnthalpies[],double bulgeLoopEnthalpies[],double tstackEntropies[],double tstackEnthalpies[],double atpS[],double atpH[],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,char *numSeq1,char *numSeq2);
 
 /* carries out Bulge and Internal loop and stack calculations to hairpin */
-static void CBI(int i, int j, double* EntropyEnthalpy, int traceback, int maxLoop,double stackEntropies[5][5][5][5],double stackEnthalpies[5][5][5][5],double stackint2Entropies[5][5][5][5],double stackint2Enthalpies[5][5][5][5],double interiorLoopEntropies[],double bulgeLoopEntropies[],double interiorLoopEnthalpies[],double bulgeLoopEnthalpies[],double tstackEntropies[5][5][5][5],double tstackEnthalpies[5][5][5][5],double atpS[5][5],double atpH[5][5],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,char *numSeq1,char *numSeq2);
+static void CBI(int i, int j, double* EntropyEnthalpy, int traceback, int maxLoop,double stackEntropies[],double stackEnthalpies[],double stackint2Entropies[],double stackint2Enthalpies[],double interiorLoopEntropies[],double bulgeLoopEntropies[],double interiorLoopEnthalpies[],double bulgeLoopEnthalpies[],double tstackEntropies[],double tstackEnthalpies[],double atpS[],double atpH[],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,char *numSeq1,char *numSeq2);
 
 /* finds monomer structure that has maximum Tm */
-static void calc_hairpin(int i, int j, double* EntropyEnthalpy, int traceback,double hairpinLoopEntropies[],double hairpinLoopEnthalpies[],double tstack2Entropies[5][5][5][5],double tstack2Enthalpies[5][5][5][5],struct triloop *triloopEntropies,struct triloop *triloopEnthalpies,struct tetraloop *tetraloopEntropies,struct tetraloop *tetraloopEnthalpies,int numTriloops,int numTetraloops,double atpS[5][5],double atpH[5][5],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,char *numSeq1);
+static void calc_hairpin(int i, int j, double* EntropyEnthalpy, int traceback,double hairpinLoopEntropies[],double hairpinLoopEnthalpies[],double tstack2Entropies[],double tstack2Enthalpies[],struct triloop *triloopEntropies,struct triloop *triloopEnthalpies,struct tetraloop *tetraloopEntropies,struct tetraloop *tetraloopEnthalpies,int numTriloops,int numTetraloops,double atpS[],double atpH[],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,char *numSeq1);
 
-static double Ss(int i, int j, int k,double stackEntropies[5][5][5][5],int Initint[],char *numSeq1,char *numSeq2);
+static double Ss(int i, int j, int k,double stackEntropies[],int Initint[],char *numSeq1,char *numSeq2);
 
-static double Hs(int i, int j, int k,double stackEnthalpies[5][5][5][5],int Initint[],char *numSeq1,char *numSeq2);
+static double Hs(int i, int j, int k,double stackEnthalpies[],int Initint[],char *numSeq1,char *numSeq2);
 
 /* calculate terminal entropy S and terminal enthalpy H starting reading from 5'end (Left hand/3' end - Right end) */
-static void LSH(int i, int j, double* EntropyEnthalpy,double dangleEntropies3[5][5][5],double dangleEnthalpies3[5][5][5],double dangleEntropies5[5][5][5],double dangleEnthalpies5[5][5][5],double tstack2Entropies[5][5][5][5],double tstack2Enthalpies[5][5][5][5],double atpS[5][5],double atpH[5][5],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,char *numSeq1,char *numSeq2);
+static void LSH(int i, int j, double* EntropyEnthalpy,double dangleEntropies3[],double dangleEnthalpies3[],double dangleEntropies5[],double dangleEnthalpies5[],double tstack2Entropies[],double tstack2Enthalpies[],double atpS[],double atpH[],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,char *numSeq1,char *numSeq2);
 
-static void RSH(int i,int j, double* EntropyEnthalpy,double dangleEntropies3[5][5][5],double dangleEnthalpies3[5][5][5],double dangleEntropies5[5][5][5],double dangleEnthalpies5[5][5][5],double tstack2Entropies[5][5][5][5],double tstack2Enthalpies[5][5][5][5],double atpS[5][5],double atpH[5][5],double Initdouble[],char *numSeq1,char *numSeq2);
+static void RSH(int i,int j, double* EntropyEnthalpy,double dangleEntropies3[],double dangleEnthalpies3[],double dangleEntropies5[],double dangleEnthalpies5[],double tstack2Entropies[],double tstack2Enthalpies[],double atpS[],double atpH[],double Initdouble[],char *numSeq1,char *numSeq2);
 
 static void reverse(unsigned char *s);
 
@@ -933,10 +933,10 @@ static int max5(double, double, double, double, double);
 static int symmetry_thermo(const unsigned char* seq);
 
 /* traceback for dimers */
-static void traceback(int i, int j, int* ps1, int* ps2, int maxLoop, thal_results* o,double stackEntropies[5][5][5][5],double stackEnthalpies[5][5][5][5],double stackint2Entropies[5][5][5][5],double stackint2Enthalpies[5][5][5][5],double dangleEntropies3[5][5][5],double dangleEnthalpies3[5][5][5],double dangleEntropies5[5][5][5],double dangleEnthalpies5[5][5][5],double interiorLoopEntropies[],double bulgeLoopEntropies[],double interiorLoopEnthalpies[],double bulgeLoopEnthalpies[],double tstackEntropies[5][5][5][5],double tstackEnthalpies[5][5][5][5],double tstack2Entropies[5][5][5][5],double tstack2Enthalpies[5][5][5][5],double atpS[5][5],double atpH[5][5],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,char *numSeq1,char *numSeq2);
+static void traceback(int i, int j, int* ps1, int* ps2, int maxLoop, thal_results* o,double stackEntropies[],double stackEnthalpies[],double stackint2Entropies[],double stackint2Enthalpies[],double dangleEntropies3[],double dangleEnthalpies3[],double dangleEntropies5[],double dangleEnthalpies5[],double interiorLoopEntropies[],double bulgeLoopEntropies[],double interiorLoopEnthalpies[],double bulgeLoopEnthalpies[],double tstackEntropies[],double tstackEnthalpies[],double tstack2Entropies[],double tstack2Enthalpies[],double atpS[],double atpH[],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,char *numSeq1,char *numSeq2);
 
 /* traceback for hairpins */
-static void tracebacku(int*, int, thal_results*,double stackEntropies[5][5][5][5],double stackEnthalpies[5][5][5][5],double stackint2Entropies[5][5][5][5],double stackint2Enthalpies[5][5][5][5],double dangleEntropies3[5][5][5],double dangleEnthalpies3[5][5][5],double dangleEntropies5[5][5][5],double dangleEnthalpies5[5][5][5],double hairpinLoopEntropies[],double interiorLoopEntropies[],double bulgeLoopEntropies[],double hairpinLoopEnthalpies[],double interiorLoopEnthalpies[],double bulgeLoopEnthalpies[],double tstackEntropies[5][5][5][5],double tstackEnthalpies[5][5][5][5],double tstack2Entropies[5][5][5][5],double tstack2Enthalpies[5][5][5][5],struct triloop *triloopEntropies,struct triloop *triloopEnthalpies,struct tetraloop *tetraloopEntropies,struct tetraloop *tetraloopEnthalpies,int numTriloops,int numTetraloops,double atpS[5][5],double atpH[5][5],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,double *send5,double *hend5,char *numSeq1,char *numSeq2);
+static void tracebacku(int*, int, thal_results*,double stackEntropies[],double stackEnthalpies[],double stackint2Entropies[],double stackint2Enthalpies[],double dangleEntropies3[],double dangleEnthalpies3[],double dangleEntropies5[],double dangleEnthalpies5[],double hairpinLoopEntropies[],double interiorLoopEntropies[],double bulgeLoopEntropies[],double hairpinLoopEnthalpies[],double interiorLoopEnthalpies[],double bulgeLoopEnthalpies[],double tstackEntropies[],double tstackEnthalpies[],double tstack2Entropies[],double tstack2Enthalpies[],struct triloop *triloopEntropies,struct triloop *triloopEnthalpies,struct tetraloop *tetraloopEntropies,struct tetraloop *tetraloopEnthalpies,int numTriloops,int numTetraloops,double atpS[],double atpH[],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,double *send5,double *hend5,char *numSeq1,char *numSeq2);
 
 /* prints ascii output of dimer structure */
 static void drawDimer(int*, int*,double, double, int, double, thal_results *,double Initdouble[],int Initint[],char *oligo1,char *oligo2);
@@ -951,37 +951,27 @@ static void strcatc(char*, char);
 static void push(struct tracer**, int, int, int, thal_results*); /* to add elements to struct */
 
 /* terminal bp for monomer structure */
-static void calc_terminal_bp(double temp,double dangleEntropies3[5][5][5],double dangleEnthalpies3[5][5][5],double dangleEntropies5[5][5][5],double dangleEnthalpies5[5][5][5],double tstack2Entropies[5][5][5][5],double tstack2Enthalpies[5][5][5][5],double atpS[5][5],double atpH[5][5],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,double *send5,double *hend5,char *numSeq1);
+static void calc_terminal_bp(double temp,double dangleEntropies3[],double dangleEnthalpies3[],double dangleEntropies5[],double dangleEnthalpies5[],double tstack2Entropies[],double tstack2Enthalpies[],double atpS[],double atpH[],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,double *send5,double *hend5,char *numSeq1);
 
 /* executed in calc_terminal_bp; to find structure that corresponds to max Tm for terminal bp */
-static double END5_1(int,int,double atpS[5][5],double atpH[5][5],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,double *send5,double *hend5,char *numSeq1);
+static double END5_1(int,int,double atpS[],double atpH[],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,double *send5,double *hend5,char *numSeq1);
 
-static double END5_2(int,int,double dangleEntropies5[5][5][5],double dangleEnthalpies5[5][5][5],double atpS[5][5],double atpH[5][5],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,double *send5,double *hend5,char *numSeq1);
+static double END5_2(int,int,double dangleEntropies5[],double dangleEnthalpies5[],double atpS[],double atpH[],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,double *send5,double *hend5,char *numSeq1);
 
-static double END5_3(int,int,double dangleEntropies3[5][5][5],double dangleEnthalpies3[5][5][5],double atpS[5][5],double atpH[5][5],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,double *send5,double *hend5,char *numSeq1);
+static double END5_3(int,int,double dangleEntropies3[],double dangleEnthalpies3[],double atpS[],double atpH[],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,double *send5,double *hend5,char *numSeq1);
 
-static double END5_4(int,int,double tstack2Entropies[5][5][5][5],double tstack2Enthalpies[5][5][5][5],double atpS[5][5],double atpH[5][5],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,double *send5,double *hend5,char *numSeq1);
+static double END5_4(int,int,double tstack2Entropies[],double tstack2Enthalpies[],double atpS[],double atpH[],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,double *send5,double *hend5,char *numSeq1);
 
-static double Hd5(int,int,double dangleEnthalpies5[5][5][5],char *numSeq1);
+static double Hd5(int,int,double dangleEnthalpies5[],char *numSeq1);
 
-static double Hd3(int,int,double dangleEnthalpies3[5][5][5],char *numSeq1); /* returns thermodynamic value (H) for 3' dangling end */
-static double Sd5(int,int,double dangleEntropies5[5][5][5],char *numSeq1);
+static double Hd3(int,int,double dangleEnthalpies3[],char *numSeq1); /* returns thermodynamic value (H) for 3' dangling end */
+static double Sd5(int,int,double dangleEntropies5[],char *numSeq1);
 
-static double Sd3(int,int,double dangleEntropies3[5][5][5],char *numSeq1); /* returns thermodynamic value (S) for 3' dangling end */
-static double Ststack(int,int,double tstack2Entropies[5][5][5][5],char *numSeq1); /* returns entropy value for terminal stack */
-static double Htstack(int,int,double tstack2Enthalpies[5][5][5][5],char *numSeq1); /* returns enthalpy value for terminal stack */
+static double Sd3(int,int,double dangleEntropies3[],char *numSeq1); /* returns thermodynamic value (S) for 3' dangling end */
+static double Ststack(int,int,double tstack2Entropies[],char *numSeq1); /* returns entropy value for terminal stack */
+static double Htstack(int,int,double tstack2Enthalpies[],char *numSeq1); /* returns enthalpy value for terminal stack */
 
 //find here
-//static double dangleEntropies3[5][5][5]; /* thermodynamic paramteres for 3' dangling ends */
-//static double dangleEnthalpies3[5][5][5]; /* ther params for 3' dangling ends */
-//static double stackEntropies[5][5][5][5]; /* ther params for perfect match pairs */
-//static double stackEnthalpies[5][5][5][5]; /* ther params for perfect match pairs */
-//static double stackint2Entropies[5][5][5][5]; /*ther params for perfect match and internal mm */
-//static double stackint2Enthalpies[5][5][5][5]; /* ther params for perfect match and internal mm*/
-//static struct triloop* triloopEntropies = NULL; /* ther penalties for given triloop seq-s */
-//static struct triloop* triloopEnthalpies = NULL; /* ther penalties for given triloop seq-s */
-//static struct tetraloop* tetraloopEntropies = NULL; /* ther penalties for given tetraloop seq-s */
-//static struct tetraloop* tetraloopEnthalpies = NULL; /* ther penalties for given tetraloop seq-s */
 static jmp_buf _jmp_buf;
 
 void 
@@ -995,7 +985,7 @@ destroy_thal_structures(struct triloop *triloopEntropies,struct triloop *triloop
 
 /* central method: execute all sub-methods for calculating secondary
    structure for dimer or for monomer */
-void thal(const unsigned char *oligo_f,const unsigned char *oligo_r,const thal_args *a,thal_results *o,double stackEntropies[5][5][5][5],double stackEnthalpies[5][5][5][5],double stackint2Entropies[5][5][5][5],double stackint2Enthalpies[5][5][5][5],double dangleEntropies3[5][5][5],double dangleEnthalpies3[5][5][5],double dangleEntropies5[5][5][5],double dangleEnthalpies5[5][5][5],double hairpinLoopEntropies[],double interiorLoopEntropies[],double bulgeLoopEntropies[],double hairpinLoopEnthalpies[],double interiorLoopEnthalpies[],double bulgeLoopEnthalpies[],double tstackEntropies[5][5][5][5],double tstackEnthalpies[5][5][5][5],double tstack2Entropies[5][5][5][5],double tstack2Enthalpies[5][5][5][5],struct triloop* triloopEntropies,struct triloop* triloopEnthalpies,struct tetraloop* tetraloopEntropies,struct tetraloop* tetraloopEnthalpies,int numTriloops,int numTetraloops,double atpS[5][5],double atpH[5][5])
+void thal(const unsigned char *oligo_f,const unsigned char *oligo_r,const thal_args *a,thal_results *o,double stackEntropies[],double stackEnthalpies[],double stackint2Entropies[],double stackint2Enthalpies[],double dangleEntropies3[],double dangleEnthalpies3[],double dangleEntropies5[],double dangleEnthalpies5[],double hairpinLoopEntropies[],double interiorLoopEntropies[],double bulgeLoopEntropies[],double hairpinLoopEnthalpies[],double interiorLoopEnthalpies[],double bulgeLoopEnthalpies[],double tstackEntropies[],double tstackEnthalpies[],double tstack2Entropies[],double tstack2Enthalpies[],struct triloop* triloopEntropies,struct triloop* triloopEnthalpies,struct tetraloop* tetraloopEntropies,struct tetraloop* tetraloopEnthalpies,int numTriloops,int numTetraloops,double atpS[],double atpH[])
 {
 	double *SH,Initdouble[4];//0 is dplx_init_H, 1 is dplx_init_S, 2 is RC, 3 is SHleft
 	int Initint[5]; //0 is len1, 1 is len2, 2 is len3, 3 is bestI, 4 is bestJ
@@ -1378,7 +1368,7 @@ initMatrix2(int Initint[],double *enthalpyDPT,double *entropyDPT,char *numSeq1)
 }
 
 static void 
-fillMatrix(int maxLoop, thal_results *o,double stackEntropies[5][5][5][5],double stackEnthalpies[5][5][5][5],double stackint2Entropies[5][5][5][5],double stackint2Enthalpies[5][5][5][5],double dangleEntropies3[5][5][5],double dangleEnthalpies3[5][5][5],double dangleEntropies5[5][5][5],double dangleEnthalpies5[5][5][5],double interiorLoopEntropies[],double bulgeLoopEntropies[],double interiorLoopEnthalpies[],double bulgeLoopEnthalpies[],double tstackEntropies[5][5][5][5],double tstackEnthalpies[5][5][5][5],double tstack2Entropies[5][5][5][5],double tstack2Enthalpies[5][5][5][5],double atpS[5][5],double atpH[5][5],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,char *numSeq1,char *numSeq2)
+fillMatrix(int maxLoop, thal_results *o,double stackEntropies[],double stackEnthalpies[],double stackint2Entropies[],double stackint2Enthalpies[],double dangleEntropies3[],double dangleEnthalpies3[],double dangleEntropies5[],double dangleEnthalpies5[],double interiorLoopEntropies[],double bulgeLoopEntropies[],double interiorLoopEnthalpies[],double bulgeLoopEnthalpies[],double tstackEntropies[],double tstackEnthalpies[],double tstack2Entropies[],double tstack2Enthalpies[],double atpS[],double atpH[],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,char *numSeq1,char *numSeq2)
 {
    int d, i, j, ii, jj;
    double* SH;
@@ -1430,7 +1420,7 @@ fillMatrix(int maxLoop, thal_results *o,double stackEntropies[5][5][5][5],double
 }
 
 static void 
-fillMatrix2(int maxLoop, thal_results* o,double stackEntropies[5][5][5][5],double stackEnthalpies[5][5][5][5],double stackint2Entropies[5][5][5][5],double stackint2Enthalpies[5][5][5][5],double hairpinLoopEntropies[],double interiorLoopEntropies[],double bulgeLoopEntropies[],double hairpinLoopEnthalpies[],double interiorLoopEnthalpies[],double bulgeLoopEnthalpies[],double tstackEntropies[5][5][5][5],double tstackEnthalpies[5][5][5][5],double tstack2Entropies[5][5][5][5],double tstack2Enthalpies[5][5][5][5],struct triloop *triloopEntropies,struct triloop *triloopEnthalpies,struct tetraloop *tetraloopEntropies,struct tetraloop *tetraloopEnthalpies,int numTriloops,int numTetraloops,double atpS[5][5],double atpH[5][5],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,char *numSeq1,char *numSeq2)
+fillMatrix2(int maxLoop, thal_results* o,double stackEntropies[],double stackEnthalpies[],double stackint2Entropies[],double stackint2Enthalpies[],double hairpinLoopEntropies[],double interiorLoopEntropies[],double bulgeLoopEntropies[],double hairpinLoopEnthalpies[],double interiorLoopEnthalpies[],double bulgeLoopEnthalpies[],double tstackEntropies[],double tstackEnthalpies[],double tstack2Entropies[],double tstack2Enthalpies[],struct triloop *triloopEntropies,struct triloop *triloopEnthalpies,struct tetraloop *tetraloopEntropies,struct tetraloop *tetraloopEnthalpies,int numTriloops,int numTetraloops,double atpS[],double atpH[],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,char *numSeq1,char *numSeq2)
 {
    int i, j;
    double* SH;
@@ -1462,7 +1452,7 @@ fillMatrix2(int maxLoop, thal_results* o,double stackEntropies[5][5][5][5],doubl
 
 
 static void 
-maxTM(int i, int j,double stackEntropies[5][5][5][5],double stackEnthalpies[5][5][5][5],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,char *numSeq1,char *numSeq2)
+maxTM(int i, int j,double stackEntropies[],double stackEnthalpies[],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,char *numSeq1,char *numSeq2)
 {
    double T0, T1;
    double S0, S1;
@@ -1499,7 +1489,7 @@ maxTM(int i, int j,double stackEntropies[5][5][5][5],double stackEnthalpies[5][5
 }
 
 static void 
-maxTM2(int i, int j,double stackEntropies[5][5][5][5],double stackEnthalpies[5][5][5][5],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,char *numSeq1,char *numSeq2)
+maxTM2(int i, int j,double stackEntropies[],double stackEnthalpies[],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,char *numSeq1,char *numSeq2)
 {
    double T0, T1;
    double S0, S1;
@@ -1536,7 +1526,7 @@ maxTM2(int i, int j,double stackEntropies[5][5][5][5],double stackEnthalpies[5][
 
 
 static void 
-LSH(int i, int j, double* EntropyEnthalpy,double dangleEntropies3[5][5][5],double dangleEnthalpies3[5][5][5],double dangleEntropies5[5][5][5],double dangleEnthalpies5[5][5][5],double tstack2Entropies[5][5][5][5],double tstack2Enthalpies[5][5][5][5],double atpS[5][5],double atpH[5][5],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,char *numSeq1,char *numSeq2)
+LSH(int i, int j, double* EntropyEnthalpy,double dangleEntropies3[],double dangleEnthalpies3[],double dangleEntropies5[],double dangleEnthalpies5[],double tstack2Entropies[],double tstack2Enthalpies[],double atpS[],double atpH[],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,char *numSeq1,char *numSeq2)
 {
    double S1, H1, T1;
    double S2, H2, T2;
@@ -1549,19 +1539,19 @@ LSH(int i, int j, double* EntropyEnthalpy,double dangleEntropies3[5][5][5],doubl
       return;
    }
 
-   S1 = atpS[numSeq1[i]][numSeq2[j]]+ tstack2Entropies[numSeq2[j]][numSeq2[j-1]][numSeq1[i]][numSeq1[i-1]];
-   H1 =atpH[numSeq1[i]][numSeq2[j]]+ tstack2Enthalpies[numSeq2[j]][numSeq2[j-1]][numSeq1[i]][numSeq1[i-1]];
+   S1 = atpS[numSeq1[i]*5+numSeq2[j]]+ tstack2Entropies[numSeq2[j]*125+numSeq2[j-1]*25+numSeq1[i]*5+numSeq1[i-1]];
+   H1 =atpH[numSeq1[i]*5+numSeq2[j]]+ tstack2Enthalpies[numSeq2[j]*125+numSeq2[j-1]*25+numSeq1[i]*5+numSeq1[i-1]];
    if(!isFinite(H1)) {
       H1 = _INFINITY;
       S1 = -1.0;
    }
 
    /** If there is two dangling ends at the same end of duplex **/
-   if(isFinite(dangleEnthalpies3[numSeq2[j]][numSeq2[j - 1]][numSeq1[i]]) && isFinite(dangleEnthalpies5[numSeq2[j]][numSeq1[i]][numSeq1[i - 1]])) {
-      S2 =atpS[numSeq1[i]][numSeq2[j]]+ dangleEntropies3[numSeq2[j]][numSeq2[j - 1]][numSeq1[i]] +
-	dangleEntropies5[numSeq2[j]][numSeq1[i]][numSeq1[i - 1]];
-      H2 =atpH[numSeq1[i]][numSeq2[j]]+ dangleEnthalpies3[numSeq2[j]][numSeq2[j - 1]][numSeq1[i]] +
-	dangleEnthalpies5[numSeq2[j]][numSeq1[i]][numSeq1[i - 1]];
+   if(isFinite(dangleEnthalpies3[numSeq2[j]*25+numSeq2[j-1]*5+numSeq1[i]]) && isFinite(dangleEnthalpies5[numSeq2[j]*25+numSeq1[i]*5+numSeq1[i-1]])) {
+      S2 =atpS[numSeq1[i]*5+numSeq2[j]]+ dangleEntropies3[numSeq2[j]*25+numSeq2[j-1]*5+numSeq1[i]] +
+	dangleEntropies5[numSeq2[j]*25+numSeq1[i]*5+numSeq1[i-1]];
+      H2 =atpH[numSeq1[i]*5+numSeq2[j]]+ dangleEnthalpies3[numSeq2[j]*25+numSeq2[j-1]*5+numSeq1[i]] +
+	dangleEnthalpies5[numSeq2[j]*25+numSeq1[i]*5+numSeq1[i-1]];
       if(!isFinite(H2)) {
 	 H2 = _INFINITY;
 	 S2 = -1.0;
@@ -1579,9 +1569,9 @@ LSH(int i, int j, double* EntropyEnthalpy,double dangleEntropies3[5][5][5],doubl
 	 H1 = H2;
 	 T1 = T2;
       }
-   } else if (isFinite(dangleEnthalpies3[numSeq2[j]][numSeq2[j - 1]][numSeq1[i]])) {
-      S2 =atpS[numSeq1[i]][numSeq2[j]]+ dangleEntropies3[numSeq2[j]][numSeq2[j - 1]][numSeq1[i]];
-      H2 =atpH[numSeq1[i]][numSeq2[j]]+ dangleEnthalpies3[numSeq2[j]][numSeq2[j - 1]][numSeq1[i]];
+   } else if (isFinite(dangleEnthalpies3[numSeq2[j]*25+numSeq2[j-1]*5+numSeq1[i]])) {
+      S2 =atpS[numSeq1[i]*5+numSeq2[j]]+ dangleEntropies3[numSeq2[j]*25+numSeq2[j-1]*5+numSeq1[i]];
+      H2 =atpH[numSeq1[i]*5+numSeq2[j]]+ dangleEnthalpies3[numSeq2[j]*25+numSeq2[j-1]*5+numSeq1[i]];
       if(!isFinite(H2)) {
 	 H2 = _INFINITY;
 	 S2 = -1.0;
@@ -1599,9 +1589,9 @@ LSH(int i, int j, double* EntropyEnthalpy,double dangleEntropies3[5][5][5],doubl
 	 H1 = H2;
 	 T1 = T2;
       }
-   } else if (isFinite(dangleEnthalpies5[numSeq2[j]][numSeq1[i]][numSeq1[i - 1]])) {
-      S2 =atpS[numSeq1[i]][numSeq2[j]]+ dangleEntropies5[numSeq2[j]][numSeq1[i]][numSeq1[i - 1]];
-      H2 =atpH[numSeq1[i]][numSeq2[j]]+ dangleEnthalpies5[numSeq2[j]][numSeq1[i]][numSeq1[i - 1]];
+   } else if (isFinite(dangleEnthalpies5[numSeq2[j]*25+numSeq1[i]*5+numSeq1[i-1]])) {
+      S2 =atpS[numSeq1[i]*5+numSeq2[j]]+ dangleEntropies5[numSeq2[j]*25+numSeq1[i]*5+numSeq1[i-1]];
+      H2 =atpH[numSeq1[i]*5+numSeq2[j]]+ dangleEnthalpies5[numSeq2[j]*25+numSeq1[i]*5+numSeq1[i-1]];
       if(!isFinite(H2)) {
 	 H2 = _INFINITY;
 	 S2 = -1.0;
@@ -1620,8 +1610,8 @@ LSH(int i, int j, double* EntropyEnthalpy,double dangleEntropies3[5][5][5],doubl
 	 T1 = T2;
       }
    }
-   S2 =atpS[numSeq1[i]][numSeq2[j]];
-   H2 =atpH[numSeq1[i]][numSeq2[j]];
+   S2 =atpS[numSeq1[i]*5+numSeq2[j]];
+   H2 =atpH[numSeq1[i]*5+numSeq2[j]];
    T2 = (H2 +Initdouble[0]) / (S2 +Initdouble[1]+ Initdouble[2]);
    if(isFinite(H1)) {
       if(T1 < T2) {
@@ -1639,7 +1629,7 @@ LSH(int i, int j, double* EntropyEnthalpy,double dangleEntropies3[5][5][5],doubl
 }
 
 static void 
-RSH(int i, int j, double* EntropyEnthalpy,double dangleEntropies3[5][5][5],double dangleEnthalpies3[5][5][5],double dangleEntropies5[5][5][5],double dangleEnthalpies5[5][5][5],double tstack2Entropies[5][5][5][5],double tstack2Enthalpies[5][5][5][5],double atpS[5][5],double atpH[5][5],double Initdouble[],char *numSeq1,char *numSeq2)
+RSH(int i, int j, double* EntropyEnthalpy,double dangleEntropies3[],double dangleEnthalpies3[],double dangleEntropies5[],double dangleEnthalpies5[],double tstack2Entropies[],double tstack2Enthalpies[],double atpS[],double atpH[],double Initdouble[],char *numSeq1,char *numSeq2)
 {
    double S1, S2;
    double H1, H2;
@@ -1652,17 +1642,17 @@ RSH(int i, int j, double* EntropyEnthalpy,double dangleEntropies3[5][5][5],doubl
       EntropyEnthalpy[1] = _INFINITY;
       return;
    }
-   S1 =atpS[numSeq1[i]][numSeq2[j]] + tstack2Entropies[numSeq1[i]][numSeq1[i + 1]][numSeq2[j]][numSeq2[j + 1]];
-   H1 =atpH[numSeq1[i]][numSeq2[j]]+ tstack2Enthalpies[numSeq1[i]][numSeq1[i + 1]][numSeq2[j]][numSeq2[j + 1]];
+   S1 =atpS[numSeq1[i]*5+numSeq2[j]] + tstack2Entropies[numSeq1[i]*125+numSeq1[i+1]*25+numSeq2[j]*5+numSeq2[j+1]];
+   H1 =atpH[numSeq1[i]*5+numSeq2[j]]+ tstack2Enthalpies[numSeq1[i]*125+numSeq1[i+1]*25+numSeq2[j]*5+numSeq2[j+1]];
    if(!isFinite(H1)) {
       H1 = _INFINITY;
       S1 = -1.0;
    }
-   if(isFinite(dangleEnthalpies3[numSeq1[i]][numSeq1[i + 1]][numSeq2[j]]) && isFinite(dangleEnthalpies5[numSeq1[i]][numSeq2[j]][numSeq2[j + 1]])) {
-      S2 =atpS[numSeq1[i]][numSeq2[j]] + dangleEntropies3[numSeq1[i]][numSeq1[i + 1]][numSeq2[j]] +
-	dangleEntropies5[numSeq1[i]][numSeq2[j]][numSeq2[j + 1]];
-      H2 =atpH[numSeq1[i]][numSeq2[j]]+ dangleEnthalpies3[numSeq1[i]][numSeq1[i + 1]][numSeq2[j]] +
-	dangleEnthalpies5[numSeq1[i]][numSeq2[j]][numSeq2[j + 1]];
+   if(isFinite(dangleEnthalpies3[numSeq1[i]*25+numSeq1[i+1]*5+numSeq2[j]]) && isFinite(dangleEnthalpies5[numSeq1[i]*25+numSeq2[j]*5+numSeq2[j+1]])) {
+      S2 =atpS[numSeq1[i]*5+numSeq2[j]] + dangleEntropies3[numSeq1[i]*25+numSeq1[i+1]*5+numSeq2[j]] +
+	dangleEntropies5[numSeq1[i]*25+numSeq2[j]*5+numSeq2[j+1]];
+      H2 =atpH[numSeq1[i]*5+numSeq2[j]]+ dangleEnthalpies3[numSeq1[i]*25+numSeq1[i+1]*5+numSeq2[j]] +
+	dangleEnthalpies5[numSeq1[i]*25+numSeq2[j]*5+numSeq2[j+1]];
       if(!isFinite(H2)) {
 	 H2 = _INFINITY;
 	 S2 = -1.0;
@@ -1682,9 +1672,9 @@ RSH(int i, int j, double* EntropyEnthalpy,double dangleEntropies3[5][5][5],doubl
       }
    }
 
-   if(isFinite(dangleEnthalpies3[numSeq1[i]][numSeq1[i + 1]][numSeq2[j]])) {
-      S2 =atpS[numSeq1[i]][numSeq2[j]] + dangleEntropies3[numSeq1[i]][numSeq1[i + 1]][numSeq2[j]];
-      H2 =atpH[numSeq1[i]][numSeq2[j]]+ dangleEnthalpies3[numSeq1[i]][numSeq1[i + 1]][numSeq2[j]];
+   if(isFinite(dangleEnthalpies3[numSeq1[i]*25+numSeq1[i+1]*5+numSeq2[j]])) {
+      S2 =atpS[numSeq1[i]*5+numSeq2[j]] +dangleEntropies3[numSeq1[i]*25+numSeq1[i+1]*5+numSeq2[j]];
+      H2 =atpH[numSeq1[i]*5+numSeq2[j]]+ dangleEnthalpies3[numSeq1[i]*25+numSeq1[i+1]*5+numSeq2[j]];
       if(!isFinite(H2)) {
 	 H2 = _INFINITY;
 	 S2 = -1.0;
@@ -1704,9 +1694,9 @@ RSH(int i, int j, double* EntropyEnthalpy,double dangleEntropies3[5][5][5],doubl
       }
    }
 
-   if(isFinite(dangleEnthalpies5[numSeq1[i]][numSeq2[j]][numSeq2[j + 1]])) {
-      S2 =atpS[numSeq1[i]][numSeq2[j]]+ dangleEntropies5[numSeq1[i]][numSeq2[j]][numSeq2[j + 1]];
-      H2 =atpH[numSeq1[i]][numSeq2[j]]+ dangleEnthalpies5[numSeq1[i]][numSeq2[j]][numSeq2[j + 1]];
+   if(isFinite(dangleEnthalpies5[numSeq1[i]*25+numSeq2[j]*5+numSeq2[j+1]])) {
+      S2 =atpS[numSeq1[i]*5+numSeq2[j]]+ dangleEntropies5[numSeq1[i]*25+numSeq2[j]*5+numSeq2[j+1]];
+      H2 =atpH[numSeq1[i]*5+numSeq2[j]]+ dangleEnthalpies5[numSeq1[i]*25+numSeq2[j]*5+numSeq2[j+1]];
       if(!isFinite(H2)) {
 	 H2 = _INFINITY;
 	 S2 = -1.0;
@@ -1725,8 +1715,8 @@ RSH(int i, int j, double* EntropyEnthalpy,double dangleEntropies3[5][5][5],doubl
 	 T1 = T2;
       }
    }
-   S2 =atpS[numSeq1[i]][numSeq2[j]];
-   H2 =atpH[numSeq1[i]][numSeq2[j]];
+   S2 =atpS[numSeq1[i]*5+numSeq2[j]];
+   H2 =atpH[numSeq1[i]*5+numSeq2[j]];
    T2 = (H2 +Initdouble[0]) / (S2 +Initdouble[1]+ Initdouble[2]);
    if(isFinite(H1)) {
       if(T1 < T2) {
@@ -1744,7 +1734,7 @@ RSH(int i, int j, double* EntropyEnthalpy,double dangleEntropies3[5][5][5],doubl
 }
 
 static double 
-Ss(int i, int j, int k,double stackEntropies[5][5][5][5],int Initint[],char *numSeq1,char *numSeq2)
+Ss(int i, int j, int k,double stackEntropies[],int Initint[],char *numSeq1,char *numSeq2)
 {
    if(k==2) {
       if (i >= j)
@@ -1756,15 +1746,15 @@ Ss(int i, int j, int k,double stackEntropies[5][5][5][5],int Initint[],char *num
 	i -= Initint[0];
       if (j > Initint[1])
 	j -= Initint[1];
-      return stackEntropies[numSeq1[i]][numSeq1[i+1]][numSeq2[j]][numSeq2[j-1]];
+      return stackEntropies[numSeq1[i]*125+numSeq1[i+1]*25+numSeq2[j]*5+numSeq2[j-1]];
    } else {
-      return stackEntropies[numSeq1[i]][numSeq1[i + 1]][numSeq2[j]][numSeq2[j + 1]];
+      return stackEntropies[numSeq1[i]*125+numSeq1[i+1]*25+numSeq2[j]*5+numSeq2[j+1]];
    }
 }
 
 
 static double 
-Hs(int i, int j, int k,double stackEnthalpies[5][5][5][5],int Initint[],char *numSeq1,char *numSeq2)
+Hs(int i, int j, int k,double stackEnthalpies[],int Initint[],char *numSeq1,char *numSeq2)
 {
    if(k==2) {
       if (i >= j)
@@ -1776,18 +1766,18 @@ Hs(int i, int j, int k,double stackEnthalpies[5][5][5][5],int Initint[],char *nu
 	i -= Initint[0];
       if (j > Initint[1])
 	j -= Initint[1];
-      if(isFinite(stackEnthalpies[numSeq1[i]][numSeq1[i+1]][numSeq2[j]][numSeq2[j-1]])) {
-	 return stackEnthalpies[numSeq1[i]][numSeq1[i+1]][numSeq2[j]][numSeq2[j-1]];
+      if(isFinite(stackEnthalpies[numSeq1[i]*125+numSeq1[i+1]*25+numSeq2[j]*5+numSeq2[j-1]])) {
+	 return stackEnthalpies[numSeq1[i]*125+numSeq1[i+1]*25+numSeq2[j]*5+numSeq2[j-1]];
       } else {
 	 return _INFINITY;
       }
    } else {
-      return stackEnthalpies[numSeq1[i]][numSeq1[i + 1]][numSeq2[j]][numSeq2[j + 1]];
+      return stackEnthalpies[numSeq1[i]*125+numSeq1[i + 1]*25+numSeq2[j]*5+numSeq2[j+1]];
    }
 }
 
 static void 
-CBI(int i, int j, double* EntropyEnthalpy, int traceback, int maxLoop,double stackEntropies[5][5][5][5],double stackEnthalpies[5][5][5][5],double stackint2Entropies[5][5][5][5],double stackint2Enthalpies[5][5][5][5],double interiorLoopEntropies[],double bulgeLoopEntropies[],double interiorLoopEnthalpies[],double bulgeLoopEnthalpies[],double tstackEntropies[5][5][5][5],double tstackEnthalpies[5][5][5][5],double atpS[5][5],double atpH[5][5],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,char *numSeq1,char *numSeq2)
+CBI(int i, int j, double* EntropyEnthalpy, int traceback, int maxLoop,double stackEntropies[],double stackEnthalpies[],double stackint2Entropies[],double stackint2Enthalpies[],double interiorLoopEntropies[],double bulgeLoopEntropies[],double interiorLoopEnthalpies[],double bulgeLoopEnthalpies[],double tstackEntropies[],double tstackEnthalpies[],double atpS[],double atpH[],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,char *numSeq1,char *numSeq2)
 {
    int d, ii, jj;
    for (d = j - i - 3; d >= 3 + 1 && d >= j - i - 2 - maxLoop; --d)
@@ -1816,7 +1806,7 @@ CBI(int i, int j, double* EntropyEnthalpy, int traceback, int maxLoop,double sta
 }
 
 static void 
-calc_hairpin(int i, int j, double* EntropyEnthalpy, int traceback,double hairpinLoopEntropies[],double hairpinLoopEnthalpies[],double tstack2Entropies[5][5][5][5],double tstack2Enthalpies[5][5][5][5],struct triloop *triloopEntropies,struct triloop *triloopEnthalpies,struct tetraloop *tetraloopEntropies,struct tetraloop *tetraloopEnthalpies,int numTriloops,int numTetraloops,double atpS[5][5],double atpH[5][5],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,char *numSeq1)
+calc_hairpin(int i, int j, double* EntropyEnthalpy, int traceback,double hairpinLoopEntropies[],double hairpinLoopEnthalpies[],double tstack2Entropies[],double tstack2Enthalpies[],struct triloop *triloopEntropies,struct triloop *triloopEnthalpies,struct tetraloop *tetraloopEntropies,struct tetraloop *tetraloopEnthalpies,int numTriloops,int numTetraloops,double atpS[],double atpH[],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,char *numSeq1)
 {
    int loopSize = j - i - 1;
    double T1, T2;
@@ -1843,11 +1833,11 @@ calc_hairpin(int i, int j, double* EntropyEnthalpy, int traceback,double hairpin
    }
 
    if (loopSize > 3) { /* for loops 4 bp and more in length, terminal mm are accounted */
-      EntropyEnthalpy[1] += tstack2Enthalpies[numSeq1[i]][numSeq1[i + 1]][numSeq1[j]][numSeq1[j - 1]];
-      EntropyEnthalpy[0] += tstack2Entropies[numSeq1[i]][numSeq1[i + 1]][numSeq1[j]][numSeq1[j - 1]];
+      EntropyEnthalpy[1] += tstack2Enthalpies[numSeq1[i]*125+numSeq1[i+1]*25+numSeq1[j]*5+numSeq1[j-1]];
+      EntropyEnthalpy[0] += tstack2Entropies[numSeq1[i]*125+numSeq1[i+1]*25+numSeq1[j]*5+numSeq1[j-1]];
    } else if(loopSize == 3){ /* for loops 3 bp in length at-penalty is considered */
-      EntropyEnthalpy[1] +=atpH[numSeq1[i]][numSeq1[j]];
-      EntropyEnthalpy[0] +=atpS[numSeq1[i]][numSeq1[j]];
+      EntropyEnthalpy[1] +=atpH[numSeq1[i]*5+numSeq1[j]];
+      EntropyEnthalpy[0] +=atpS[numSeq1[i]*5+numSeq1[j]];
    }
 
    if (loopSize == 3) {	 /* closing AT-penalty (+), triloop bonus, hairpin of 3 (+) */
@@ -1884,7 +1874,7 @@ calc_hairpin(int i, int j, double* EntropyEnthalpy, int traceback,double hairpin
 
 
 static void 
-calc_bulge_internal(int i, int j, int ii, int jj, double* EntropyEnthalpy, int traceback, int maxLoop,double stackEntropies[5][5][5][5],double stackEnthalpies[5][5][5][5],double stackint2Entropies[5][5][5][5],double stackint2Enthalpies[5][5][5][5],double interiorLoopEntropies[],double bulgeLoopEntropies[],double interiorLoopEnthalpies[],double bulgeLoopEnthalpies[],double tstackEntropies[5][5][5][5],double tstackEnthalpies[5][5][5][5],double atpS[5][5],double atpH[5][5],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,char *numSeq1,char *numSeq2)
+calc_bulge_internal(int i, int j, int ii, int jj, double* EntropyEnthalpy, int traceback, int maxLoop,double stackEntropies[],double stackEnthalpies[],double stackint2Entropies[],double stackint2Enthalpies[],double interiorLoopEntropies[],double bulgeLoopEntropies[],double interiorLoopEnthalpies[],double bulgeLoopEnthalpies[],double tstackEntropies[],double tstackEnthalpies[],double atpS[],double atpH[],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,char *numSeq1,char *numSeq2)
 {
    int loopSize1, loopSize2, loopSize;
    double T1, T2;
@@ -1915,9 +1905,9 @@ calc_bulge_internal(int i, int j, int ii, int jj, double* EntropyEnthalpy, int t
 
 	 if((loopSize2 == 1 && loopSize1 == 0) || (loopSize2 == 0 && loopSize1 == 1)) {
 	    H = bulgeLoopEnthalpies[loopSize] +
-	      stackEnthalpies[numSeq1[i]][numSeq1[ii]][numSeq2[j]][numSeq2[jj]];
+	      stackEnthalpies[numSeq1[i]*125+numSeq1[ii]*25+numSeq2[j]*5+numSeq2[jj]];
 	    S = bulgeLoopEntropies[loopSize] +
-	      stackEntropies[numSeq1[i]][numSeq1[ii]][numSeq2[j]][numSeq2[jj]];
+	      stackEntropies[numSeq1[i]*125+numSeq1[ii]*25+numSeq2[j]*5+numSeq2[jj]];
 	 }
 	 H +=enthalpyDPT[(i-1)*Initint[2]+j-1];
 	 S +=entropyDPT[(i-1)*Initint[2]+j-1];
@@ -1935,10 +1925,10 @@ calc_bulge_internal(int i, int j, int ii, int jj, double* EntropyEnthalpy, int t
 	 }
       } else { /* we have _not_ implemented Jacobson-Stockaymayer equation; the maximum bulgeloop size is 30 */
 
-	 H = bulgeLoopEnthalpies[loopSize] +atpH[numSeq1[i]][numSeq2[j]]+atpH[numSeq1[ii]][numSeq2[jj]];
+	 H = bulgeLoopEnthalpies[loopSize] +atpH[numSeq1[i]*5+numSeq2[j]]+atpH[numSeq1[ii]*5+numSeq2[jj]];
 	 H +=enthalpyDPT[(i-1)*Initint[2]+j-1];
 
-	 S = bulgeLoopEntropies[loopSize] +atpS[numSeq1[i]][numSeq2[j]]+atpS[numSeq1[ii]][numSeq2[jj]];
+	 S = bulgeLoopEntropies[loopSize] +atpS[numSeq1[i]*5+numSeq2[j]]+atpS[numSeq1[ii]*5+numSeq2[jj]];
 	 S +=entropyDPT[(i-1)*Initint[2]+j-1];
 	 if(!isFinite(H)) {
 	    H = _INFINITY;
@@ -1953,12 +1943,12 @@ calc_bulge_internal(int i, int j, int ii, int jj, double* EntropyEnthalpy, int t
 	 }
       }
    } else if (loopSize1 == 1 && loopSize2 == 1) {
-      S = stackint2Entropies[numSeq1[i]][numSeq1[i+1]][numSeq2[j]][numSeq2[j+1]] +
-	stackint2Entropies[numSeq2[jj]][numSeq2[jj-1]][numSeq1[ii]][numSeq1[ii-1]];
+      S = stackint2Entropies[numSeq1[i]*125+numSeq1[i+1]*25+numSeq2[j]*5+numSeq2[j+1]] +
+	stackint2Entropies[numSeq2[jj]*125+numSeq2[jj-1]*25+numSeq1[ii]*5+numSeq1[ii-1]];
       S +=entropyDPT[(i-1)*Initint[2]+j-1];
 
-      H = stackint2Enthalpies[numSeq1[i]][numSeq1[i+1]][numSeq2[j]][numSeq2[j+1]] +
-	stackint2Enthalpies[numSeq2[jj]][numSeq2[jj-1]][numSeq1[ii]][numSeq1[ii-1]];
+      H = stackint2Enthalpies[numSeq1[i]*125+numSeq1[i+1]*25+numSeq2[j]*5+numSeq2[j+1]] +
+	stackint2Enthalpies[numSeq2[jj]*125+numSeq2[jj-1]*25+numSeq1[ii]*5+numSeq1[ii-1]];
       H +=enthalpyDPT[(i-1)*Initint[2]+j-1];
       if(!isFinite(H)) {
 	 H = _INFINITY;
@@ -1976,13 +1966,13 @@ calc_bulge_internal(int i, int j, int ii, int jj, double* EntropyEnthalpy, int t
       }
       return;
    } else { /* only internal loops */
-      H = interiorLoopEnthalpies[loopSize] + tstackEnthalpies[numSeq1[i]][numSeq1[i+1]][numSeq2[j]][numSeq2[j+1]] +
-	tstackEnthalpies[numSeq2[jj]][numSeq2[jj-1]][numSeq1[ii]][numSeq1[ii-1]]
+      H = interiorLoopEnthalpies[loopSize] + tstackEnthalpies[numSeq1[i]*125+numSeq1[i+1]*25+numSeq2[j]*5+numSeq2[j+1]] +
+	tstackEnthalpies[numSeq2[jj]*125+numSeq2[jj-1]*25+numSeq1[ii]*5+numSeq1[ii-1]]
 	+ (0.0* abs(loopSize1 - loopSize2));
       H +=enthalpyDPT[(i-1)*Initint[2]+j-1];
 
-      S = interiorLoopEntropies[loopSize] + tstackEntropies[numSeq1[i]][numSeq1[i+1]][numSeq2[j]][numSeq2[j+1]] +
-	tstackEntropies[numSeq2[jj]][numSeq2[jj-1]][numSeq1[ii]][numSeq1[ii-1]] + (-300/310.15* abs(loopSize1 - loopSize2));
+      S = interiorLoopEntropies[loopSize] + tstackEntropies[numSeq1[i]*125+numSeq1[i+1]*25+numSeq2[j]*5+numSeq2[j+1]] +
+	tstackEntropies[numSeq2[jj]*125+numSeq2[jj-1]*25+numSeq1[ii]*5+numSeq1[ii-1]] + (-300/310.15* abs(loopSize1 - loopSize2));
       S +=entropyDPT[(i-1)*Initint[2]+j-1];
       if(!isFinite(H)) {
 	 H = _INFINITY;
@@ -1999,7 +1989,7 @@ calc_bulge_internal(int i, int j, int ii, int jj, double* EntropyEnthalpy, int t
 }
 
 static void 
-calc_bulge_internal2(int i, int j, int ii, int jj, double* EntropyEnthalpy, int traceback, int maxLoop,double stackEntropies[5][5][5][5],double stackEnthalpies[5][5][5][5],double stackint2Entropies[5][5][5][5],double stackint2Enthalpies[5][5][5][5],double interiorLoopEntropies[],double bulgeLoopEntropies[],double interiorLoopEnthalpies[],double bulgeLoopEnthalpies[],double tstackEntropies[5][5][5][5],double tstackEnthalpies[5][5][5][5],double atpS[5][5],double atpH[5][5],double Initdouble[0],int Initint[],double *enthalpyDPT,double *entropyDPT,char *numSeq1,char *numSeq2)
+calc_bulge_internal2(int i, int j, int ii, int jj, double* EntropyEnthalpy, int traceback, int maxLoop,double stackEntropies[],double stackEnthalpies[],double stackint2Entropies[],double stackint2Enthalpies[],double interiorLoopEntropies[],double bulgeLoopEntropies[],double interiorLoopEnthalpies[],double bulgeLoopEnthalpies[],double tstackEntropies[],double tstackEnthalpies[],double atpS[],double atpH[],double Initdouble[0],int Initint[],double *enthalpyDPT,double *entropyDPT,char *numSeq1,char *numSeq2)
 {
    int loopSize1, loopSize2, loopSize;
    double T1, T2;
@@ -2030,9 +2020,9 @@ calc_bulge_internal2(int i, int j, int ii, int jj, double* EntropyEnthalpy, int 
 					      the intervening nn-pair must be added */
 	 if((loopSize2 == 1 && loopSize1 == 0) || (loopSize2 == 0 && loopSize1 == 1)) {
 	    H = bulgeLoopEnthalpies[loopSize] +
-	      stackEnthalpies[numSeq1[i]][numSeq1[ii]][numSeq2[j]][numSeq2[jj]];
+	      stackEnthalpies[numSeq1[i]*125+numSeq1[ii]*25+numSeq2[j]*5+numSeq2[jj]];
 	    S = bulgeLoopEntropies[loopSize] +
-	      stackEntropies[numSeq1[i]][numSeq1[ii]][numSeq2[j]][numSeq2[jj]];
+	      stackEntropies[numSeq1[i]*125+numSeq1[ii]*25+numSeq2[j]*5+numSeq2[jj]];
 	 }
 	 if(traceback!=1) {
 	    H +=enthalpyDPT[(ii-1)*Initint[2]+jj-1]; /* bulge koos otsaga, st bulge i,j-ni */
@@ -2054,11 +2044,11 @@ calc_bulge_internal2(int i, int j, int ii, int jj, double* EntropyEnthalpy, int 
 
       } else { /* we have _not_ implemented Jacobson-Stockaymayer equation; the maximum bulgeloop size is 30 */
 
-	 H = bulgeLoopEnthalpies[loopSize] +atpH[numSeq1[i]][numSeq2[j]]+atpH[numSeq1[ii]][numSeq2[jj]];
+	 H = bulgeLoopEnthalpies[loopSize] +atpH[numSeq1[i]*5+numSeq2[j]]+atpH[numSeq1[ii]*5+numSeq2[jj]];
 	 if(traceback!=1)
 	   H +=enthalpyDPT[(ii-1)*Initint[2]+jj-1];
 
-	 S = bulgeLoopEntropies[loopSize] +atpS[numSeq1[i]][numSeq2[j]]+atpS[numSeq1[ii]][numSeq2[jj]];
+	 S = bulgeLoopEntropies[loopSize] +atpS[numSeq1[i]*5+numSeq2[j]]+atpS[numSeq1[ii]*5+numSeq2[jj]];
 	 if(traceback!=1)
 	   S +=entropyDPT[(ii-1)*Initint[2]+jj-1];
 	 if(!isFinite(H)) {
@@ -2077,13 +2067,13 @@ calc_bulge_internal2(int i, int j, int ii, int jj, double* EntropyEnthalpy, int 
    else if (loopSize1 == 1 && loopSize2 == 1) {
       /* mismatch nearest neighbor parameters */
 
-      S = stackint2Entropies[numSeq1[i]][numSeq1[i+1]][numSeq2[j]][numSeq2[j-1]] +
-	stackint2Entropies[numSeq2[jj]][numSeq2[jj+1]][numSeq1[ii]][numSeq1[ii-1]];
+      S = stackint2Entropies[numSeq1[i]*125+numSeq1[i+1]*25+numSeq2[j]*5+numSeq2[j-1]] +
+	stackint2Entropies[numSeq2[jj]*125+numSeq2[jj+1]*25+numSeq1[ii]*5+numSeq1[ii-1]];
       if(traceback!=1)
 	S +=entropyDPT[(ii-1)*Initint[2]+jj-1];
 
-      H = stackint2Enthalpies[numSeq1[i]][numSeq1[i+1]][numSeq2[j]][numSeq2[j-1]] +
-	stackint2Enthalpies[numSeq2[jj]][numSeq2[jj+1]][numSeq1[ii]][numSeq1[ii-1]];
+      H = stackint2Enthalpies[numSeq1[i]*125+numSeq1[i+1]*25+numSeq2[j]*5+numSeq2[j-1]] +
+	stackint2Enthalpies[numSeq2[jj]*125+numSeq2[jj+1]*25+numSeq1[ii]*5+numSeq1[ii-1]];
       if(traceback!=1)
 	H +=enthalpyDPT[(ii-1)*Initint[2]+jj-1];
       if(!isFinite(H)) {
@@ -2101,14 +2091,14 @@ calc_bulge_internal2(int i, int j, int ii, int jj, double* EntropyEnthalpy, int 
       return;
    } else { /* only internal loops */
 
-      H = interiorLoopEnthalpies[loopSize] + tstackEnthalpies[numSeq1[i]][numSeq1[i+1]][numSeq2[j]][numSeq2[j-1]] +
-	tstackEnthalpies[numSeq2[jj]][numSeq2[jj+1]][numSeq1[ii]][numSeq1[ii-1]]
+      H = interiorLoopEnthalpies[loopSize] + tstackEnthalpies[numSeq1[i]*125+numSeq1[i+1]*25+numSeq2[j]*5+numSeq2[j-1]] +
+	tstackEnthalpies[numSeq2[jj]*125+numSeq2[jj+1]*25+numSeq1[ii]*5+numSeq1[ii-1]]
 	+ (0.0* abs(loopSize1 - loopSize2));
       if(traceback!=1)
 	H +=enthalpyDPT[(ii-1)*Initint[2]+jj-1];
 
-      S = interiorLoopEntropies[loopSize] + tstackEntropies[numSeq1[i]][numSeq1[i+1]][numSeq2[j]][numSeq2[j-1]] +
-	tstackEntropies[numSeq2[jj]][numSeq2[jj+1]][numSeq1[ii]][numSeq1[ii-1]] + (-300/310.15* abs(loopSize1 - loopSize2));
+      S = interiorLoopEntropies[loopSize] + tstackEntropies[numSeq1[i]*125+numSeq1[i+1]*25+numSeq2[j]*5+numSeq2[j-1]] +
+	tstackEntropies[numSeq2[jj]*125+numSeq2[jj+1]*25+numSeq1[ii]*5+numSeq1[ii-1]] + (-300/310.15* abs(loopSize1 - loopSize2));
       if(traceback!=1)
 	S +=entropyDPT[(ii-1)*Initint[2]+jj-1];
       if(!isFinite(H)) {
@@ -2127,7 +2117,7 @@ calc_bulge_internal2(int i, int j, int ii, int jj, double* EntropyEnthalpy, int 
 }
 
 static void 
-calc_terminal_bp(double temp,double dangleEntropies3[5][5][5],double dangleEnthalpies3[5][5][5],double dangleEntropies5[5][5][5],double dangleEnthalpies5[5][5][5],double tstack2Entropies[5][5][5][5],double tstack2Enthalpies[5][5][5][5],double atpS[5][5],double atpH[5][5],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,double *send5,double *hend5,char *numSeq1)
+calc_terminal_bp(double temp,double dangleEntropies3[],double dangleEnthalpies3[],double dangleEntropies5[],double dangleEnthalpies5[],double tstack2Entropies[],double tstack2Enthalpies[],double atpS[],double atpH[],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,double *send5,double *hend5,char *numSeq1)
 {
    int i;
    int max;
@@ -2206,7 +2196,7 @@ calc_terminal_bp(double temp,double dangleEntropies3[5][5][5],double dangleEntha
 }
 
 static double 
-END5_1(int i,int hs,double atpS[5][5],double atpH[5][5],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,double *send5,double *hend5,char *numSeq1)
+END5_1(int i,int hs,double atpS[],double atpH[],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,double *send5,double *hend5,char *numSeq1)
 {
    int k;
    double max_tm; /* energy min */
@@ -2221,16 +2211,16 @@ END5_1(int i,int hs,double atpS[5][5],double atpH[5][5],double Initdouble[],int 
       T1 = (hend5[k] +Initdouble[0]) /(send5[k] + Initdouble[1] + Initdouble[2]);
       T2 = (0 +Initdouble[0]) /(0 + Initdouble[1] + Initdouble[2]);
       if(T1 >= T2) {
-	 H =hend5[k]+atpH[numSeq1[k+1]][numSeq1[i]]+enthalpyDPT[k*Initint[2]+i-1];
-	 S =send5[k] +atpS[numSeq1[k + 1]][numSeq1[i]]+entropyDPT[k*Initint[2]+i-1];
+	 H =hend5[k]+atpH[numSeq1[k+1]*5+numSeq1[i]]+enthalpyDPT[k*Initint[2]+i-1];
+	 S =send5[k] +atpS[numSeq1[k+1]*5+numSeq1[i]]+entropyDPT[k*Initint[2]+i-1];
 	 if(!isFinite(H) || H > 0 || S > 0) { /* H and S must be greater than 0 to avoid BS */
 	    H = _INFINITY;
 	    S = -1.0;
 	 }
 	 T1 = (H +Initdouble[0]) / (S + Initdouble[1] + Initdouble[2]);
       } else {
-	 H = 0 +atpH[numSeq1[k+1]][numSeq1[i]]+enthalpyDPT[k*Initint[2]+i-1];
-	 S = 0 +atpS[numSeq1[k+1]][numSeq1[i]]+entropyDPT[k*Initint[2]+i-1];
+	 H = 0 +atpH[numSeq1[k+1]*5+numSeq1[i]]+enthalpyDPT[k*Initint[2]+i-1];
+	 S = 0 +atpS[numSeq1[k+1]*5+numSeq1[i]]+entropyDPT[k*Initint[2]+i-1];
 	 if(!isFinite(H) || H > 0 || S > 0) {
 	    H = _INFINITY;
 	    S = -1.0;
@@ -2250,7 +2240,7 @@ END5_1(int i,int hs,double atpS[5][5],double atpH[5][5],double Initdouble[],int 
 }
 
 static double 
-END5_2(int i,int hs,double dangleEntropies5[5][5][5],double dangleEnthalpies5[5][5][5],double atpS[5][5],double atpH[5][5],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,double *send5,double *hend5,char *numSeq1)
+END5_2(int i,int hs,double dangleEntropies5[],double dangleEnthalpies5[],double atpS[],double atpH[],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,double *send5,double *hend5,char *numSeq1)
 {
    int k;
    double max_tm;
@@ -2264,16 +2254,16 @@ END5_2(int i,int hs,double dangleEntropies5[5][5][5],double dangleEnthalpies5[5]
       T1 = (hend5[k]+Initdouble[0]) /(send5[k] + Initdouble[1] + Initdouble[2]);
       T2 = (0 +Initdouble[0]) /(0 + Initdouble[1] + Initdouble[2]);
       if(T1 >= T2) {
-	 H =hend5[k]+atpH[numSeq1[k+2]][numSeq1[i]]+ Hd5(i, k + 2,dangleEnthalpies5,numSeq1) +enthalpyDPT[(k+1)*Initint[2]+i-1];
-	 S =send5[k] +atpS[numSeq1[k+2]][numSeq1[i]]+ Sd5(i, k + 2,dangleEntropies5,numSeq1) +entropyDPT[(k+1)*Initint[2]+i-1];
+	 H =hend5[k]+atpH[numSeq1[k+2]*5+numSeq1[i]]+ Hd5(i, k + 2,dangleEnthalpies5,numSeq1) +enthalpyDPT[(k+1)*Initint[2]+i-1];
+	 S =send5[k] +atpS[numSeq1[k+2]*5+numSeq1[i]]+ Sd5(i, k + 2,dangleEntropies5,numSeq1) +entropyDPT[(k+1)*Initint[2]+i-1];
 	 if(!isFinite(H) || H > 0 || S > 0) {
 	    H = _INFINITY;
 	    S = -1.0;
 	 }
 	 T1 = (H +Initdouble[0]) / (S + Initdouble[1] + Initdouble[2]);
       } else {
-	 H = 0 +atpH[numSeq1[k+2]][numSeq1[i]]+ Hd5(i, k + 2,dangleEnthalpies5,numSeq1) +enthalpyDPT[(k+1)*Initint[2]+i-1];
-	 S = 0 +atpS[numSeq1[k+2]][numSeq1[i]]+ Sd5(i, k + 2,dangleEntropies5,numSeq1) +entropyDPT[(k+1)*Initint[2]+i-1];
+	 H = 0 +atpH[numSeq1[k+2]*5+numSeq1[i]]+ Hd5(i, k + 2,dangleEnthalpies5,numSeq1) +enthalpyDPT[(k+1)*Initint[2]+i-1];
+	 S = 0 +atpS[numSeq1[k+2]*5+numSeq1[i]]+ Sd5(i, k + 2,dangleEntropies5,numSeq1) +entropyDPT[(k+1)*Initint[2]+i-1];
 	 if(!isFinite(H) || H > 0 || S > 0) {
 	    H = _INFINITY;
 	    S = -1.0;
@@ -2293,7 +2283,7 @@ END5_2(int i,int hs,double dangleEntropies5[5][5][5],double dangleEnthalpies5[5]
 }
 
 static double 
-END5_3(int i,int hs,double dangleEntropies3[5][5][5],double dangleEnthalpies3[5][5][5],double atpS[5][5],double atpH[5][5],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,double *send5,double *hend5,char *numSeq1)
+END5_3(int i,int hs,double dangleEntropies3[],double dangleEnthalpies3[],double atpS[],double atpH[],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,double *send5,double *hend5,char *numSeq1)
 {
    int k;
    double max_tm;
@@ -2307,16 +2297,16 @@ END5_3(int i,int hs,double dangleEntropies3[5][5][5],double dangleEnthalpies3[5]
       T1 = (hend5[k] +Initdouble[0]) /(send5[k] + Initdouble[1] + Initdouble[2]);
       T2 = (0 +Initdouble[0]) /(0 + Initdouble[1] + Initdouble[2]);
       if(T1 >= T2) {
-	 H =hend5[k] +atpH[numSeq1[k+1]][numSeq1[i-1]]+ Hd3(i - 1, k + 1,dangleEnthalpies3,numSeq1) +enthalpyDPT[k*Initint[2]+i-2];
-	 S =send5[k]+atpS[numSeq1[k+1]][numSeq1[i-1]]+ Sd3(i - 1, k + 1,dangleEntropies3,numSeq1) +entropyDPT[k*Initint[2]+i-2];
+	 H =hend5[k] +atpH[numSeq1[k+1]*5+numSeq1[i-1]]+ Hd3(i - 1, k + 1,dangleEnthalpies3,numSeq1) +enthalpyDPT[k*Initint[2]+i-2];
+	 S =send5[k]+atpS[numSeq1[k+1]*5+numSeq1[i-1]]+ Sd3(i - 1, k + 1,dangleEntropies3,numSeq1) +entropyDPT[k*Initint[2]+i-2];
 	 if(!isFinite(H) || H > 0 || S > 0) {
 	    H = _INFINITY;
 	    S = -1.0;
 	 }
 	 T1 = (H +Initdouble[0]) / (S + Initdouble[1] + Initdouble[2]);
       } else {
-	 H = 0 +atpH[numSeq1[k+1]][numSeq1[i-1]]+ Hd3(i - 1, k + 1,dangleEnthalpies3,numSeq1) +enthalpyDPT[k*Initint[2]+i-2];
-	 S = 0 +atpS[numSeq1[k+1]][numSeq1[i-1]]+ Sd3(i - 1, k + 1,dangleEntropies3,numSeq1) +entropyDPT[k*Initint[2]+i-2];
+	 H = 0 +atpH[numSeq1[k+1]*5+numSeq1[i-1]]+ Hd3(i - 1, k + 1,dangleEnthalpies3,numSeq1) +enthalpyDPT[k*Initint[2]+i-2];
+	 S = 0 +atpS[numSeq1[k+1]*5+numSeq1[i-1]]+ Sd3(i - 1, k + 1,dangleEntropies3,numSeq1) +entropyDPT[k*Initint[2]+i-2];
 	 if(!isFinite(H) || H > 0 || S > 0) {
 	    H = _INFINITY;
 	    S = -1.0;
@@ -2336,7 +2326,7 @@ END5_3(int i,int hs,double dangleEntropies3[5][5][5],double dangleEnthalpies3[5]
 }
 
 static double 
-END5_4(int i,int hs,double tstack2Entropies[5][5][5][5],double tstack2Enthalpies[5][5][5][5],double atpS[5][5],double atpH[5][5],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,double *send5,double *hend5,char *numSeq1)
+END5_4(int i,int hs,double tstack2Entropies[],double tstack2Enthalpies[],double atpS[],double atpH[],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,double *send5,double *hend5,char *numSeq1)
 {
    int k;
    double max_tm;
@@ -2350,16 +2340,16 @@ END5_4(int i,int hs,double tstack2Entropies[5][5][5][5],double tstack2Enthalpies
       T1 = (hend5[k]+Initdouble[0]) /(send5[k]+ Initdouble[1] + Initdouble[2]);
       T2 = (0 +Initdouble[0]) /(0 + Initdouble[1] + Initdouble[2]);
       if(T1 >= T2) {
-	 H =hend5[k]+atpH[numSeq1[k+2]][numSeq1[i-1]]+ Htstack(i - 1, k + 2,tstack2Enthalpies,numSeq1) +enthalpyDPT[(k+1)*Initint[2]+i-2];
-	 S =send5[k] +atpS[numSeq1[k+2]][numSeq1[i-1]]+ Ststack(i - 1, k + 2,tstack2Entropies,numSeq1) +entropyDPT[(k+1)*Initint[2]+i-2];
+	 H =hend5[k]+atpH[numSeq1[k+2]*5+numSeq1[i-1]]+ Htstack(i - 1, k + 2,tstack2Enthalpies,numSeq1) +enthalpyDPT[(k+1)*Initint[2]+i-2];
+	 S =send5[k] +atpS[numSeq1[k+2]*5+numSeq1[i-1]]+ Ststack(i - 1, k + 2,tstack2Entropies,numSeq1) +entropyDPT[(k+1)*Initint[2]+i-2];
 	 if(!isFinite(H) || H > 0 || S > 0) {
 	    H = _INFINITY;
 	    S = -1.0;
 	 }
 	 T1 = (H +Initdouble[0]) / (S + Initdouble[1] + Initdouble[2]);
       } else {
-	 H = 0 +atpH[numSeq1[k+2]][numSeq1[i-1]]+ Htstack(i - 1, k + 2,tstack2Enthalpies,numSeq1) +enthalpyDPT[(k+1)*Initint[2]+i-2];
-	 S = 0 +atpS[numSeq1[k+2]][numSeq1[i-1]]+ Ststack(i - 1, k + 2,tstack2Entropies,numSeq1) +entropyDPT[(k+1)*Initint[2]+i-2];
+	 H = 0 +atpH[numSeq1[k+2]*5+numSeq1[i-1]]+ Htstack(i - 1, k + 2,tstack2Enthalpies,numSeq1) +enthalpyDPT[(k+1)*Initint[2]+i-2];
+	 S = 0 +atpS[numSeq1[k+2]*5+numSeq1[i-1]]+ Ststack(i - 1, k + 2,tstack2Entropies,numSeq1) +entropyDPT[(k+1)*Initint[2]+i-2];
 	 if(!isFinite(H) || H > 0 || S > 0) {
 	    H = _INFINITY;
 	    S = -1.0;
@@ -2380,39 +2370,39 @@ END5_4(int i,int hs,double tstack2Entropies[5][5][5][5],double tstack2Enthalpies
 
 
 static double 
-Sd5(int i, int j,double dangleEntropies5[5][5][5],char *numSeq1)
+Sd5(int i, int j,double dangleEntropies5[],char *numSeq1)
 {
-   return dangleEntropies5[numSeq1[i]][numSeq1[j]][numSeq1[j - 1]];
+   return dangleEntropies5[numSeq1[i]*25+numSeq1[j]*5+numSeq1[j-1]];
 }
 
 static double 
-Hd5(int i, int j,double dangleEnthalpies5[5][5][5],char *numSeq1)
+Hd5(int i, int j,double dangleEnthalpies5[],char *numSeq1)
 {
-   return dangleEnthalpies5[numSeq1[i]][numSeq1[j]][numSeq1[j - 1]];
+   return dangleEnthalpies5[numSeq1[i]*25+numSeq1[j]*5+numSeq1[j-1]];
 }
 
 static double 
-Sd3(int i, int j,double dangleEntropies3[5][5][5],char *numSeq1)
+Sd3(int i, int j,double dangleEntropies3[],char *numSeq1)
 {
-   return dangleEntropies3[numSeq1[i]][numSeq1[i+1]][numSeq1[j]];
+   return dangleEntropies3[numSeq1[i]*25+numSeq1[i+1]*5+numSeq1[j]];
 }
 
 static double 
-Hd3(int i, int j,double dangleEnthalpies3[5][5][5],char *numSeq1)
+Hd3(int i, int j,double dangleEnthalpies3[],char *numSeq1)
 {
-   return dangleEnthalpies3[numSeq1[i]][numSeq1[i+1]][numSeq1[j]];
+   return dangleEnthalpies3[numSeq1[i]*25+numSeq1[i+1]*5+numSeq1[j]];
 }
 
 static double 
-Ststack(int i, int j,double tstack2Entropies[5][5][5][5],char *numSeq1)
+Ststack(int i, int j,double tstack2Entropies[],char *numSeq1)
 {
-   return tstack2Entropies[numSeq1[i]][numSeq1[i+1]][numSeq1[j]][numSeq1[j-1]];
+   return tstack2Entropies[numSeq1[i]*125+numSeq1[i+1]*25+numSeq1[j]*5+numSeq1[j-1]];
 }
 
 static double 
-Htstack(int i, int j,double tstack2Enthalpies[5][5][5][5],char *numSeq1)
+Htstack(int i, int j,double tstack2Enthalpies[],char *numSeq1)
 { /* e.g AG_TC 210 */
-   return tstack2Enthalpies[numSeq1[i]][numSeq1[i+1]][numSeq1[j]][numSeq1[j-1]];
+   return tstack2Enthalpies[numSeq1[i]*125+numSeq1[i+1]*25+numSeq1[j]*5+numSeq1[j-1]];
 }
 
 /* Return 1 if string is symmetrical, 0 otherwise. */
@@ -2453,7 +2443,7 @@ symmetry_thermo(const unsigned char* seq)
 }
 
 static void 
-tracebacku(int* bp, int maxLoop,thal_results* o,double stackEntropies[5][5][5][5],double stackEnthalpies[5][5][5][5],double stackint2Entropies[5][5][5][5],double stackint2Enthalpies[5][5][5][5],double dangleEntropies3[5][5][5],double dangleEnthalpies3[5][5][5],double dangleEntropies5[5][5][5],double dangleEnthalpies5[5][5][5],double hairpinLoopEntropies[],double interiorLoopEntropies[],double bulgeLoopEntropies[],double hairpinLoopEnthalpies[],double interiorLoopEnthalpies[],double bulgeLoopEnthalpies[],double tstackEntropies[5][5][5][5],double tstackEnthalpies[5][5][5][5],double tstack2Entropies[5][5][5][5],double tstack2Enthalpies[5][5][5][5],struct triloop *triloopEntropies,struct triloop *triloopEnthalpies,struct tetraloop *tetraloopEntropies,struct tetraloop *tetraloopEnthalpies,int numTriloops,int numTetraloops,double atpS[5][5],double atpH[5][5],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,double *send5,double *hend5,char *numSeq1,char *numSeq2)
+tracebacku(int* bp, int maxLoop,thal_results* o,double stackEntropies[],double stackEnthalpies[],double stackint2Entropies[],double stackint2Enthalpies[],double dangleEntropies3[],double dangleEnthalpies3[],double dangleEntropies5[],double dangleEnthalpies5[],double hairpinLoopEntropies[],double interiorLoopEntropies[],double bulgeLoopEntropies[],double hairpinLoopEnthalpies[],double interiorLoopEnthalpies[],double bulgeLoopEnthalpies[],double tstackEntropies[],double tstackEnthalpies[],double tstack2Entropies[],double tstack2Enthalpies[],struct triloop *triloopEntropies,struct triloop *triloopEnthalpies,struct tetraloop *tetraloopEntropies,struct tetraloop *tetraloopEnthalpies,int numTriloops,int numTetraloops,double atpS[],double atpH[],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,double *send5,double *hend5,char *numSeq1,char *numSeq2)
 {
    int i, j;
    i = j = 0;
@@ -2478,13 +2468,13 @@ tracebacku(int* bp, int maxLoop,thal_results* o,double stackEntropies[5][5][5][5
 	   continue;
 	 if (equal(send5[i], END5_1(i,2,atpS,atpH,Initdouble,Initint,enthalpyDPT,entropyDPT,send5,hend5,numSeq1)) && equal(hend5[i], END5_1(i,1,atpS,atpH,Initdouble,Initint,enthalpyDPT,entropyDPT,send5,hend5,numSeq1))) {
 	    for (k = 0; k <= i - 3 - 2; ++k)
-	      if (equal(send5[i],atpS[numSeq1[k+1]][numSeq1[i]]+entropyDPT[k*Initint[2]+i-1]) &&
-		  equal(hend5[i],atpH[numSeq1[k+1]][numSeq1[i]]+enthalpyDPT[k*Initint[2]+i-1])) {
+	      if (equal(send5[i],atpS[numSeq1[k+1]*5+numSeq1[i]]+entropyDPT[k*Initint[2]+i-1]) &&
+		  equal(hend5[i],atpH[numSeq1[k+1]*5+numSeq1[i]]+enthalpyDPT[k*Initint[2]+i-1])) {
 		 push(&stack, k + 1, i,0, o);
 		 break;
 	      }
-	    else if (equal(send5[i],send5[k] +atpS[numSeq1[k+1]][numSeq1[i]]+entropyDPT[k*Initint[2]+i-1]) &&
-		     equal(hend5[i],hend5[k]+atpH[numSeq1[k+1]][numSeq1[i]]+enthalpyDPT[k*Initint[2]+i-1])) {
+	    else if (equal(send5[i],send5[k] +atpS[numSeq1[k+1]*5+numSeq1[i]]+entropyDPT[k*Initint[2]+i-1]) &&
+		     equal(hend5[i],hend5[k]+atpH[numSeq1[k+1]*5+numSeq1[i]]+enthalpyDPT[k*Initint[2]+i-1])) {
 	       push(&stack, k + 1, i, 0, o);
 	       push(&stack, k, 0, 1, o);
 	       break;
@@ -2492,13 +2482,13 @@ tracebacku(int* bp, int maxLoop,thal_results* o,double stackEntropies[5][5][5][5
 	 }
 	 else if (equal(send5[i], END5_2(i,2,dangleEntropies5,dangleEnthalpies5,atpS,atpH,Initdouble,Initint,enthalpyDPT,entropyDPT,send5,hend5,numSeq1)) && equal(hend5[i], END5_2(i,1,dangleEntropies5,dangleEnthalpies5,atpS,atpH,Initdouble,Initint,enthalpyDPT,entropyDPT,send5,hend5,numSeq1))) {
 	    for (k = 0; k <= i - 3 - 3; ++k)
-	      if (equal(send5[i],atpS[numSeq1[k+2]][numSeq1[i]]+ Sd5(i, k + 2,dangleEntropies5,numSeq1) +entropyDPT[(k+1)*Initint[2]+i-1]) &&
-		  equal(hend5[i],atpH[numSeq1[k+2]][numSeq1[i]]+ Hd5(i, k + 2,dangleEnthalpies5,numSeq1) +enthalpyDPT[(k+1)*Initint[2]+i-1])) {
+	      if (equal(send5[i],atpS[numSeq1[k+2]*5+numSeq1[i]]+ Sd5(i, k + 2,dangleEntropies5,numSeq1) +entropyDPT[(k+1)*Initint[2]+i-1]) &&
+		  equal(hend5[i],atpH[numSeq1[k+2]*5+numSeq1[i]]+ Hd5(i, k + 2,dangleEnthalpies5,numSeq1) +enthalpyDPT[(k+1)*Initint[2]+i-1])) {
 		 push(&stack, k + 2, i, 0, o);
 		 break;
 	      }
-	    else if (equal(send5[i],send5[k] +atpS[numSeq1[k+2]][numSeq1[i]]+ Sd5(i, k + 2,dangleEntropies5,numSeq1) +entropyDPT[(k+1)*Initint[2]+i-1]) &&
-		     equal(hend5[i],hend5[k] +atpH[numSeq1[k+2]][numSeq1[i]]+ Hd5(i, k + 2,dangleEnthalpies5,numSeq1) +enthalpyDPT[(k+1)*Initint[2]+i-1])) {
+	    else if (equal(send5[i],send5[k] +atpS[numSeq1[k+2]*5+numSeq1[i]]+ Sd5(i, k + 2,dangleEntropies5,numSeq1) +entropyDPT[(k+1)*Initint[2]+i-1]) &&
+		     equal(hend5[i],hend5[k] +atpH[numSeq1[k+2]*5+numSeq1[i]]+ Hd5(i, k + 2,dangleEnthalpies5,numSeq1) +enthalpyDPT[(k+1)*Initint[2]+i-1])) {
 	       push(&stack, k + 2, i, 0, o);
 	       push(&stack, k, 0, 1, o);
 	       break;
@@ -2506,13 +2496,13 @@ tracebacku(int* bp, int maxLoop,thal_results* o,double stackEntropies[5][5][5][5
 	 }
 	 else if (equal(send5[i], END5_3(i,2,dangleEntropies3,dangleEnthalpies3,atpS,atpH,Initdouble,Initint,enthalpyDPT,entropyDPT,send5,hend5,numSeq1)) && equal(hend5[i], END5_3(i,1,dangleEntropies3,dangleEnthalpies3,atpS,atpH,Initdouble,Initint,enthalpyDPT,entropyDPT,send5,hend5,numSeq1))) {
 	    for (k = 0; k <= i - 3 - 3; ++k)
-	      if (equal(send5[i],atpS[numSeq1[k+1]][numSeq1[i-1]]+ Sd3(i - 1, k + 1,dangleEntropies3,numSeq1) +entropyDPT[k*Initint[2]+i-2])
-		  && equal(hend5[i],atpH[numSeq1[k+1]][numSeq1[i-1]]+ Hd3(i - 1, k + 1,dangleEnthalpies3,numSeq1) +enthalpyDPT[k*Initint[2]+i-2])) {
+	      if (equal(send5[i],atpS[numSeq1[k+1]*5+numSeq1[i-1]]+ Sd3(i - 1, k + 1,dangleEntropies3,numSeq1) +entropyDPT[k*Initint[2]+i-2])
+		  && equal(hend5[i],atpH[numSeq1[k+1]*5+numSeq1[i-1]]+ Hd3(i - 1, k + 1,dangleEnthalpies3,numSeq1) +enthalpyDPT[k*Initint[2]+i-2])) {
 		 push(&stack, k + 1, i - 1, 0, o);
 		 break;
 	      }
-	    else if (equal(send5[i],send5[k]+atpS[numSeq1[k+1]][numSeq1[i-1]]+ Sd3(i - 1, k + 1,dangleEntropies3,numSeq1) +entropyDPT[k*Initint[2]+i-2]) &&
-		     equal(hend5[i],hend5[k]+atpH[numSeq1[k+1]][numSeq1[i-1]]+ Hd3(i - 1, k + 1,dangleEnthalpies3,numSeq1) +enthalpyDPT[k*Initint[2]+i-2])) {
+	    else if (equal(send5[i],send5[k]+atpS[numSeq1[k+1]*5+numSeq1[i-1]]+ Sd3(i - 1, k + 1,dangleEntropies3,numSeq1) +entropyDPT[k*Initint[2]+i-2]) &&
+		     equal(hend5[i],hend5[k]+atpH[numSeq1[k+1]*5+numSeq1[i-1]]+ Hd3(i - 1, k + 1,dangleEnthalpies3,numSeq1) +enthalpyDPT[k*Initint[2]+i-2])) {
 	       push(&stack, k + 1, i - 1, 0, o); /* matrix 0  */
 	       push(&stack, k, 0, 1, o); /* matrix 3 */
 	       break;
@@ -2520,13 +2510,13 @@ tracebacku(int* bp, int maxLoop,thal_results* o,double stackEntropies[5][5][5][5
 	 }
 	 else if(equal(send5[i], END5_4(i,2,tstack2Entropies,tstack2Enthalpies,atpS,atpH,Initdouble,Initint,enthalpyDPT,entropyDPT,send5,hend5,numSeq1)) && equal(hend5[i], END5_4(i,1,tstack2Entropies,tstack2Enthalpies,atpS,atpH,Initdouble,Initint,enthalpyDPT,entropyDPT,send5,hend5,numSeq1))) {
 	    for (k = 0; k <= i - 3 - 4; ++k)
-	      if (equal(send5[i],atpS[numSeq1[k+2]][numSeq1[i-1]]+ Ststack(i - 1, k + 2,tstack2Entropies,numSeq1) +entropyDPT[(k+1)*Initint[2]+i-2]) &&
-		  equal(hend5[i],atpH[numSeq1[k+2]][numSeq1[i-1]]+ Htstack(i - 1, k + 2,tstack2Enthalpies,numSeq1) +enthalpyDPT[(k+1)*Initint[2]+i-2])) {
+	      if (equal(send5[i],atpS[numSeq1[k+2]*5+numSeq1[i-1]]+ Ststack(i - 1, k + 2,tstack2Entropies,numSeq1) +entropyDPT[(k+1)*Initint[2]+i-2]) &&
+		  equal(hend5[i],atpH[numSeq1[k+2]*5+numSeq1[i-1]]+ Htstack(i - 1, k + 2,tstack2Enthalpies,numSeq1) +enthalpyDPT[(k+1)*Initint[2]+i-2])) {
 		 push(&stack, k + 2, i - 1, 0, o);
 		 break;
 	      }
-	    else if (equal(send5[i],send5[k]+atpS[numSeq1[k+2]][numSeq1[i-1]]+ Ststack(i - 1, k + 2,tstack2Entropies,numSeq1) +entropyDPT[(k+1)*Initint[2]+i-2]) &&
-		     equal(hend5[i], hend5[k] +atpH[numSeq1[k+2]][numSeq1[i-1]]+ Htstack(i - 1, k + 2,tstack2Enthalpies,numSeq1) +enthalpyDPT[(k+1)*Initint[2]+i-2]) ) {
+	    else if (equal(send5[i],send5[k]+atpS[numSeq1[k+2]*5+numSeq1[i-1]]+ Ststack(i - 1, k + 2,tstack2Entropies,numSeq1) +entropyDPT[(k+1)*Initint[2]+i-2]) &&
+		     equal(hend5[i], hend5[k] +atpH[numSeq1[k+2]*5+numSeq1[i-1]]+ Htstack(i - 1, k + 2,tstack2Enthalpies,numSeq1) +enthalpyDPT[(k+1)*Initint[2]+i-2]) ) {
 	       push(&stack, k + 2, i - 1, 0, o);
 	       push(&stack, k, 0, 1, o);
 	       break;
@@ -2577,7 +2567,7 @@ tracebacku(int* bp, int maxLoop,thal_results* o,double stackEntropies[5][5][5][5
 
 
 static void 
-traceback(int i, int j, int* ps1, int* ps2, int maxLoop, thal_results* o,double stackEntropies[5][5][5][5],double stackEnthalpies[5][5][5][5],double stackint2Entropies[5][5][5][5],double stackint2Enthalpies[5][5][5][5],double dangleEntropies3[5][5][5],double dangleEnthalpies3[5][5][5],double dangleEntropies5[5][5][5],double dangleEnthalpies5[5][5][5],double interiorLoopEntropies[],double bulgeLoopEntropies[],double interiorLoopEnthalpies[],double bulgeLoopEnthalpies[],double tstackEntropies[5][5][5][5],double tstackEnthalpies[5][5][5][5],double tstack2Entropies[5][5][5][5],double tstack2Enthalpies[5][5][5][5],double atpS[5][5],double atpH[5][5],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,char *numSeq1,char *numSeq2)
+traceback(int i, int j, int* ps1, int* ps2, int maxLoop, thal_results* o,double stackEntropies[],double stackEnthalpies[],double stackint2Entropies[],double stackint2Enthalpies[],double dangleEntropies3[],double dangleEnthalpies3[],double dangleEntropies5[],double dangleEnthalpies5[],double interiorLoopEntropies[],double bulgeLoopEntropies[],double interiorLoopEnthalpies[],double bulgeLoopEnthalpies[],double tstackEntropies[],double tstackEnthalpies[],double tstack2Entropies[],double tstack2Enthalpies[],double atpS[],double atpH[],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,char *numSeq1,char *numSeq2)
 {
    int d, ii, jj, done;
    double* SH;
@@ -2837,16 +2827,16 @@ strcatc(char* str, char c)
 
 main()
 {
-	double stackEntropies[5][5][5][5],stackEnthalpies[5][5][5][5],stackint2Entropies[5][5][5][5],stackint2Enthalpies[5][5][5][5];
-	double dangleEntropies3[5][5][5],dangleEnthalpies3[5][5][5],dangleEntropies5[5][5][5],dangleEnthalpies5[5][5][5];
+	double stackEntropies[625],stackEnthalpies[625],stackint2Entropies[625],stackint2Enthalpies[625];
+	double dangleEntropies3[125],dangleEnthalpies3[125],dangleEntropies5[125],dangleEnthalpies5[125];
 	double hairpinLoopEntropies[30],interiorLoopEntropies[30],bulgeLoopEntropies[30],hairpinLoopEnthalpies[30],interiorLoopEnthalpies[30],bulgeLoopEnthalpies[30];
-	double tstackEntropies[5][5][5][5],tstackEnthalpies[5][5][5][5],tstack2Entropies[5][5][5][5],tstack2Enthalpies[5][5][5][5];
+	double tstackEntropies[625],tstackEnthalpies[625],tstack2Entropies[625],tstack2Enthalpies[625];
 	struct triloop* triloopEntropies = NULL;
 	struct triloop* triloopEnthalpies = NULL;
 	struct tetraloop* tetraloopEntropies = NULL;
 	struct tetraloop* tetraloopEnthalpies = NULL;
 	int numTriloops,numTetraloops;
-	double atpS[5][5],atpH[5][5];
+	double atpS[25],atpH[25];
 
         char path[100]="/home/bjia/GPU-LAMP/Create_Primer3/primer3-2.3.5/src/primer3_config/";
         char one[30]="GAGCTAGAGTCGTTAGCTAAACC";
