@@ -10,15 +10,8 @@
 
 const double  _INFINITY=INFINITY;
 #define isFinite(x) finite(x)
-struct triloop {
-  char loop[5];
-  double value; };
 
-struct tetraloop {
-  char loop[6];
-  double value; };
-
-unsigned char str2int(char c)
+char str2int(char c)
 {
         switch (c)
         {
@@ -669,12 +662,44 @@ void getTstack2(double tstack2Entropies[],double tstack2Enthalpies[],char *path)
         free(line);
 }
 
-void getTriloop(struct triloop** triloopEntropies,struct triloop** triloopEnthalpies, int* num, char *path)
+int get_num_line(char *path,int flag)
+{
+	FILE *fp;
+	int i,size;
+	char *line;
+
+	i=strlen(path)+20;
+        line=(char *)malloc(i);
+        memset(line,'\0',i);
+        strcpy(line,path);
+	if(flag==0)
+	        strcat(line,"triloop.ds");
+	else
+		strcat(line,"tetraloop.ds");
+
+        if(access(line,0)==-1)
+        {
+                printf("Error! Don't have %s file!\n",line);
+                exit(1);
+        }
+        fp=fopen(line,"r");
+        if(fp==NULL)
+        {
+                printf("Error! Can't open the %s file!\n",line);
+                exit(1);
+        }
+
+	size=0;
+	while(fgets(line,i,fp)!=NULL)
+		size++;
+	return size;
+}
+
+void getTriloop(char *triloopEntropies1,char *triloopEnthalpies1,double *triloopEntropies2,double *triloopEnthalpies2,char *path)
 {
         FILE *sFile, *hFile;
-        int i, size;
-        char *line;
-        double value;
+        int i,turn;
+        char *line,seq[10],value[10];
         
         i=strlen(path)+20;
         line=(char *)malloc(i);
@@ -692,23 +717,18 @@ void getTriloop(struct triloop** triloopEntropies,struct triloop** triloopEnthal
                 printf("Error! Can't open the %s file!\n",line);
                 exit(1);
         }
-
-        *num = 0;
-        size = 16;
-        *triloopEntropies = (struct triloop*)malloc(16*sizeof(struct triloop));
-        while (readTLoop(sFile, (*triloopEntropies)[*num].loop, &value, 1) != -1)
+	
+	turn=0;
+        while(fscanf(sFile,"%s\t%s\n",seq,value)!=EOF)
         {
-		for (i = 0; i < 5; ++i)
-			(*triloopEntropies)[*num].loop[i] = str2int((*triloopEntropies)[*num].loop[i]);
-                (*triloopEntropies)[*num].value = value;
-                ++*num;
-                if (*num == size)
-                {
-                        size *= 2;
-                        *triloopEntropies = (struct triloop*)realloc(*triloopEntropies,size * sizeof(struct triloop));
-                }
+		for (i=0;i<5;i++)
+			triloopEntropies1[5*turn+i]=str2int(seq[i]);
+		if(value[0]=='i')
+			triloopEntropies2[turn]=1.0*INFINITY;
+		else
+			triloopEntropies2[turn]=atof(value);
+		turn++;
         }
-        *triloopEntropies = (struct triloop*)realloc(*triloopEntropies,*num* sizeof(struct triloop));
         fclose(sFile);
 
 	i=strlen(path)+20;
@@ -728,31 +748,25 @@ void getTriloop(struct triloop** triloopEntropies,struct triloop** triloopEnthal
         }
         free(line);
 
-        *num = 0;
-        size = 16;
-        *triloopEnthalpies = (struct triloop*)calloc(16, sizeof(struct triloop));
-        while (readTLoop(hFile, (*triloopEnthalpies)[*num].loop, &value, 1) != -1)
+	turn=0;
+        while(fscanf(hFile,"%s\t%s\n",seq,value)!=EOF)
         {
-		for (i = 0; i < 5; ++i)
-			(*triloopEnthalpies)[*num].loop[i] = str2int((*triloopEnthalpies)[*num].loop[i]);
-                (*triloopEnthalpies)[*num].value = value;
-                ++*num;
-                if (*num == size)
-                {
-                        size *= 2;
-                        *triloopEnthalpies = (struct triloop*) realloc(*triloopEnthalpies, size * sizeof(struct triloop));
-                }
+		for(i=0;i<5;i++)
+			triloopEnthalpies1[turn*5+i]=str2int(seq[i]);
+		if(value[0]=='i')
+			triloopEnthalpies2[turn]=1.0*INFINITY;
+		else
+			triloopEnthalpies2[turn]=atof(value);
+		turn++;
         }
-        *triloopEnthalpies = (struct triloop*)realloc(*triloopEnthalpies, *num * sizeof(struct triloop));
         fclose(hFile);
 }
 
-void getTetraloop(struct tetraloop** tetraloopEntropies, struct tetraloop** tetraloopEnthalpies, int* num,char *path)
+void getTetraloop(char *tetraloopEntropies1,char *tetraloopEnthalpies1,double *tetraloopEntropies2,double *tetraloopEnthalpies2,char *path)
 {
         FILE *sFile, *hFile;
-        int i, size;
-        double value;
-        char *line;
+        int i, turn;
+        char *line,seq[10],value[10];
 
         i=strlen(path)+20;
         line=(char *)malloc(i);
@@ -771,22 +785,17 @@ void getTetraloop(struct tetraloop** tetraloopEntropies, struct tetraloop** tetr
                 exit(1);
         }
 
-        *num = 0;
-        size = 16;
-        *tetraloopEntropies = (struct tetraloop*) calloc(16, sizeof(struct tetraloop));
-        while (readTLoop(sFile, (*tetraloopEntropies)[*num].loop, &value, 0) != -1)
+	turn=0;
+        while(fscanf(sFile,"%s\t%s\n",seq,value)!=EOF)
         {
-		for (i = 0; i < 6; ++i)
-			(*tetraloopEntropies)[*num].loop[i] = str2int((*tetraloopEntropies)[*num].loop[i]);
-                (*tetraloopEntropies)[*num].value = value;
-                ++*num;
-                if (*num == size) 
-                {
-                        size *= 2;
-                        *tetraloopEntropies = (struct tetraloop*) realloc(*tetraloopEntropies, size * sizeof(struct tetraloop));
-                }
+		for(i=0;i<6;i++)
+			tetraloopEntropies1[turn*6+i]=str2int(seq[i]);
+		if(value[0]=='i')
+			tetraloopEntropies2[turn]=1.0*INFINITY;
+		else
+			tetraloopEntropies2[turn]=atof(value);
+		turn++;
         }
-        *tetraloopEntropies = (struct tetraloop*)realloc(*tetraloopEntropies, *num * sizeof(struct tetraloop));
         fclose(sFile);
 
         memset(line,'\0',i);
@@ -805,22 +814,17 @@ void getTetraloop(struct tetraloop** tetraloopEntropies, struct tetraloop** tetr
         }
         free(line);
         
-        *num = 0;
-        size = 16;
-        *tetraloopEnthalpies = (struct tetraloop*) calloc(16, sizeof(struct tetraloop));
-        while (readTLoop(hFile, (*tetraloopEnthalpies)[*num].loop, &value, 0) != -1)
+	turn=0;
+        while(fscanf(hFile,"%s\t%s\n",seq,value)!=EOF)
         {
-		for (i = 0; i < 6; ++i)
-			(*tetraloopEnthalpies)[*num].loop[i] = str2int((*tetraloopEnthalpies)[*num].loop[i]);
-                (*tetraloopEnthalpies)[*num].value = value;
-                ++*num;
-                if (*num == size)
-                {
-                        size *= 2;
-                        *tetraloopEnthalpies = (struct tetraloop*)realloc(*tetraloopEnthalpies, size * sizeof(struct tetraloop));
-                }
+		for(i=0;i<6;i++)
+			tetraloopEnthalpies1[6*turn+i]=str2int(seq[i]);
+		if(value[0]=='i')
+			tetraloopEnthalpies2[turn]=1.0*INFINITY;
+		else
+			tetraloopEnthalpies2[turn]=atof(value);
+		turn++;
         }
-        *tetraloopEnthalpies = (struct tetraloop*)realloc(*tetraloopEnthalpies, *num * sizeof(struct tetraloop));
         fclose(hFile);
 }
 
@@ -1098,37 +1102,30 @@ void CBI(int i,int j,double* EntropyEnthalpy,int traceback,double stackEntropies
 	return;
 }
 
-int comp3loop(const void* loop1, const void* loop2) // checks if sequnece consists of specific triloop 
+int find_pos(char *ref,int ref_start,char *source,int length,int num)
 {
-	int i;
- 	const unsigned char* h1 = (const unsigned char*) loop1;
-	const struct triloop *h2 = (const struct triloop*) loop2;
+	int flag,i,j;
 
-	for (i = 0; i < 5; ++i)
-		if (h1[i] < h2->loop[i])
-			return -1;
-		else if (h1[i] > h2->loop[i])
-			return 1;
-	return 0;
+	for(i=0;i<num;i++)
+	{
+		flag=0;
+		for(j=0;j<length;j++)
+		{
+			if(ref[ref_start+j]!=source[i*length+j])
+			{
+				flag++;
+				break;
+			}
+		}
+		if(flag==0)
+			return i;
+	}
+	return -1;
 }
 
-int comp4loop(const void* loop1, const void* loop2) // checks if sequnece consists of specific tetraloop 
+void calc_hairpin(int i,int j,double *EntropyEnthalpy,int traceback,double hairpinLoopEntropies[],double hairpinLoopEnthalpies[],double tstack2Entropies[],double tstack2Enthalpies[],char *triloopEntropies1,char *triloopEnthalpies1,char *tetraloopEntropies1,char *tetraloopEnthalpies1,double *triloopEntropies2,double *triloopEnthalpies2,double *tetraloopEntropies2,double *tetraloopEnthalpies2,int numTriloops,int numTetraloops,double atpS[],double atpH[],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,char *numSeq1)
 {
-	int i;
-	const unsigned char* h1 = (const unsigned char*) loop1;
-	const struct tetraloop *h2 = (const struct tetraloop*) loop2;
-
-	for (i = 0; i < 6; ++i)
-		if (h1[i] < h2->loop[i])
-			return -1;
-		else if (h1[i] > h2->loop[i])
-			return 1;
-	return 0;
-}
-
-void calc_hairpin(int i,int j,double *EntropyEnthalpy,int traceback,double hairpinLoopEntropies[],double hairpinLoopEnthalpies[],double tstack2Entropies[],double tstack2Enthalpies[],struct triloop *triloopEntropies,struct triloop *triloopEnthalpies,struct tetraloop *tetraloopEntropies,struct tetraloop *tetraloopEnthalpies,int numTriloops,int numTetraloops,double atpS[],double atpH[],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,char *numSeq1)
-{
-	int loopSize=j-i-1;
+	int pos,loopSize=j-i-1;
 	double T1,T2;
 	
 	T1=T2=-_INFINITY;
@@ -1173,25 +1170,23 @@ void calc_hairpin(int i,int j,double *EntropyEnthalpy,int traceback,double hairp
 
 	if(loopSize==3) // closing AT-penalty (+), triloop bonus, hairpin of 3 (+) 
 	{
-		struct triloop* loop;
-		if (numTriloops)
-		{
-			if((loop = (struct triloop*) bsearch(numSeq1 + i, triloopEnthalpies, numTriloops, sizeof(struct triloop), comp3loop)))
-				EntropyEnthalpy[1] += loop->value;
-			if ((loop = (struct triloop*) bsearch(numSeq1 + i, triloopEntropies, numTriloops, sizeof(struct triloop), comp3loop)))
-				EntropyEnthalpy[0] += loop->value;
-		}
+		pos=find_pos(numSeq1,i,triloopEnthalpies1,5,numTriloops);
+		if(pos!=-1)
+			EntropyEnthalpy[1]+=triloopEnthalpies2[pos];
+
+		pos=find_pos(numSeq1,i,triloopEntropies1,5,numTriloops);
+		if(pos!=-1)
+			EntropyEnthalpy[0]+=triloopEntropies2[pos];
 	}
 	else if (loopSize == 4) // terminal mismatch, tetraloop bonus, hairpin of 4
 	{
-		struct tetraloop* loop;
-		if (numTetraloops)
-		{
-			if ((loop = (struct tetraloop*) bsearch(numSeq1 + i, tetraloopEnthalpies, numTetraloops, sizeof(struct tetraloop), comp4loop)))
-				EntropyEnthalpy[1] += loop->value;
-			if ((loop = (struct tetraloop*) bsearch(numSeq1 + i, tetraloopEntropies, numTetraloops, sizeof(struct tetraloop), comp4loop)))
-				EntropyEnthalpy[0] += loop->value;
-		}
+		pos=find_pos(numSeq1,i,tetraloopEnthalpies1,6,numTetraloops);
+		if(pos!=-1)
+			EntropyEnthalpy[1]+=tetraloopEnthalpies2[pos];
+
+		pos=find_pos(numSeq1,i,tetraloopEntropies1,6,numTetraloops);
+		if(pos!=-1)
+			EntropyEnthalpy[0]+=tetraloopEntropies2[pos];
 	}
 	if(!isFinite(EntropyEnthalpy[1]))
 	{
@@ -1208,7 +1203,7 @@ void calc_hairpin(int i,int j,double *EntropyEnthalpy,int traceback,double hairp
 	return;
 }
 
-void fillMatrix2(double stackEntropies[],double stackEnthalpies[],double stackint2Entropies[],double stackint2Enthalpies[],double hairpinLoopEntropies[],double interiorLoopEntropies[],double bulgeLoopEntropies[],double hairpinLoopEnthalpies[],double interiorLoopEnthalpies[],double bulgeLoopEnthalpies[],double tstackEntropies[],double tstackEnthalpies[],double tstack2Entropies[],double tstack2Enthalpies[],struct triloop *triloopEntropies,struct triloop *triloopEnthalpies,struct tetraloop *tetraloopEntropies,struct tetraloop *tetraloopEnthalpies,int numTriloops,int numTetraloops,double atpS[],double atpH[],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,char *numSeq1,char *numSeq2)
+void fillMatrix2(double stackEntropies[],double stackEnthalpies[],double stackint2Entropies[],double stackint2Enthalpies[],double hairpinLoopEntropies[],double interiorLoopEntropies[],double bulgeLoopEntropies[],double hairpinLoopEnthalpies[],double interiorLoopEnthalpies[],double bulgeLoopEnthalpies[],double tstackEntropies[],double tstackEnthalpies[],double tstack2Entropies[],double tstack2Enthalpies[],char *triloopEntropies1,char *triloopEnthalpies1,char *tetraloopEntropies1,char *tetraloopEnthalpies1,double *triloopEntropies2,double *triloopEnthalpies2,double *tetraloopEntropies2,double *tetraloopEnthalpies2,int numTriloops,int numTetraloops,double atpS[],double atpH[],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,char *numSeq1,char *numSeq2)
 {
 	int i, j;
 	double SH[2];
@@ -1225,7 +1220,7 @@ void fillMatrix2(double stackEntropies[],double stackEnthalpies[],double stackin
 
 				SH[0] = -1.0;
 				SH[1] = _INFINITY;
-				calc_hairpin(i, j, SH, 0,hairpinLoopEntropies,hairpinLoopEnthalpies,tstack2Entropies,tstack2Enthalpies,triloopEntropies,triloopEnthalpies,tetraloopEntropies,tetraloopEnthalpies,numTriloops,numTetraloops,atpS,atpH,Initdouble,Initint,enthalpyDPT,entropyDPT,numSeq1);
+				calc_hairpin(i, j, SH, 0,hairpinLoopEntropies,hairpinLoopEnthalpies,tstack2Entropies,tstack2Enthalpies,triloopEntropies1,triloopEnthalpies1,tetraloopEntropies1,tetraloopEnthalpies1,triloopEntropies2,triloopEnthalpies2,tetraloopEntropies2,tetraloopEnthalpies2,numTriloops,numTetraloops,atpS,atpH,Initdouble,Initint,enthalpyDPT,entropyDPT,numSeq1);
 				if(isFinite(SH[1]))
 				{
 					if(SH[0] <-2500.0) /* to not give dH any value if dS is unreasonable */
@@ -1276,14 +1271,6 @@ const double _INFINITY = 1.0 / 0.0;
 # endif
 */
 
-/*** BEGIN STRUCTs ***/
-struct tracer /* structure for tracebacku - unimolecular str */ {
-  int i;
-  int j;
-  int mtrx; /* [0 1] EntropyDPT/EnthalpyDPT*/
-  struct tracer* next;
-};
-
 /* get thermodynamic tables */
 
 static void initMatrix(int Initint[],double *enthalpyDPT,double *entropyDPT,char *numSeq1,char *numSeq2);
@@ -1312,7 +1299,7 @@ static int symmetry_thermo(const unsigned char* seq);
 static void traceback(int i, int j, int* ps1, int* ps2, int maxLoop, thal_results* o,double stackEntropies[],double stackEnthalpies[],double stackint2Entropies[],double stackint2Enthalpies[],double dangleEntropies3[],double dangleEnthalpies3[],double dangleEntropies5[],double dangleEnthalpies5[],double interiorLoopEntropies[],double bulgeLoopEntropies[],double interiorLoopEnthalpies[],double bulgeLoopEnthalpies[],double tstackEntropies[],double tstackEnthalpies[],double tstack2Entropies[],double tstack2Enthalpies[],double atpS[],double atpH[],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,char *numSeq1,char *numSeq2);
 
 /* traceback for hairpins */
-static void tracebacku(int*, int, thal_results*,double stackEntropies[],double stackEnthalpies[],double stackint2Entropies[],double stackint2Enthalpies[],double dangleEntropies3[],double dangleEnthalpies3[],double dangleEntropies5[],double dangleEnthalpies5[],double hairpinLoopEntropies[],double interiorLoopEntropies[],double bulgeLoopEntropies[],double hairpinLoopEnthalpies[],double interiorLoopEnthalpies[],double bulgeLoopEnthalpies[],double tstackEntropies[],double tstackEnthalpies[],double tstack2Entropies[],double tstack2Enthalpies[],struct triloop *triloopEntropies,struct triloop *triloopEnthalpies,struct tetraloop *tetraloopEntropies,struct tetraloop *tetraloopEnthalpies,int numTriloops,int numTetraloops,double atpS[],double atpH[],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,double *send5,double *hend5,char *numSeq1,char *numSeq2);
+static void tracebacku(int*, int, thal_results*,double stackEntropies[],double stackEnthalpies[],double stackint2Entropies[],double stackint2Enthalpies[],double dangleEntropies3[],double dangleEnthalpies3[],double dangleEntropies5[],double dangleEnthalpies5[],double hairpinLoopEntropies[],double interiorLoopEntropies[],double bulgeLoopEntropies[],double hairpinLoopEnthalpies[],double interiorLoopEnthalpies[],double bulgeLoopEnthalpies[],double tstackEntropies[],double tstackEnthalpies[],double tstack2Entropies[],double tstack2Enthalpies[],char *triloopEntropies1,char *triloopEnthalpies1,char *tetraloopEntropies1,char *tetraloopEnthalpies1,double *triloopEntropies2,double *triloopEnthalpies2,double *tetraloopEntropies2,double *tetraloopEnthalpies2,int numTriloops,int numTetraloops,double atpS[],double atpH[],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,double *send5,double *hend5,char *numSeq1,char *numSeq2);
 
 /* prints ascii output of dimer structure */
 static void drawDimer(int*, int*,double, double, int, double, thal_results *,double Initdouble[],int Initint[],char *oligo1,char *oligo2);
@@ -1347,18 +1334,9 @@ static double Htstack(int,int,double tstack2Enthalpies[],char *numSeq1); /* retu
 
 static jmp_buf _jmp_buf;
 
-void 
-destroy_thal_structures(struct triloop *triloopEntropies,struct triloop *triloopEnthalpies,struct tetraloop *tetraloopEntropies,struct tetraloop *tetraloopEnthalpies)
-{
-  free(triloopEntropies);
-  free(triloopEnthalpies);
-  free(tetraloopEntropies);
-  free(tetraloopEnthalpies);
-}
-
 /* central method: execute all sub-methods for calculating secondary
    structure for dimer or for monomer */
-void thal(const unsigned char *oligo_f,const unsigned char *oligo_r,const thal_args *a,thal_results *o,double stackEntropies[],double stackEnthalpies[],double stackint2Entropies[],double stackint2Enthalpies[],double dangleEntropies3[],double dangleEnthalpies3[],double dangleEntropies5[],double dangleEnthalpies5[],double hairpinLoopEntropies[],double interiorLoopEntropies[],double bulgeLoopEntropies[],double hairpinLoopEnthalpies[],double interiorLoopEnthalpies[],double bulgeLoopEnthalpies[],double tstackEntropies[],double tstackEnthalpies[],double tstack2Entropies[],double tstack2Enthalpies[],struct triloop* triloopEntropies,struct triloop* triloopEnthalpies,struct tetraloop* tetraloopEntropies,struct tetraloop* tetraloopEnthalpies,int numTriloops,int numTetraloops,double atpS[],double atpH[])
+void thal(const unsigned char *oligo_f,const unsigned char *oligo_r,const thal_args *a,thal_results *o,double stackEntropies[],double stackEnthalpies[],double stackint2Entropies[],double stackint2Enthalpies[],double dangleEntropies3[],double dangleEnthalpies3[],double dangleEntropies5[],double dangleEnthalpies5[],double hairpinLoopEntropies[],double interiorLoopEntropies[],double bulgeLoopEntropies[],double hairpinLoopEnthalpies[],double interiorLoopEnthalpies[],double bulgeLoopEnthalpies[],double tstackEntropies[],double tstackEnthalpies[],double tstack2Entropies[],double tstack2Enthalpies[],char *triloopEntropies1,char *triloopEnthalpies1,char *tetraloopEntropies1,char *tetraloopEnthalpies1,double *triloopEntropies2,double *triloopEnthalpies2,double *tetraloopEntropies2,double *tetraloopEnthalpies2,int numTriloops,int numTetraloops,double atpS[],double atpH[])
 {
 	double *SH,Initdouble[4];//0 is dplx_init_H, 1 is dplx_init_S, 2 is RC, 3 is SHleft
 	int Initint[5]; //0 is len1, 1 is len2, 2 is len3, 3 is bestI, 4 is bestJ
@@ -1459,7 +1437,7 @@ void thal(const unsigned char *oligo_f,const unsigned char *oligo_r,const thal_a
 		enthalpyDPT =(double *)realloc(enthalpyDPT,Initint[0]*Initint[1]*sizeof(double));
 		entropyDPT =(double *)realloc(entropyDPT,Initint[0]*Initint[1]*sizeof(double));
 		initMatrix2(Initint,enthalpyDPT,entropyDPT,numSeq1);
-		fillMatrix2(stackEntropies,stackEnthalpies,stackint2Entropies,stackint2Enthalpies,hairpinLoopEntropies,interiorLoopEntropies,bulgeLoopEntropies,hairpinLoopEnthalpies,interiorLoopEnthalpies,bulgeLoopEnthalpies,tstackEntropies,tstackEnthalpies,tstack2Entropies,tstack2Enthalpies,triloopEntropies,triloopEnthalpies,tetraloopEntropies,tetraloopEnthalpies,numTriloops,numTetraloops,atpS,atpH,Initdouble,Initint,enthalpyDPT,entropyDPT,numSeq1,numSeq2);
+		fillMatrix2(stackEntropies,stackEnthalpies,stackint2Entropies,stackint2Enthalpies,hairpinLoopEntropies,interiorLoopEntropies,bulgeLoopEntropies,hairpinLoopEnthalpies,interiorLoopEnthalpies,bulgeLoopEnthalpies,tstackEntropies,tstackEnthalpies,tstack2Entropies,tstack2Enthalpies,triloopEntropies1,triloopEnthalpies1,tetraloopEntropies1,tetraloopEnthalpies1,triloopEntropies2,triloopEnthalpies2,tetraloopEntropies2,tetraloopEnthalpies2,numTriloops,numTetraloops,atpS,atpH,Initdouble,Initint,enthalpyDPT,entropyDPT,numSeq1,numSeq2);
 		calc_terminal_bp(a->temp,dangleEntropies3,dangleEnthalpies3,dangleEntropies5,dangleEnthalpies5,tstack2Entropies,tstack2Enthalpies,atpS,atpH,Initdouble,Initint,enthalpyDPT,entropyDPT,send5,hend5,numSeq1);
 		mh =hend5[Initint[0]];
 		ms = send5[Initint[0]];
@@ -1471,7 +1449,7 @@ void thal(const unsigned char *oligo_f,const unsigned char *oligo_r,const thal_a
 			bp[k] = 0;
 		if(isFinite(mh))
 		{
-			tracebacku(bp, a->maxLoop, o,stackEntropies,stackEnthalpies,stackint2Entropies,stackint2Enthalpies,dangleEntropies3,dangleEnthalpies3,dangleEntropies5,dangleEnthalpies5,hairpinLoopEntropies,interiorLoopEntropies,bulgeLoopEntropies,hairpinLoopEnthalpies,interiorLoopEnthalpies,bulgeLoopEnthalpies,tstackEntropies,tstackEnthalpies,tstack2Entropies,tstack2Enthalpies,triloopEntropies,triloopEnthalpies,tetraloopEntropies,tetraloopEnthalpies,numTriloops,numTetraloops,atpS,atpH,Initdouble,Initint,enthalpyDPT,entropyDPT,send5,hend5,numSeq1,numSeq2);
+			tracebacku(bp, a->maxLoop, o,stackEntropies,stackEnthalpies,stackint2Entropies,stackint2Enthalpies,dangleEntropies3,dangleEnthalpies3,dangleEntropies5,dangleEnthalpies5,hairpinLoopEntropies,interiorLoopEntropies,bulgeLoopEntropies,hairpinLoopEnthalpies,interiorLoopEnthalpies,bulgeLoopEnthalpies,tstackEntropies,tstackEnthalpies,tstack2Entropies,tstack2Enthalpies,triloopEntropies1,triloopEnthalpies1,tetraloopEntropies1,tetraloopEnthalpies1,triloopEntropies2,triloopEnthalpies2,tetraloopEntropies2,tetraloopEnthalpies2,numTriloops,numTetraloops,atpS,atpH,Initdouble,Initint,enthalpyDPT,entropyDPT,send5,hend5,numSeq1,numSeq2);
 			drawHairpin(bp, mh, ms, a->temponly,a->temp, o,Initint,oligo1); /* if temponly=1 then return after printing basic therm data */
 		}
 		else if(a->temponly==0)
@@ -1999,75 +1977,6 @@ RSH(int i, int j, double* EntropyEnthalpy,double dangleEntropies3[],double dangl
    return;
 }
 
-/*
-static void 
-calc_hairpin(int i, int j, double* EntropyEnthalpy, int traceback,double hairpinLoopEntropies[],double hairpinLoopEnthalpies[],double tstack2Entropies[],double tstack2Enthalpies[],struct triloop *triloopEntropies,struct triloop *triloopEnthalpies,struct tetraloop *tetraloopEntropies,struct tetraloop *tetraloopEnthalpies,int numTriloops,int numTetraloops,double atpS[],double atpH[],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,char *numSeq1)
-{
-   int loopSize = j - i - 1;
-   double T1, T2;
-   T1 = T2 = -_INFINITY;
-   if(loopSize < 3) {
-      EntropyEnthalpy[0] = -1.0;
-      EntropyEnthalpy[1] = _INFINITY;
-      return;
-   }
-   if (i <= Initint[0] && Initint[1] < j) {
-      EntropyEnthalpy[0] = -1.0;
-      EntropyEnthalpy[1] = _INFINITY;
-      return;
-   } else if (i > Initint[1]) {
-      i -= Initint[0];
-      j -= Initint[1];
-   }
-   if(loopSize <= 30) {
-      EntropyEnthalpy[1] = hairpinLoopEnthalpies[loopSize - 1];
-      EntropyEnthalpy[0] = hairpinLoopEntropies[loopSize - 1];
-   } else {
-      EntropyEnthalpy[1] = hairpinLoopEnthalpies[29];
-      EntropyEnthalpy[0] = hairpinLoopEntropies[29];
-   }
-
-   if (loopSize > 3) { 
-      EntropyEnthalpy[1] += tstack2Enthalpies[numSeq1[i]*125+numSeq1[i+1]*25+numSeq1[j]*5+numSeq1[j-1]];
-      EntropyEnthalpy[0] += tstack2Entropies[numSeq1[i]*125+numSeq1[i+1]*25+numSeq1[j]*5+numSeq1[j-1]];
-   } else if(loopSize == 3){
-      EntropyEnthalpy[1] +=atpH[numSeq1[i]*5+numSeq1[j]];
-      EntropyEnthalpy[0] +=atpS[numSeq1[i]*5+numSeq1[j]];
-   }
-
-   if (loopSize == 3) {
-      struct triloop* loop;
-      if (numTriloops) {
-	 if ((loop = (struct triloop*) bsearch(numSeq1 + i, triloopEnthalpies, numTriloops, sizeof(struct triloop), comp3loop)))
-	   EntropyEnthalpy[1] += loop->value;
-	 if ((loop = (struct triloop*) bsearch(numSeq1 + i, triloopEntropies, numTriloops, sizeof(struct triloop), comp3loop)))
-	   EntropyEnthalpy[0] += loop->value;
-      }
-   } else if (loopSize == 4) { 
-      struct tetraloop* loop;
-      if (numTetraloops) {
-	 if ((loop = (struct tetraloop*) bsearch(numSeq1 + i, tetraloopEnthalpies, numTetraloops, sizeof(struct tetraloop), comp4loop))) {
-	    EntropyEnthalpy[1] += loop->value;
-	 }
-	 if ((loop = (struct tetraloop*) bsearch(numSeq1 + i, tetraloopEntropies, numTetraloops, sizeof(struct tetraloop), comp4loop))) {
-	    EntropyEnthalpy[0] += loop->value;
-	 }
-      }
-   }
-   if(!isFinite(EntropyEnthalpy[1])) {
-      EntropyEnthalpy[1] = _INFINITY;
-      EntropyEnthalpy[0] = -1.0;
-   }
-   T1 = (EntropyEnthalpy[1] +Initdouble[0]) / ((EntropyEnthalpy[0] +Initdouble[1]+ Initdouble[2]));
-   T2 = (enthalpyDPT[(i-1)*Initint[2]+j-1] +Initdouble[0]) / ((entropyDPT[(i-1)*Initint[2]+j-1]) +Initdouble[1]+ Initdouble[2]);
-   if(T1 < T2 && traceback == 0) {
-      EntropyEnthalpy[0] =entropyDPT[(i-1)*Initint[2]+j-1];
-      EntropyEnthalpy[1] =enthalpyDPT[(i-1)*Initint[2]+j-1];
-   }
-   return;
-}
-*/
-
 static void 
 calc_bulge_internal(int i, int j, int ii, int jj, double* EntropyEnthalpy, int traceback, int maxLoop,double stackEntropies[],double stackEnthalpies[],double stackint2Entropies[],double stackint2Enthalpies[],double interiorLoopEntropies[],double bulgeLoopEntropies[],double interiorLoopEnthalpies[],double bulgeLoopEnthalpies[],double tstackEntropies[],double tstackEnthalpies[],double atpS[],double atpH[],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,char *numSeq1,char *numSeq2)
 {
@@ -2525,7 +2434,7 @@ int newpush(int store[],int i, int j, int mtrx,int total,int next)
 	return total+1;
 }
 static void 
-tracebacku(int* bp, int maxLoop,thal_results* o,double stackEntropies[],double stackEnthalpies[],double stackint2Entropies[],double stackint2Enthalpies[],double dangleEntropies3[],double dangleEnthalpies3[],double dangleEntropies5[],double dangleEnthalpies5[],double hairpinLoopEntropies[],double interiorLoopEntropies[],double bulgeLoopEntropies[],double hairpinLoopEnthalpies[],double interiorLoopEnthalpies[],double bulgeLoopEnthalpies[],double tstackEntropies[],double tstackEnthalpies[],double tstack2Entropies[],double tstack2Enthalpies[],struct triloop *triloopEntropies,struct triloop *triloopEnthalpies,struct tetraloop *tetraloopEntropies,struct tetraloop *tetraloopEnthalpies,int numTriloops,int numTetraloops,double atpS[],double atpH[],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,double *send5,double *hend5,char *numSeq1,char *numSeq2)
+tracebacku(int* bp, int maxLoop,thal_results* o,double stackEntropies[],double stackEnthalpies[],double stackint2Entropies[],double stackint2Enthalpies[],double dangleEntropies3[],double dangleEnthalpies3[],double dangleEntropies5[],double dangleEnthalpies5[],double hairpinLoopEntropies[],double interiorLoopEntropies[],double bulgeLoopEntropies[],double hairpinLoopEnthalpies[],double interiorLoopEnthalpies[],double bulgeLoopEnthalpies[],double tstackEntropies[],double tstackEnthalpies[],double tstack2Entropies[],double tstack2Enthalpies[],char *triloopEntropies1,char *triloopEnthalpies1,char *tetraloopEntropies1,char *tetraloopEnthalpies1,double *triloopEntropies2,double *triloopEnthalpies2,double *tetraloopEntropies2,double *tetraloopEnthalpies2,int numTriloops,int numTetraloops,double atpS[],double atpH[],double Initdouble[],int Initint[],double *enthalpyDPT,double *entropyDPT,double *send5,double *hend5,char *numSeq1,char *numSeq2)
 {
    int i, j;
    i = j = 0;
@@ -2616,7 +2525,7 @@ tracebacku(int* bp, int maxLoop,thal_results* o,double stackEntropies[],double s
 			bp[j - 1] = i;
 			SH1[0] = -1.0;
 			SH1[1] = _INFINITY;
-			calc_hairpin(i, j, SH1, 1,hairpinLoopEntropies,hairpinLoopEnthalpies,tstack2Entropies,tstack2Enthalpies,triloopEntropies,triloopEnthalpies,tetraloopEntropies,tetraloopEnthalpies,numTriloops,numTetraloops,atpS,atpH,Initdouble,Initint,enthalpyDPT,entropyDPT,numSeq1);
+			calc_hairpin(i, j, SH1, 1,hairpinLoopEntropies,hairpinLoopEnthalpies,tstack2Entropies,tstack2Enthalpies,triloopEntropies1,triloopEnthalpies1,tetraloopEntropies1,tetraloopEnthalpies1,triloopEntropies2,triloopEnthalpies2,tetraloopEntropies2,tetraloopEnthalpies2,numTriloops,numTetraloops,atpS,atpH,Initdouble,Initint,enthalpyDPT,entropyDPT,numSeq1);
 
 			SH2[0] = -1.0;
 			SH2[1] = _INFINITY;
@@ -2921,10 +2830,8 @@ main()
 	double dangleEntropies3[125],dangleEnthalpies3[125],dangleEntropies5[125],dangleEnthalpies5[125];
 	double hairpinLoopEntropies[30],interiorLoopEntropies[30],bulgeLoopEntropies[30],hairpinLoopEnthalpies[30],interiorLoopEnthalpies[30],bulgeLoopEnthalpies[30];
 	double tstackEntropies[625],tstackEnthalpies[625],tstack2Entropies[625],tstack2Enthalpies[625];
-	struct triloop* triloopEntropies = NULL;
-	struct triloop* triloopEnthalpies = NULL;
-	struct tetraloop* tetraloopEntropies = NULL;
-	struct tetraloop* tetraloopEnthalpies = NULL;
+	char *triloopEntropies1,*triloopEnthalpies1,*tetraloopEntropies1,*tetraloopEnthalpies1;
+	double *triloopEntropies2,*triloopEnthalpies2,*tetraloopEntropies2,*tetraloopEnthalpies2;
 	int numTriloops,numTetraloops;
 	double atpS[25],atpH[25];
 
@@ -2955,25 +2862,37 @@ main()
 	getLoop(hairpinLoopEntropies,interiorLoopEntropies,bulgeLoopEntropies,hairpinLoopEnthalpies,interiorLoopEnthalpies,bulgeLoopEnthalpies,path);
 	getTstack(tstackEntropies,tstackEnthalpies,path);
 	getTstack2(tstack2Entropies,tstack2Enthalpies,path);
-	getTriloop(&triloopEntropies,&triloopEnthalpies,&numTriloops,path);
-	getTetraloop(&tetraloopEntropies, &tetraloopEnthalpies, &numTetraloops,path);
+
+	numTriloops=get_num_line(path,0);
+	triloopEntropies1=(char *)malloc(numTriloops*5);
+	triloopEnthalpies1=(char *)malloc(numTriloops*5);
+	triloopEntropies2=(double *)malloc(numTriloops*sizeof(double));
+        triloopEnthalpies2=(double *)malloc(numTriloops*sizeof(double));
+	getTriloop(triloopEntropies1,triloopEnthalpies1,triloopEntropies2,triloopEnthalpies2,path);
+	
+	numTetraloops=get_num_line(path,1);
+	tetraloopEntropies1=(char *)malloc(numTetraloops*6);
+	tetraloopEnthalpies1=(char *)malloc(numTetraloops*6);
+	tetraloopEntropies2=(double *)malloc(numTetraloops*sizeof(double));
+	tetraloopEnthalpies2=(double *)malloc(numTetraloops*sizeof(double));
+	getTetraloop(tetraloopEntropies1,tetraloopEnthalpies1,tetraloopEntropies2,tetraloopEnthalpies2,path);
 	tableStartATS(6.9,atpS);
 	tableStartATH(2200.0,atpH);
 
 printf("single-any: real is 11.37, ours is ");
 	a->type=1;
 	a->dimer=1;	
-        thal(one,two,a,o,stackEntropies,stackEnthalpies,stackint2Entropies,stackint2Enthalpies,dangleEntropies3,dangleEnthalpies3,dangleEntropies5,dangleEnthalpies5,hairpinLoopEntropies,interiorLoopEntropies,bulgeLoopEntropies,hairpinLoopEnthalpies,interiorLoopEnthalpies,bulgeLoopEnthalpies,tstackEntropies,tstackEnthalpies,tstack2Entropies,tstack2Enthalpies,triloopEntropies,triloopEnthalpies,tetraloopEntropies,tetraloopEnthalpies,numTriloops,numTetraloops,atpS,atpH);
+        thal(one,two,a,o,stackEntropies,stackEnthalpies,stackint2Entropies,stackint2Enthalpies,dangleEntropies3,dangleEnthalpies3,dangleEntropies5,dangleEnthalpies5,hairpinLoopEntropies,interiorLoopEntropies,bulgeLoopEntropies,hairpinLoopEnthalpies,interiorLoopEnthalpies,bulgeLoopEnthalpies,tstackEntropies,tstackEnthalpies,tstack2Entropies,tstack2Enthalpies,triloopEntropies1,triloopEnthalpies1,tetraloopEntropies1,tetraloopEnthalpies1,triloopEntropies2,triloopEnthalpies2,tetraloopEntropies2,tetraloopEnthalpies2,numTriloops,numTetraloops,atpS,atpH);
 	printf("%lf\n",o->temp);
 printf("single-end: real is 0.65, ours is ");
         a->type=2;
         a->dimer=1;
-        thal(one,two,a,o,stackEntropies,stackEnthalpies,stackint2Entropies,stackint2Enthalpies,dangleEntropies3,dangleEnthalpies3,dangleEntropies5,dangleEnthalpies5,hairpinLoopEntropies,interiorLoopEntropies,bulgeLoopEntropies,hairpinLoopEnthalpies,interiorLoopEnthalpies,bulgeLoopEnthalpies,tstackEntropies,tstackEnthalpies,tstack2Entropies,tstack2Enthalpies,triloopEntropies,triloopEnthalpies,tetraloopEntropies,tetraloopEnthalpies,numTriloops,numTetraloops,atpS,atpH);
+        thal(one,two,a,o,stackEntropies,stackEnthalpies,stackint2Entropies,stackint2Enthalpies,dangleEntropies3,dangleEnthalpies3,dangleEntropies5,dangleEnthalpies5,hairpinLoopEntropies,interiorLoopEntropies,bulgeLoopEntropies,hairpinLoopEnthalpies,interiorLoopEnthalpies,bulgeLoopEnthalpies,tstackEntropies,tstackEnthalpies,tstack2Entropies,tstack2Enthalpies,triloopEntropies1,triloopEnthalpies1,tetraloopEntropies1,tetraloopEnthalpies1,triloopEntropies2,triloopEnthalpies2,tetraloopEntropies2,tetraloopEnthalpies2,numTriloops,numTetraloops,atpS,atpH);
         printf("%lf\n",o->temp);
 printf("single-hairpin: real is 35.66, ours is ");
         a->type=4;
         a->dimer=0;
-        thal(one,two,a,o,stackEntropies,stackEnthalpies,stackint2Entropies,stackint2Enthalpies,dangleEntropies3,dangleEnthalpies3,dangleEntropies5,dangleEnthalpies5,hairpinLoopEntropies,interiorLoopEntropies,bulgeLoopEntropies,hairpinLoopEnthalpies,interiorLoopEnthalpies,bulgeLoopEnthalpies,tstackEntropies,tstackEnthalpies,tstack2Entropies,tstack2Enthalpies,triloopEntropies,triloopEnthalpies,tetraloopEntropies,tetraloopEnthalpies,numTriloops,numTetraloops,atpS,atpH);
+        thal(one,two,a,o,stackEntropies,stackEnthalpies,stackint2Entropies,stackint2Enthalpies,dangleEntropies3,dangleEnthalpies3,dangleEntropies5,dangleEnthalpies5,hairpinLoopEntropies,interiorLoopEntropies,bulgeLoopEntropies,hairpinLoopEnthalpies,interiorLoopEnthalpies,bulgeLoopEnthalpies,tstackEntropies,tstackEnthalpies,tstack2Entropies,tstack2Enthalpies,triloopEntropies1,triloopEnthalpies1,tetraloopEntropies1,tetraloopEnthalpies1,triloopEntropies2,triloopEnthalpies2,tetraloopEntropies2,tetraloopEnthalpies2,numTriloops,numTetraloops,atpS,atpH);
         printf("%lf\n",o->temp);
 
 	memset(one,'\0',30);
@@ -2983,15 +2902,23 @@ printf("single-hairpin: real is 35.66, ours is ");
 printf("two-any: real is 1.78, ours is ");
 	a->type=1;
 	a->dimer=1;
-	thal(one,two,a,o,stackEntropies,stackEnthalpies,stackint2Entropies,stackint2Enthalpies,dangleEntropies3,dangleEnthalpies3,dangleEntropies5,dangleEnthalpies5,hairpinLoopEntropies,interiorLoopEntropies,bulgeLoopEntropies,hairpinLoopEnthalpies,interiorLoopEnthalpies,bulgeLoopEnthalpies,tstackEntropies,tstackEnthalpies,tstack2Entropies,tstack2Enthalpies,triloopEntropies,triloopEnthalpies,tetraloopEntropies,tetraloopEnthalpies,numTriloops,numTetraloops,atpS,atpH);
+	thal(one,two,a,o,stackEntropies,stackEnthalpies,stackint2Entropies,stackint2Enthalpies,dangleEntropies3,dangleEnthalpies3,dangleEntropies5,dangleEnthalpies5,hairpinLoopEntropies,interiorLoopEntropies,bulgeLoopEntropies,hairpinLoopEnthalpies,interiorLoopEnthalpies,bulgeLoopEnthalpies,tstackEntropies,tstackEnthalpies,tstack2Entropies,tstack2Enthalpies,triloopEntropies1,triloopEnthalpies1,tetraloopEntropies1,tetraloopEnthalpies1,triloopEntropies2,triloopEnthalpies2,tetraloopEntropies2,tetraloopEnthalpies2,numTriloops,numTetraloops,atpS,atpH);
         printf("%lf\n",o->temp);
 
 printf("two-end: real is 6.76, ours is ");
 	a->type=3;
 	a->dimer=1;
-	thal(one,two,a,o,stackEntropies,stackEnthalpies,stackint2Entropies,stackint2Enthalpies,dangleEntropies3,dangleEnthalpies3,dangleEntropies5,dangleEnthalpies5,hairpinLoopEntropies,interiorLoopEntropies,bulgeLoopEntropies,hairpinLoopEnthalpies,interiorLoopEnthalpies,bulgeLoopEnthalpies,tstackEntropies,tstackEnthalpies,tstack2Entropies,tstack2Enthalpies,triloopEntropies,triloopEnthalpies,tetraloopEntropies,tetraloopEnthalpies,numTriloops,numTetraloops,atpS,atpH);
+	thal(one,two,a,o,stackEntropies,stackEnthalpies,stackint2Entropies,stackint2Enthalpies,dangleEntropies3,dangleEnthalpies3,dangleEntropies5,dangleEnthalpies5,hairpinLoopEntropies,interiorLoopEntropies,bulgeLoopEntropies,hairpinLoopEnthalpies,interiorLoopEnthalpies,bulgeLoopEnthalpies,tstackEntropies,tstackEnthalpies,tstack2Entropies,tstack2Enthalpies,triloopEntropies1,triloopEnthalpies1,tetraloopEntropies1,tetraloopEnthalpies1,triloopEntropies2,triloopEnthalpies2,tetraloopEntropies2,tetraloopEnthalpies2,numTriloops,numTetraloops,atpS,atpH);
         printf("%lf\n",o->temp);
 //when calculate the compl_end, a->type=2 and 3, inputs are (one, two) and (rev_one,rev_two :5'-3'), total four times, select the biggest
         free(o);
         free(a);
+	free(triloopEntropies1);
+	free(triloopEnthalpies1);
+	free(tetraloopEntropies1);
+	free(tetraloopEnthalpies1);
+	free(triloopEntropies2);
+	free(triloopEnthalpies2);
+	free(tetraloopEntropies2);
+	free(tetraloopEnthalpies2);
 }
