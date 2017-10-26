@@ -1,10 +1,7 @@
 #include <limits.h>
-#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <setjmp.h>
-#include <ctype.h>
 #include <math.h>
 #include <unistd.h>
 
@@ -2302,9 +2299,8 @@ int symmetry_thermo(char* seq)
 	}
 	return 1;
 }
-#include "thal.h"
 
-void thal(const unsigned char *oligo_f,const unsigned char *oligo_r,const thal_args *a,thal_results *o,double stackEntropies[],double stackEnthalpies[],double stackint2Entropies[],double stackint2Enthalpies[],double dangleEntropies3[],double dangleEnthalpies3[],double dangleEntropies5[],double dangleEnthalpies5[],double hairpinLoopEntropies[],double interiorLoopEntropies[],double bulgeLoopEntropies[],double hairpinLoopEnthalpies[],double interiorLoopEnthalpies[],double bulgeLoopEnthalpies[],double tstackEntropies[],double tstackEnthalpies[],double tstack2Entropies[],double tstack2Enthalpies[],char *triloopEntropies1,char *triloopEnthalpies1,char *tetraloopEntropies1,char *tetraloopEnthalpies1,double *triloopEntropies2,double *triloopEnthalpies2,double *tetraloopEntropies2,double *tetraloopEnthalpies2,int numTriloops,int numTetraloops,double atpS[],double atpH[])
+double thal(const unsigned char *oligo_f,const unsigned char *oligo_r,double stackEntropies[],double stackEnthalpies[],double stackint2Entropies[],double stackint2Enthalpies[],double dangleEntropies3[],double dangleEnthalpies3[],double dangleEntropies5[],double dangleEnthalpies5[],double hairpinLoopEntropies[],double interiorLoopEntropies[],double bulgeLoopEntropies[],double hairpinLoopEnthalpies[],double interiorLoopEnthalpies[],double bulgeLoopEnthalpies[],double tstackEntropies[],double tstackEnthalpies[],double tstack2Entropies[],double tstack2Enthalpies[],char *triloopEntropies1,char *triloopEnthalpies1,char *tetraloopEntropies1,char *tetraloopEnthalpies1,double *triloopEntropies2,double *triloopEnthalpies2,double *tetraloopEntropies2,double *tetraloopEnthalpies2,int numTriloops,int numTetraloops,double atpS[],double atpH[],int type)
 {
 	double SH[2],Initdouble[4];//0 is dplx_init_H, 1 is dplx_init_S, 2 is RC, 3 is SHleft
 	int Initint[5]; //0 is len1, 1 is len2, 2 is len3, 3 is bestI, 4 is bestJ
@@ -2321,17 +2317,11 @@ void thal(const unsigned char *oligo_f,const unsigned char *oligo_r,const thal_a
 	memset(numSeq1,'\0',27);
 	memset(numSeq2,'\0',27);
 	memset(oligo2_rev,'\0',26);
-	strcpy(o->msg, "");
-	o->temp = THAL_ERROR_SCORE;
-	errno = 0; 
 
 	len_f =strlen(oligo_f);
 	len_r =strlen(oligo_r);
 
-	o->align_end_1 = -1;
-	o->align_end_2 = -1;
-
-	if(a->type!=3)
+	if(type!=3)
 	{
 		strcpy((char*)oligo1,(const char*)oligo_f);
 		strcpy((char*)oligo2,(const char*)oligo_r);
@@ -2342,7 +2332,7 @@ void thal(const unsigned char *oligo_f,const unsigned char *oligo_r,const thal_a
 		strcpy((char*)oligo2,(const char*)oligo_f);
 	}
 /*** INIT values for unimolecular and bimolecular structures ***/
-	if (a->type==4) /* unimolecular folding */
+	if (type==4) /* unimolecular folding */
 	{
 		Initint[1] =strlen(oligo2);
 		Initint[2] = Initint[1] -1;
@@ -2359,7 +2349,7 @@ void thal(const unsigned char *oligo_f,const unsigned char *oligo_r,const thal_a
 		else
 			Initdouble[2]=1.9872* log(38/4000000000.0);
 		
-		if(a->type!=3)
+		if(type!=3)
 		{
 			strcpy((char*)oligo2_rev,(const char*)oligo_r);
 		}
@@ -2386,28 +2376,24 @@ void thal(const unsigned char *oligo_f,const unsigned char *oligo_r,const thal_a
 		numSeq2[i] = str2int(oligo2[i - 1]);
 	numSeq1[0] = numSeq1[Initint[0] + 1] = numSeq2[0] = numSeq2[Initint[1] + 1] = 4; /* mark as N-s */
 
-	if (a->type==4) /* calculate structure of monomer */
+	result_TH=0;
+	if (type==4) /* calculate structure of monomer */
 	{
 		initMatrix2(Initint,enthalpyDPT,entropyDPT,numSeq1);
 		fillMatrix2(stackEntropies,stackEnthalpies,stackint2Entropies,stackint2Enthalpies,hairpinLoopEntropies,interiorLoopEntropies,bulgeLoopEntropies,hairpinLoopEnthalpies,interiorLoopEnthalpies,bulgeLoopEnthalpies,tstackEntropies,tstackEnthalpies,tstack2Entropies,tstack2Enthalpies,triloopEntropies1,triloopEnthalpies1,tetraloopEntropies1,tetraloopEnthalpies1,triloopEntropies2,triloopEnthalpies2,tetraloopEntropies2,tetraloopEnthalpies2,numTriloops,numTetraloops,atpS,atpH,Initdouble,Initint,enthalpyDPT,entropyDPT,numSeq1,numSeq2);
-		calc_terminal_bp(a->temp,dangleEntropies3,dangleEnthalpies3,dangleEntropies5,dangleEnthalpies5,tstack2Entropies,tstack2Enthalpies,atpS,atpH,Initdouble,Initint,enthalpyDPT,entropyDPT,send5,hend5,numSeq1);
+		calc_terminal_bp(310.15,dangleEntropies3,dangleEnthalpies3,dangleEntropies5,dangleEnthalpies5,tstack2Entropies,tstack2Enthalpies,atpS,atpH,Initdouble,Initint,enthalpyDPT,entropyDPT,send5,hend5,numSeq1);
 		mh=hend5[Initint[0]];
 		ms=send5[Initint[0]];
-		o->align_end_1 = (int) mh;
-		o->align_end_2 = (int) ms;
 		for (k = 0; k < Initint[0]; ++k)
 			bp[k] = 0;
 		if(isFinite(mh))
 		{
 			tracebacku(bp,stackEntropies,stackEnthalpies,stackint2Entropies,stackint2Enthalpies,dangleEntropies3,dangleEnthalpies3,dangleEntropies5,dangleEnthalpies5,hairpinLoopEntropies,interiorLoopEntropies,bulgeLoopEntropies,hairpinLoopEnthalpies,interiorLoopEnthalpies,bulgeLoopEnthalpies,tstackEntropies,tstackEnthalpies,tstack2Entropies,tstack2Enthalpies,triloopEntropies1,triloopEnthalpies1,tetraloopEntropies1,tetraloopEnthalpies1,triloopEntropies2,triloopEnthalpies2,tetraloopEntropies2,tetraloopEnthalpies2,numTriloops,numTetraloops,atpS,atpH,Initdouble,Initint,enthalpyDPT,entropyDPT,send5,hend5,numSeq1,numSeq2);
-			o->temp=drawHairpin(bp,mh,ms,Initint);
+			result_TH=drawHairpin(bp,mh,ms,Initint);
 		}
-
-		if(o->temp==-_INFINITY && (!strcmp(o->msg, "")))
-			o->temp=0.0;
-		return;
+		return result_TH;
 	}
-	else if(a->type!=4) /* Hybridization of two moleculs */
+	else if(type!=4) /* Hybridization of two moleculs */
 	{
 		Initint[2]=Initint[1];
 		initMatrix(Initint,enthalpyDPT,entropyDPT,numSeq1,numSeq2);
@@ -2416,7 +2402,7 @@ void thal(const unsigned char *oligo_f,const unsigned char *oligo_r,const thal_a
 		Initdouble[3] = -_INFINITY;
 	/* calculate terminal basepairs */
 		Initint[3] = Initint[4] = 0;
-		if(a->type==1)
+		if(type==1)
 			for (i = 1; i <= Initint[0]; i++)
 			{
 				for (j = 1; j <= Initint[1]; j++)
@@ -2437,7 +2423,7 @@ void thal(const unsigned char *oligo_f,const unsigned char *oligo_r,const thal_a
 			ps1[i] = 0;
 		for (j = 0; j < Initint[1]; ++j)
 			ps2[j] = 0;
-		if(a->type == 2 || a->type == 3)
+		if(type == 2 ||type == 3)
 		{
 		 /* THAL_END1 */
 			Initint[3] = Initint[4] = 0;
@@ -2473,17 +2459,10 @@ void thal(const unsigned char *oligo_f,const unsigned char *oligo_r,const thal_a
 		if(isFinite(enthalpyDPT[(Initint[3]-1)*Initint[2]+Initint[4]-1]))
 		{
 			traceback(Initint[3],Initint[4],ps1,ps2,stackEntropies,stackEnthalpies,stackint2Entropies,stackint2Enthalpies,dangleEntropies3,dangleEnthalpies3,dangleEntropies5,dangleEnthalpies5,interiorLoopEntropies,bulgeLoopEntropies,interiorLoopEnthalpies,bulgeLoopEnthalpies,tstackEntropies,tstackEnthalpies,tstack2Entropies,tstack2Enthalpies,atpS,atpH,Initdouble,Initint,enthalpyDPT,entropyDPT,numSeq1,numSeq2);
-			o->temp=drawDimer(ps1,ps2,dH,dS,Initdouble,Initint);
-			o->align_end_1=Initint[3];
-			o->align_end_2=Initint[4];
+			result_TH=drawDimer(ps1,ps2,dH,dS,Initdouble,Initint);
 		}
-		else
-		{
-			o->temp = 0.0;
-		}
-		return;
+		return result_TH;
 	}
-	return;
 }
 
 main()
@@ -2496,26 +2475,11 @@ main()
 	double *triloopEntropies2,*triloopEnthalpies2,*tetraloopEntropies2,*tetraloopEnthalpies2;
 	int numTriloops,numTetraloops;
 	double atpS[25],atpH[25];
+	double result;
 
         char path[100]="/home/bjia/GPU-LAMP/Create_Primer3/primer3-2.3.5/src/primer3_config/";
         char one[30]="GAGCTAGAGTCGTTAGCTAAACC";
         char two[30]="GAGCTAGAGTCGTTAGCTAAACC";
-        thal_results *o;
-        thal_args *a;
-
-        o=(thal_results *)malloc(sizeof(thal_results));
-        memset(o,'\0',sizeof(thal_results));
-        a=(thal_args *)malloc(sizeof(thal_args));              
-        memset(a,'\0',sizeof(thal_args));
-
-        a->debug=0;
-        a->maxLoop=30;
-        a->mv=50;
-        a->dv=4;
-        a->dntp=1.4;
-        a->dna_conc=38;
-        a->temp=310.15; 
-        a->temponly=1;
 
 //read_parameter
 	getStack(stackEntropies,stackEnthalpies,path);
@@ -2541,40 +2505,34 @@ main()
 	tableStartATS(6.9,atpS);
 	tableStartATH(2200.0,atpH);
 
+	int type;
 printf("single-any: real is 11.37, ours is ");
-	a->type=1;
-	a->dimer=1;	
-        thal(one,two,a,o,stackEntropies,stackEnthalpies,stackint2Entropies,stackint2Enthalpies,dangleEntropies3,dangleEnthalpies3,dangleEntropies5,dangleEnthalpies5,hairpinLoopEntropies,interiorLoopEntropies,bulgeLoopEntropies,hairpinLoopEnthalpies,interiorLoopEnthalpies,bulgeLoopEnthalpies,tstackEntropies,tstackEnthalpies,tstack2Entropies,tstack2Enthalpies,triloopEntropies1,triloopEnthalpies1,tetraloopEntropies1,tetraloopEnthalpies1,triloopEntropies2,triloopEnthalpies2,tetraloopEntropies2,tetraloopEnthalpies2,numTriloops,numTetraloops,atpS,atpH);
-	printf("%lf\n",o->temp);
+	type=1;
+        result=thal(one,two,stackEntropies,stackEnthalpies,stackint2Entropies,stackint2Enthalpies,dangleEntropies3,dangleEnthalpies3,dangleEntropies5,dangleEnthalpies5,hairpinLoopEntropies,interiorLoopEntropies,bulgeLoopEntropies,hairpinLoopEnthalpies,interiorLoopEnthalpies,bulgeLoopEnthalpies,tstackEntropies,tstackEnthalpies,tstack2Entropies,tstack2Enthalpies,triloopEntropies1,triloopEnthalpies1,tetraloopEntropies1,tetraloopEnthalpies1,triloopEntropies2,triloopEnthalpies2,tetraloopEntropies2,tetraloopEnthalpies2,numTriloops,numTetraloops,atpS,atpH,type);
+	printf("%lf\n",result);
 printf("single-end: real is 0.65, ours is ");
-        a->type=2;
-        a->dimer=1;
-        thal(one,two,a,o,stackEntropies,stackEnthalpies,stackint2Entropies,stackint2Enthalpies,dangleEntropies3,dangleEnthalpies3,dangleEntropies5,dangleEnthalpies5,hairpinLoopEntropies,interiorLoopEntropies,bulgeLoopEntropies,hairpinLoopEnthalpies,interiorLoopEnthalpies,bulgeLoopEnthalpies,tstackEntropies,tstackEnthalpies,tstack2Entropies,tstack2Enthalpies,triloopEntropies1,triloopEnthalpies1,tetraloopEntropies1,tetraloopEnthalpies1,triloopEntropies2,triloopEnthalpies2,tetraloopEntropies2,tetraloopEnthalpies2,numTriloops,numTetraloops,atpS,atpH);
-        printf("%lf\n",o->temp);
+        type=2;
+        result=thal(one,two,stackEntropies,stackEnthalpies,stackint2Entropies,stackint2Enthalpies,dangleEntropies3,dangleEnthalpies3,dangleEntropies5,dangleEnthalpies5,hairpinLoopEntropies,interiorLoopEntropies,bulgeLoopEntropies,hairpinLoopEnthalpies,interiorLoopEnthalpies,bulgeLoopEnthalpies,tstackEntropies,tstackEnthalpies,tstack2Entropies,tstack2Enthalpies,triloopEntropies1,triloopEnthalpies1,tetraloopEntropies1,tetraloopEnthalpies1,triloopEntropies2,triloopEnthalpies2,tetraloopEntropies2,tetraloopEnthalpies2,numTriloops,numTetraloops,atpS,atpH,type);
+        printf("%lf\n",result);
 printf("single-hairpin: real is 35.66, ours is ");
-        a->type=4;
-        a->dimer=0;
-        thal(one,two,a,o,stackEntropies,stackEnthalpies,stackint2Entropies,stackint2Enthalpies,dangleEntropies3,dangleEnthalpies3,dangleEntropies5,dangleEnthalpies5,hairpinLoopEntropies,interiorLoopEntropies,bulgeLoopEntropies,hairpinLoopEnthalpies,interiorLoopEnthalpies,bulgeLoopEnthalpies,tstackEntropies,tstackEnthalpies,tstack2Entropies,tstack2Enthalpies,triloopEntropies1,triloopEnthalpies1,tetraloopEntropies1,tetraloopEnthalpies1,triloopEntropies2,triloopEnthalpies2,tetraloopEntropies2,tetraloopEnthalpies2,numTriloops,numTetraloops,atpS,atpH);
-        printf("%lf\n",o->temp);
+        type=4;
+        result=thal(one,two,stackEntropies,stackEnthalpies,stackint2Entropies,stackint2Enthalpies,dangleEntropies3,dangleEnthalpies3,dangleEntropies5,dangleEnthalpies5,hairpinLoopEntropies,interiorLoopEntropies,bulgeLoopEntropies,hairpinLoopEnthalpies,interiorLoopEnthalpies,bulgeLoopEnthalpies,tstackEntropies,tstackEnthalpies,tstack2Entropies,tstack2Enthalpies,triloopEntropies1,triloopEnthalpies1,tetraloopEntropies1,tetraloopEnthalpies1,triloopEntropies2,triloopEnthalpies2,tetraloopEntropies2,tetraloopEnthalpies2,numTriloops,numTetraloops,atpS,atpH,type);
+        printf("%lf\n",result);
 
 	memset(one,'\0',30);
 	strcpy(one,"TTAGACTTCTAAGCGCTGTGAAC");
 	memset(two,'\0',30);
 	strcpy(two,"TGGTTCACGTATGCCTGC");
 printf("two-any: real is 1.78, ours is ");
-	a->type=1;
-	a->dimer=1;
-	thal(one,two,a,o,stackEntropies,stackEnthalpies,stackint2Entropies,stackint2Enthalpies,dangleEntropies3,dangleEnthalpies3,dangleEntropies5,dangleEnthalpies5,hairpinLoopEntropies,interiorLoopEntropies,bulgeLoopEntropies,hairpinLoopEnthalpies,interiorLoopEnthalpies,bulgeLoopEnthalpies,tstackEntropies,tstackEnthalpies,tstack2Entropies,tstack2Enthalpies,triloopEntropies1,triloopEnthalpies1,tetraloopEntropies1,tetraloopEnthalpies1,triloopEntropies2,triloopEnthalpies2,tetraloopEntropies2,tetraloopEnthalpies2,numTriloops,numTetraloops,atpS,atpH);
-        printf("%lf\n",o->temp);
+	type=1;
+	result=thal(one,two,stackEntropies,stackEnthalpies,stackint2Entropies,stackint2Enthalpies,dangleEntropies3,dangleEnthalpies3,dangleEntropies5,dangleEnthalpies5,hairpinLoopEntropies,interiorLoopEntropies,bulgeLoopEntropies,hairpinLoopEnthalpies,interiorLoopEnthalpies,bulgeLoopEnthalpies,tstackEntropies,tstackEnthalpies,tstack2Entropies,tstack2Enthalpies,triloopEntropies1,triloopEnthalpies1,tetraloopEntropies1,tetraloopEnthalpies1,triloopEntropies2,triloopEnthalpies2,tetraloopEntropies2,tetraloopEnthalpies2,numTriloops,numTetraloops,atpS,atpH,type);
+        printf("%lf\n",result);
 
 printf("two-end: real is 6.76, ours is ");
-	a->type=3;
-	a->dimer=1;
-	thal(one,two,a,o,stackEntropies,stackEnthalpies,stackint2Entropies,stackint2Enthalpies,dangleEntropies3,dangleEnthalpies3,dangleEntropies5,dangleEnthalpies5,hairpinLoopEntropies,interiorLoopEntropies,bulgeLoopEntropies,hairpinLoopEnthalpies,interiorLoopEnthalpies,bulgeLoopEnthalpies,tstackEntropies,tstackEnthalpies,tstack2Entropies,tstack2Enthalpies,triloopEntropies1,triloopEnthalpies1,tetraloopEntropies1,tetraloopEnthalpies1,triloopEntropies2,triloopEnthalpies2,tetraloopEntropies2,tetraloopEnthalpies2,numTriloops,numTetraloops,atpS,atpH);
-        printf("%lf\n",o->temp);
+	type=3;
+	result=thal(one,two,stackEntropies,stackEnthalpies,stackint2Entropies,stackint2Enthalpies,dangleEntropies3,dangleEnthalpies3,dangleEntropies5,dangleEnthalpies5,hairpinLoopEntropies,interiorLoopEntropies,bulgeLoopEntropies,hairpinLoopEnthalpies,interiorLoopEnthalpies,bulgeLoopEnthalpies,tstackEntropies,tstackEnthalpies,tstack2Entropies,tstack2Enthalpies,triloopEntropies1,triloopEnthalpies1,tetraloopEntropies1,tetraloopEnthalpies1,triloopEntropies2,triloopEnthalpies2,tetraloopEntropies2,tetraloopEnthalpies2,numTriloops,numTetraloops,atpS,atpH,type);
+        printf("%lf\n",result);
 //when calculate the compl_end, a->type=2 and 3, inputs are (one, two) and (rev_one,rev_two :5'-3'), total four times, select the biggest
-        free(o);
-        free(a);
 	free(triloopEntropies1);
 	free(triloopEnthalpies1);
 	free(tetraloopEntropies1);
