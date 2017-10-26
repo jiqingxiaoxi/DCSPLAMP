@@ -2304,43 +2304,6 @@ int symmetry_thermo(char* seq)
 }
 #include "thal.h"
 
-#ifndef THAL_EXIT_ON_ERROR
-#define THAL_EXIT_ON_ERROR 0
-#endif
-
-#define CHECK_ERROR(COND,MSG) if (COND) { strcpy(o->msg, MSG); errno = 0; longjmp(_jmp_buf, 1); }
-#define THAL_OOM_ERROR { strcpy(o->msg, "Out of memory"); errno = ENOMEM; longjmp(_jmp_buf, 1); }
-#define THAL_IO_ERROR(f) { sprintf(o->msg, "Unable to open file %s", f); longjmp(_jmp_buf, 1); }
-
-#define STR(X) #X
-#define LONG_SEQ_ERR_STR(MAX_LEN) "Target sequence length > maximum allowed (" STR(MAX_LEN) ") in thermodynamic alignment"
-#define XSTR(X) STR(X)
-
-/*
-#ifdef INTEGER
-# define isFinite(x) (x < _INFINITY / 2)
-#else
-# define isFinite(x) finite(x)
-#endif
-*/
-/*** BEGIN CONSTANTS ***/
-/*
-# ifdef INTEGER
-const double _INFINITY = 999999.0;
-# else
-# ifdef INFINITY
-const double _INFINITY = INFINITY;
-# else
-const double _INFINITY = 1.0 / 0.0;
-# endif
-# endif
-*/
-
-
-static jmp_buf _jmp_buf;
-
-/* central method: execute all sub-methods for calculating secondary
-   structure for dimer or for monomer */
 void thal(const unsigned char *oligo_f,const unsigned char *oligo_r,const thal_args *a,thal_results *o,double stackEntropies[],double stackEnthalpies[],double stackint2Entropies[],double stackint2Enthalpies[],double dangleEntropies3[],double dangleEnthalpies3[],double dangleEntropies5[],double dangleEnthalpies5[],double hairpinLoopEntropies[],double interiorLoopEntropies[],double bulgeLoopEntropies[],double hairpinLoopEnthalpies[],double interiorLoopEnthalpies[],double bulgeLoopEnthalpies[],double tstackEntropies[],double tstackEnthalpies[],double tstack2Entropies[],double tstack2Enthalpies[],char *triloopEntropies1,char *triloopEnthalpies1,char *tetraloopEntropies1,char *tetraloopEnthalpies1,double *triloopEntropies2,double *triloopEnthalpies2,double *tetraloopEntropies2,double *tetraloopEnthalpies2,int numTriloops,int numTetraloops,double atpS[],double atpH[])
 {
 	double *SH,Initdouble[4];//0 is dplx_init_H, 1 is dplx_init_S, 2 is RC, 3 is SHleft
@@ -2564,10 +2527,6 @@ void thal(const unsigned char *oligo_f,const unsigned char *oligo_r,const thal_a
 	}
 	return;
 }
-
-
-
-#define INIT_BUF_SIZE 1024
 
 main()
 {
