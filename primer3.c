@@ -1665,7 +1665,6 @@ void tracebacku(int bp[],double stackEntropies[],double stackEnthalpies[],double
 double drawHairpin(int bp[],double mh,double ms,int Initint[])
 {
         int i,N;
-	double mg,t;
 
         N=0;
         if(fabs(ms)>999999999||fabs(mh)>999999999)
