@@ -1541,7 +1541,7 @@ int newpush(int store[],int i,int j,int mtrx,int total,int next)
 
 int equal(double a,double b)
 {
-	if(!finite(a)||!finite(b))
+	if(fabs(a)>999999999||fabs(b)>999999999)
 		return 0;
 	return fabs(a-b)<1e-5;
 }
@@ -2269,8 +2269,6 @@ int symmetry_thermo(char seq[])
 	while(i<mp)
 	{
 		i++;
-		s=toupper(*seq);
-		e=toupper(*seq_end);
 		if((s=='A'&&e!='T')||(s=='T'&&e!='A')||(e=='A'&&s!='T')||(e=='T'&&s!='A'))
 			return 0;
 		if((s=='C'&&e!='G')||(s=='G'&&e!='C')||(e=='C'&&s!='G')||(e=='G'&&s!='C'))
