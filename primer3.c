@@ -2256,27 +2256,22 @@ double drawDimer(int *ps1,int *ps2,double H,double S,double Initdouble[],int Ini
 
 int symmetry_thermo(char seq[])
 {
-	char s,e;
-	char *seq_end=seq;
-	int i = 0;
-	int seq_len=strlen(seq);
-	int mp = seq_len/2;
-	if(seq_len%2==1)
-		return 0;
+        char s,e;
+        int i = 0;
+        int seq_len=strlen(seq);
+        int mp = seq_len/2;
+        if(seq_len%2==1)
+                return 0;          
 
-	seq_end+=seq_len;
-	seq_end--;
-	while(i<mp)
-	{
-		i++;
-		if((s=='A'&&e!='T')||(s=='T'&&e!='A')||(e=='A'&&s!='T')||(e=='T'&&s!='A'))
-			return 0;
-		if((s=='C'&&e!='G')||(s=='G'&&e!='C')||(e=='C'&&s!='G')||(e=='G'&&s!='C'))
-			return 0;
-		seq++;
-		seq_end--;
-	}
-	return 1;
+        while(i<mp) 
+        {
+                i++;
+                if((seq[i]=='A'&&e!='T')||(seq[i]=='T'&&e!='A')||(seq[seq_len-1-i]=='A'&&s!='T')||(seq[seq_len-1-i]=='T'&&s!='A'))
+                        return 0;   
+                if((seq[i]=='C'&&e!='G')||(seq[i]=='G'&&e!='C')||(seq[seq_len-1-i]=='C'&&s!='G')||(seq[seq_len-1-i]=='G'&&s!='C'))
+                        return 0;
+        }
+        return 1;
 }
 
 double thal(char oligo_f[],char oligo_r[],double stackEntropies[],double stackEnthalpies[],double stackint2Entropies[],double stackint2Enthalpies[],double dangleEntropies3[],double dangleEnthalpies3[],double dangleEntropies5[],double dangleEnthalpies5[],double hairpinLoopEntropies[],double interiorLoopEntropies[],double bulgeLoopEntropies[],double hairpinLoopEnthalpies[],double interiorLoopEnthalpies[],double bulgeLoopEnthalpies[],double tstackEntropies[],double tstackEnthalpies[],double tstack2Entropies[],double tstack2Enthalpies[],char *triloopEntropies1,char *triloopEnthalpies1,char *tetraloopEntropies1,char *tetraloopEnthalpies1,double *triloopEntropies2,double *triloopEnthalpies2,double *tetraloopEntropies2,double *tetraloopEnthalpies2,int numTriloops,int numTetraloops,double atpS[],double atpH[],int type)
