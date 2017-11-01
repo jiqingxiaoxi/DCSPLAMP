@@ -670,7 +670,7 @@ int get_num_line(char *path,int flag)
 	return size;
 }
 
-void getTriloop(char *triloopEntropies1,char *triloopEnthalpies1,double *triloopEntropies2,double *triloopEnthalpies2,char *path)
+void getTriloop(char *path,double *parameter,char *Pchar,int NumL[])
 {
         FILE *sFile, *hFile;
         int i,turn;
@@ -697,11 +697,11 @@ void getTriloop(char *triloopEntropies1,char *triloopEnthalpies1,double *triloop
         while(fscanf(sFile,"%s\t%s\n",seq,value)!=EOF)
         {
 		for (i=0;i<5;i++)
-			triloopEntropies1[5*turn+i]=str2int_CPU(seq[i]);
+			Pchar[5*turn+i]=str2int_CPU(seq[i]);
 		if(value[0]=='i')
-			triloopEntropies2[turn]=1.0*INFINITY;
+			parameter[5730+turn]=1.0*INFINITY;
 		else
-			triloopEntropies2[turn]=atof(value);
+			parameter[5730+turn]=atof(value);
 		turn++;
         }
         fclose(sFile);
@@ -727,17 +727,17 @@ void getTriloop(char *triloopEntropies1,char *triloopEnthalpies1,double *triloop
         while(fscanf(hFile,"%s\t%s\n",seq,value)!=EOF)
         {
 		for(i=0;i<5;i++)
-			triloopEnthalpies1[turn*5+i]=str2int_CPU(seq[i]);
+			Pchar[5*NumL[0]+turn*5+i]=str2int_CPU(seq[i]);
 		if(value[0]=='i')
-			triloopEnthalpies2[turn]=1.0*INFINITY;
+			parameter[5730+NumL[0]+turn]=1.0*INFINITY;
 		else
-			triloopEnthalpies2[turn]=atof(value);
+			parameter[5730+NumL[0]+turn]=atof(value);
 		turn++;
         }
         fclose(hFile);
 }
 
-void getTetraloop(char *tetraloopEntropies1,char *tetraloopEnthalpies1,double *tetraloopEntropies2,double *tetraloopEnthalpies2,char *path)
+void getTetraloop(char *path,double *parameter,char *Pchar,int NumL[])
 {
         FILE *sFile, *hFile;
         int i, turn;
@@ -764,11 +764,11 @@ void getTetraloop(char *tetraloopEntropies1,char *tetraloopEnthalpies1,double *t
         while(fscanf(sFile,"%s\t%s\n",seq,value)!=EOF)
         {
 		for(i=0;i<6;i++)
-			tetraloopEntropies1[turn*6+i]=str2int_CPU(seq[i]);
+			Pchar[10*NumL[0]+turn*6+i]=str2int_CPU(seq[i]);
 		if(value[0]=='i')
-			tetraloopEntropies2[turn]=1.0*INFINITY;
+			parameter[5730+2*NumL[0]+turn]=1.0*INFINITY;
 		else
-			tetraloopEntropies2[turn]=atof(value);
+			parameter[5730+2*NumL[0]+turn]=atof(value);
 		turn++;
         }
         fclose(sFile);
@@ -793,11 +793,11 @@ void getTetraloop(char *tetraloopEntropies1,char *tetraloopEnthalpies1,double *t
         while(fscanf(hFile,"%s\t%s\n",seq,value)!=EOF)
         {
 		for(i=0;i<6;i++)
-			tetraloopEnthalpies1[6*turn+i]=str2int_CPU(seq[i]);
+			Pchar[10*NumL[0]+6*NumL[1]+6*turn+i]=str2int_CPU(seq[i]);
 		if(value[0]=='i')
-			tetraloopEnthalpies2[turn]=1.0*INFINITY;
+			parameter[5730+2*NumL[0]+NumL[1]+turn]=1.0*INFINITY;
 		else
-			tetraloopEnthalpies2[turn]=atof(value);
+			parameter[5730+2*NumL[0]+NumL[1]+turn]=atof(value);
 		turn++;
         }
         fclose(hFile);
@@ -1077,7 +1077,7 @@ __device__ void CBI(int i,int j,double* EntropyEnthalpy,int traceback,double Ini
 	return;
 }
 
-__device__ int find_pos(char *ref,int ref_start,char *source,int length,int num)
+__device__ int find_pos(char *ref,int ref_start,char *source,int start,int length,int num)
 {
 	int flag,i,j;
 
@@ -1086,7 +1086,7 @@ __device__ int find_pos(char *ref,int ref_start,char *source,int length,int num)
 		flag=0;
 		for(j=0;j<length;j++)
 		{
-			if(ref[ref_start+j]!=source[i*length+j])
+			if(ref[ref_start+j]!=source[start+i*length+j])
 			{
 				flag++;
 				break;
@@ -1098,7 +1098,7 @@ __device__ int find_pos(char *ref,int ref_start,char *source,int length,int num)
 	return -1;
 }
 
-__device__ void calc_hairpin(int i,int j,double *EntropyEnthalpy,int traceback,char *triloopEntropies1,char *triloopEnthalpies1,char *tetraloopEntropies1,char *tetraloopEnthalpies1,double *triloopEntropies2,double *triloopEnthalpies2,double *tetraloopEntropies2,double *tetraloopEnthalpies2,int numTriloops,int numTetraloops,double Initdouble[],int Initint[],double enthalpyDPT[],double entropyDPT[],char numSeq1[],double parameter[])
+__device__ void calc_hairpin(int i,int j,double *EntropyEnthalpy,int traceback,double Initdouble[],int Initint[],double enthalpyDPT[],double entropyDPT[],char numSeq1[],double parameter[],char *d_Pchar,int *d_NumL)
 {
 	int pos,loopSize=j-i-1;
 	double T1,T2;
@@ -1144,23 +1144,23 @@ __device__ void calc_hairpin(int i,int j,double *EntropyEnthalpy,int traceback,c
 
 	if(loopSize==3) // closing AT-penalty (+), triloop bonus, hairpin of 3 (+) 
 	{
-		pos=find_pos(numSeq1,i,triloopEnthalpies1,5,numTriloops);
+		pos=find_pos(numSeq1,i,d_Pchar,5*d_NumL[0],5,d_NumL[0]);
 		if(pos!=-1)
-			EntropyEnthalpy[1]+=triloopEnthalpies2[pos];
+			EntropyEnthalpy[1]+=parameter[5730+d_NumL[0]+pos];
 
-		pos=find_pos(numSeq1,i,triloopEntropies1,5,numTriloops);
+		pos=find_pos(numSeq1,i,d_Pchar,0,5,d_NumL[0]);
 		if(pos!=-1)
-			EntropyEnthalpy[0]+=triloopEntropies2[pos];
+			EntropyEnthalpy[0]+=parameter[5730+pos];
 	}
 	else if (loopSize == 4) // terminal mismatch, tetraloop bonus, hairpin of 4
 	{
-		pos=find_pos(numSeq1,i,tetraloopEnthalpies1,6,numTetraloops);
+		pos=find_pos(numSeq1,i,d_Pchar,10*d_NumL[0]+6*d_NumL[1],6,d_NumL[1]);
 		if(pos!=-1)
-			EntropyEnthalpy[1]+=tetraloopEnthalpies2[pos];
+			EntropyEnthalpy[1]+=parameter[5730+2*d_NumL[0]+d_NumL[1]+pos];
 
-		pos=find_pos(numSeq1,i,tetraloopEntropies1,6,numTetraloops);
+		pos=find_pos(numSeq1,i,d_Pchar,10*d_NumL[0],6,d_NumL[1]);
 		if(pos!=-1)
-			EntropyEnthalpy[0]+=tetraloopEntropies2[pos];
+			EntropyEnthalpy[0]+=parameter[5730+2*d_NumL[0]+pos];
 	}
 	if(fabs(EntropyEnthalpy[1])>999999999)
 	{
@@ -1177,7 +1177,7 @@ __device__ void calc_hairpin(int i,int j,double *EntropyEnthalpy,int traceback,c
 	return;
 }
 
-__device__ void fillMatrix2(char *triloopEntropies1,char *triloopEnthalpies1,char *tetraloopEntropies1,char *tetraloopEnthalpies1,double *triloopEntropies2,double *triloopEnthalpies2,double *tetraloopEntropies2,double *tetraloopEnthalpies2,int numTriloops,int numTetraloops,double Initdouble[],int Initint[],double enthalpyDPT[],double entropyDPT[],char numSeq1[],char numSeq2[],double parameter[])
+__device__ void fillMatrix2(double Initdouble[],int Initint[],double enthalpyDPT[],double entropyDPT[],char numSeq1[],char numSeq2[],double *parameter,char *d_Pchar,int *d_NumL)
 {
 	int i, j;
 	double SH[2];
@@ -1194,7 +1194,7 @@ __device__ void fillMatrix2(char *triloopEntropies1,char *triloopEnthalpies1,cha
 
 				SH[0] = -1.0;
 				SH[1] =1.0*INFINITY;
-				calc_hairpin(i, j, SH, 0,triloopEntropies1,triloopEnthalpies1,tetraloopEntropies1,tetraloopEnthalpies1,triloopEntropies2,triloopEnthalpies2,tetraloopEntropies2,tetraloopEnthalpies2,numTriloops,numTetraloops,Initdouble,Initint,enthalpyDPT,entropyDPT,numSeq1,parameter);
+				calc_hairpin(i, j, SH, 0,Initdouble,Initint,enthalpyDPT,entropyDPT,numSeq1,parameter,d_Pchar,d_NumL);
 				if(fabs(SH[1])<999999999)
 				{
 					if(SH[0] <-2500.0) /* to not give dH any value if dS is unreasonable */
@@ -1573,7 +1573,7 @@ __device__ int equal(double a,double b)
 	return fabs(a-b)<1e-5;
 }
 
-__device__ void tracebacku(int bp[],char *triloopEntropies1,char *triloopEnthalpies1,char *tetraloopEntropies1,char *tetraloopEnthalpies1,double *triloopEntropies2,double *triloopEnthalpies2,double *tetraloopEntropies2,double *tetraloopEnthalpies2,int numTriloops,int numTetraloops,double Initdouble[],int Initint[],double enthalpyDPT[],double entropyDPT[],double send5[],double hend5[],char numSeq1[],char numSeq2[],double parameter[])
+__device__ void tracebacku(int bp[],double Initdouble[],int Initint[],double enthalpyDPT[],double entropyDPT[],double send5[],double hend5[],char numSeq1[],char numSeq2[],double *parameter,char *d_Pchar,int *d_NumL)
 {
 	int i,j,store[50],total,now,ii,jj,k,d,done;
 	double SH1[2],SH2[2],EntropyEnthalpy[2];
@@ -1657,7 +1657,7 @@ __device__ void tracebacku(int bp[],char *triloopEntropies1,char *triloopEnthalp
                         bp[j-1]=i;
                         SH1[0]=-1.0;
                         SH1[1]=1.0*INFINITY;
-                        calc_hairpin(i,j,SH1,1,triloopEntropies1,triloopEnthalpies1,tetraloopEntropies1,tetraloopEnthalpies1,triloopEntropies2,triloopEnthalpies2,tetraloopEntropies2,tetraloopEnthalpies2,numTriloops,numTetraloops,Initdouble,Initint,enthalpyDPT,entropyDPT,numSeq1,parameter);
+                        calc_hairpin(i,j,SH1,1,Initdouble,Initint,enthalpyDPT,entropyDPT,numSeq1,parameter,d_Pchar,d_NumL);
 
                         SH2[0]=-1.0;
                         SH2[1]=1.0*INFINITY;
@@ -2299,7 +2299,7 @@ __device__ int symmetry_thermo(char seq[])
 	return 1;
 }
 
-__device__ double thal(char oligo_f[],char oligo_r[],char *triloopEntropies1,char *triloopEnthalpies1,char *tetraloopEntropies1,char *tetraloopEnthalpies1,double *triloopEntropies2,double *triloopEnthalpies2,double *tetraloopEntropies2,double *tetraloopEnthalpies2,int numTriloops,int numTetraloops,int type,double *parameter)
+__device__ double thal(char oligo_f[],char oligo_r[],int type,double *parameter,char *d_Pchar,int *d_NumL)
 {
 	double SH[2],Initdouble[4];//0 is dplx_init_H, 1 is dplx_init_S, 2 is RC, 3 is SHleft
 	int Initint[5]; //0 is len1, 1 is len2, 2 is len3, 3 is bestI, 4 is bestJ
@@ -2360,7 +2360,7 @@ __device__ double thal(char oligo_f[],char oligo_r[],char *triloopEntropies1,cha
 	if (type==4) /* calculate structure of monomer */
 	{
 		initMatrix2(Initint,enthalpyDPT,entropyDPT,numSeq1);
-		fillMatrix2(triloopEntropies1,triloopEnthalpies1,tetraloopEntropies1,tetraloopEnthalpies1,triloopEntropies2,triloopEnthalpies2,tetraloopEntropies2,tetraloopEnthalpies2,numTriloops,numTetraloops,Initdouble,Initint,enthalpyDPT,entropyDPT,numSeq1,numSeq2,parameter);
+		fillMatrix2(Initdouble,Initint,enthalpyDPT,entropyDPT,numSeq1,numSeq2,parameter,d_Pchar,d_NumL);
 		calc_terminal_bp(310.15,Initdouble,Initint,enthalpyDPT,entropyDPT,send5,hend5,numSeq1,parameter);
 		mh=hend5[Initint[0]];
 		ms=send5[Initint[0]];
@@ -2368,7 +2368,7 @@ __device__ double thal(char oligo_f[],char oligo_r[],char *triloopEntropies1,cha
 			ps1[i]=0;
 		if(fabs(mh)<999999999)
 		{
-			tracebacku(ps1,triloopEntropies1,triloopEnthalpies1,tetraloopEntropies1,tetraloopEnthalpies1,triloopEntropies2,triloopEnthalpies2,tetraloopEntropies2,tetraloopEnthalpies2,numTriloops,numTetraloops,Initdouble,Initint,enthalpyDPT,entropyDPT,send5,hend5,numSeq1,numSeq2,parameter);
+			tracebacku(ps1,Initdouble,Initint,enthalpyDPT,entropyDPT,send5,hend5,numSeq1,numSeq2,parameter,d_Pchar,d_NumL);
 			result_TH=drawHairpin(ps1,mh,ms,Initint);
 		}
 	}
@@ -2437,7 +2437,7 @@ __device__ double thal(char oligo_f[],char oligo_r[],char *triloopEntropies1,cha
         return result_TH;
 }
 
-__global__ void Test(char *d_seq,double *d_result1,double *d_result2,double *d_result3,char *triloopEntropies1,char *triloopEnthalpies1,char *tetraloopEntropies1,char *tetraloopEnthalpies1,double *triloopEntropies2,double *triloopEnthalpies2,double *tetraloopEntropies2,double *tetraloopEnthalpies2,int numTriloops,int numTetraloops,double *parameter)
+__global__ void Test(char *d_seq,double *d_result1,double *d_result2,double *d_result3,double *parameter,char *d_Pchar,int *d_NumL)
 {
 	int id,i;
 	char primer1[26],primer2[26];
@@ -2448,23 +2448,27 @@ __global__ void Test(char *d_seq,double *d_result1,double *d_result2,double *d_r
 		primer1[i]=d_seq[26*id+i];
 		primer2[i]=d_seq[26*id+i];
 	}
-	d_result1[id]=thal(primer1,primer2,triloopEntropies1,triloopEnthalpies1,tetraloopEntropies1,tetraloopEnthalpies1,triloopEntropies2,triloopEnthalpies2,tetraloopEntropies2,tetraloopEnthalpies2,numTriloops,numTetraloops,1,parameter);
-	d_result2[id]=thal(primer1,primer2,triloopEntropies1,triloopEnthalpies1,tetraloopEntropies1,tetraloopEnthalpies1,triloopEntropies2,triloopEnthalpies2,tetraloopEntropies2,tetraloopEnthalpies2,numTriloops,numTetraloops,2,parameter);
-	d_result3[id]=thal(primer1,primer2,triloopEntropies1,triloopEnthalpies1,tetraloopEntropies1,tetraloopEnthalpies1,triloopEntropies2,triloopEnthalpies2,tetraloopEntropies2,tetraloopEnthalpies2,numTriloops,numTetraloops,4,parameter);
+	d_result1[id]=thal(primer1,primer2,1,parameter,d_Pchar,d_NumL);
+	d_result2[id]=thal(primer1,primer2,2,parameter,d_Pchar,d_NumL);
+	d_result3[id]=thal(primer1,primer2,4,parameter,d_Pchar,d_NumL);
 	__syncthreads();
 }
 
 main()
 {
-	double H_parameter[5730],*parameter;
-	char *H_triloopEntropies1,*H_triloopEnthalpies1,*H_tetraloopEntropies1,*H_tetraloopEnthalpies1;
-	double *H_triloopEntropies2,*H_triloopEnthalpies2,*H_tetraloopEntropies2,*H_tetraloopEnthalpies2;
-	int numTriloops,numTetraloops;
-//in GPU
-        char *triloopEntropies1,*triloopEnthalpies1,*tetraloopEntropies1,*tetraloopEnthalpies1;
-        double *triloopEntropies2,*triloopEnthalpies2,*tetraloopEntropies2,*tetraloopEnthalpies2;
+	double *H_parameter,*parameter;
+	char *Pchar,*d_Pchar;
+	int NumL[2],*d_NumL;
+	char path[100]="/home/bjia/GPU-LAMP/Create_Primer3/primer3-2.3.5/src/primer3_config/";
 
-        char path[100]="/home/bjia/GPU-LAMP/Create_Primer3/primer3-2.3.5/src/primer3_config/";
+	NumL[0]=get_num_line(path,0);
+	NumL[1]=get_num_line(path,1);
+	H_parameter=(double *)malloc((5730+2*NumL[0]+2*NumL[1])*sizeof(double));
+	memset(H_parameter,'\0',(5730+2*NumL[0]+2*NumL[1])*sizeof(double));
+	Pchar=(char *)malloc(10*NumL[0]+12*NumL[1]);
+	memset(Pchar,'\0',10*NumL[0]+12*NumL[1]);
+	cudaMalloc((void **)&d_Pchar,10*NumL[0]+12*NumL[1]);
+	cudaMemset(d_Pchar,'\0',10*NumL[0]+12*NumL[1]);
 
 //read_parameter
 	getStack(path,H_parameter);
@@ -2473,47 +2477,16 @@ main()
 	getLoop(path,H_parameter);
 	getTstack(path,H_parameter);
 	getTstack2(path,H_parameter);
-
-	numTriloops=get_num_line(path,0);
-	H_triloopEntropies1=(char *)malloc(numTriloops*5);
-	H_triloopEnthalpies1=(char *)malloc(numTriloops*5);
-	H_triloopEntropies2=(double *)malloc(numTriloops*sizeof(double));
-        H_triloopEnthalpies2=(double *)malloc(numTriloops*sizeof(double));
-	getTriloop(H_triloopEntropies1,H_triloopEnthalpies1,H_triloopEntropies2,H_triloopEnthalpies2,path);
-	
-	numTetraloops=get_num_line(path,1);
-	H_tetraloopEntropies1=(char *)malloc(numTetraloops*6);
-	H_tetraloopEnthalpies1=(char *)malloc(numTetraloops*6);
-	H_tetraloopEntropies2=(double *)malloc(numTetraloops*sizeof(double));
-	H_tetraloopEnthalpies2=(double *)malloc(numTetraloops*sizeof(double));
-	getTetraloop(H_tetraloopEntropies1,H_tetraloopEnthalpies1,H_tetraloopEntropies2,H_tetraloopEnthalpies2,path);
+	getTriloop(path,H_parameter,Pchar,NumL);
+	getTetraloop(path,H_parameter,Pchar,NumL);
 	tableStartATS(6.9,H_parameter);
 	tableStartATH(2200.0,H_parameter);
 
 //malloc for GPU
-	cudaMalloc((void **)&parameter,5730*sizeof(double));
-	cudaMemset(parameter,'\0',5730*sizeof(double));
-	cudaMemcpy(parameter,H_parameter,5730*sizeof(double),cudaMemcpyHostToDevice);
-	cudaMalloc((void **)&triloopEntropies1,numTriloops*5*sizeof(char));
-	cudaMemset(triloopEntropies1,'\0',numTriloops*5*sizeof(char));
-	cudaMemcpy(triloopEntropies1,H_triloopEntropies1,numTriloops*5*sizeof(char),cudaMemcpyHostToDevice);
-	cudaMalloc((void **)&triloopEnthalpies1,numTriloops*5*sizeof(char));
-	cudaMemset(triloopEnthalpies1,'\0',numTriloops*5*sizeof(char));
-	cudaMemcpy(triloopEnthalpies1,H_triloopEnthalpies1,numTriloops*5*sizeof(char),cudaMemcpyHostToDevice);
-	cudaMalloc((void **)&triloopEntropies2,numTriloops*sizeof(double));
-	cudaMemset(triloopEntropies2,'\0',numTriloops*sizeof(double));
-	cudaMemcpy(triloopEntropies2,H_triloopEntropies2,numTriloops*sizeof(double),cudaMemcpyHostToDevice);
-	cudaMalloc((void **)&triloopEnthalpies2,numTriloops*sizeof(double));
-	cudaMemset(triloopEnthalpies2,'\0',numTriloops*sizeof(double));
-	cudaMemcpy(triloopEnthalpies2,H_triloopEnthalpies2,numTriloops*sizeof(double),cudaMemcpyHostToDevice);
-	cudaMalloc((void **)&tetraloopEntropies1,numTetraloops*6*sizeof(char));
-	cudaMemcpy(tetraloopEntropies1,H_tetraloopEntropies1,numTetraloops*6*sizeof(char),cudaMemcpyHostToDevice);
-	cudaMalloc((void **)&tetraloopEnthalpies1,numTetraloops*6*sizeof(char));
-	cudaMemcpy(tetraloopEnthalpies1,H_tetraloopEnthalpies1,numTetraloops*6*sizeof(char),cudaMemcpyHostToDevice);
-	cudaMalloc((void **)&tetraloopEntropies2,numTetraloops*sizeof(double));
-	cudaMemcpy(tetraloopEntropies2,H_tetraloopEntropies2,numTetraloops*sizeof(double),cudaMemcpyHostToDevice);
-	cudaMalloc((void **)&tetraloopEnthalpies2,numTetraloops*sizeof(double));
-	cudaMemcpy(tetraloopEnthalpies2,H_tetraloopEnthalpies2,numTetraloops*sizeof(double),cudaMemcpyHostToDevice);
+	cudaMalloc((void **)&parameter,(5730+2*NumL[0]+2*NumL[1])*sizeof(double));
+	cudaMemset(parameter,'\0',(5730+2*NumL[0]+2*NumL[1])*sizeof(double));
+	cudaMemcpy(parameter,H_parameter,(5730+2*NumL[0]+2*NumL[1])*sizeof(double),cudaMemcpyHostToDevice);
+	cudaMemcpy(d_Pchar,Pchar,10*NumL[0]+12*NumL[1],cudaMemcpyHostToDevice);
 
 	char *seq,*d_seq;
 	double *h_result1,*d_result1,*h_result2,*d_result2,*h_result3,*d_result3;
@@ -2531,7 +2504,7 @@ main()
 	h_result1=(double *)malloc(20000*sizeof(double));
 	h_result2=(double *)malloc(20000*sizeof(double));
 	h_result3=(double *)malloc(20000*sizeof(double));
-
+	
 	fp=fopen("test-single-primer-list.txt","r");
         if(fp==NULL)
         {
@@ -2554,8 +2527,11 @@ main()
 	}
 	fclose(fp);
 
+	cudaMalloc((void **)&d_NumL,2*sizeof(int));
+	cudaMemset(d_NumL,'\0',2*sizeof(int));
+	cudaMemcpy(d_NumL,NumL,2*sizeof(int),cudaMemcpyHostToDevice);
 	cudaMemcpy(d_seq,seq,20000*26*sizeof(char),cudaMemcpyHostToDevice);
-	Test<<<100,200>>>(d_seq,d_result1,d_result2,d_result3,triloopEntropies1,triloopEnthalpies1,tetraloopEntropies1,tetraloopEnthalpies1,triloopEntropies2,triloopEnthalpies2,tetraloopEntropies2,tetraloopEnthalpies2,numTriloops,numTetraloops,parameter);
+	Test<<<100,200>>>(d_seq,d_result1,d_result2,d_result3,parameter,d_Pchar,d_NumL);
 	memset(h_result1,'\0',20000*sizeof(double));
 	cudaMemcpy(h_result1,d_result1,20000*sizeof(double),cudaMemcpyDeviceToHost);
 	cudaMemcpy(h_result2,d_result2,20000*sizeof(double),cudaMemcpyDeviceToHost);
@@ -2574,21 +2550,9 @@ main()
 	cudaFree(d_result3);
 
 //when calculate the compl_end, a->type=2 and 3, inputs are (one, two) and (rev_one,rev_two :5'-3'), total four times, select the biggest
-	free(H_triloopEntropies1);
-	free(H_triloopEnthalpies1);
-	free(H_tetraloopEntropies1);
-	free(H_tetraloopEnthalpies1);
-	free(H_triloopEntropies2);
-	free(H_triloopEnthalpies2);
-	free(H_tetraloopEntropies2);
-	free(H_tetraloopEnthalpies2);
+	free(Pchar);
+	free(H_parameter);
 	cudaFree(parameter);
-	cudaFree(triloopEntropies1);
-        cudaFree(triloopEnthalpies1);
-	cudaFree(tetraloopEntropies1);
-	cudaFree(tetraloopEnthalpies1);
-	cudaFree(triloopEntropies2);
-	cudaFree(triloopEnthalpies2);
-	cudaFree(tetraloopEntropies2);
-	cudaFree(tetraloopEnthalpies2);
+	cudaFree(d_Pchar);
+	cudaFree(d_NumL);
 }
