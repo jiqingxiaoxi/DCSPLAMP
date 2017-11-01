@@ -2428,8 +2428,6 @@ main()
 	double result;
 
         char path[100]="/home/bjia/GPU-LAMP/Create_Primer3/primer3-2.3.5/src/primer3_config/";
-        char one[30]="GAGCTAGAGTCGTTAGCTAAACC";
-        char two[30]="GAGCTAGAGTCGTTAGCTAAACC";
 
 //read_parameter
 	getStack(stackEntropies,stackEnthalpies,path);
@@ -2455,34 +2453,42 @@ main()
 	tableStartATS(6.9,atpS);
 	tableStartATH(2200.0,atpH);
 
-	int type;
-printf("single-any: real is 11.37, ours is ");
-	type=1;
-        result=thal(one,two,stackEntropies,stackEnthalpies,stackint2Entropies,stackint2Enthalpies,dangleEntropies3,dangleEnthalpies3,dangleEntropies5,dangleEnthalpies5,hairpinLoopEntropies,interiorLoopEntropies,bulgeLoopEntropies,hairpinLoopEnthalpies,interiorLoopEnthalpies,bulgeLoopEnthalpies,tstackEntropies,tstackEnthalpies,tstack2Entropies,tstack2Enthalpies,triloopEntropies1,triloopEnthalpies1,tetraloopEntropies1,tetraloopEnthalpies1,triloopEntropies2,triloopEnthalpies2,tetraloopEntropies2,tetraloopEnthalpies2,numTriloops,numTetraloops,atpS,atpH,type);
-	printf("%lf\n",result);
-printf("single-end: real is 0.65, ours is ");
-        type=2;
-        result=thal(one,two,stackEntropies,stackEnthalpies,stackint2Entropies,stackint2Enthalpies,dangleEntropies3,dangleEnthalpies3,dangleEntropies5,dangleEnthalpies5,hairpinLoopEntropies,interiorLoopEntropies,bulgeLoopEntropies,hairpinLoopEnthalpies,interiorLoopEnthalpies,bulgeLoopEnthalpies,tstackEntropies,tstackEnthalpies,tstack2Entropies,tstack2Enthalpies,triloopEntropies1,triloopEnthalpies1,tetraloopEntropies1,tetraloopEnthalpies1,triloopEntropies2,triloopEnthalpies2,tetraloopEntropies2,tetraloopEnthalpies2,numTriloops,numTetraloops,atpS,atpH,type);
-        printf("%lf\n",result);
-printf("single-hairpin: real is 35.66, ours is ");
-        type=4;
-        result=thal(one,two,stackEntropies,stackEnthalpies,stackint2Entropies,stackint2Enthalpies,dangleEntropies3,dangleEnthalpies3,dangleEntropies5,dangleEnthalpies5,hairpinLoopEntropies,interiorLoopEntropies,bulgeLoopEntropies,hairpinLoopEnthalpies,interiorLoopEnthalpies,bulgeLoopEnthalpies,tstackEntropies,tstackEnthalpies,tstack2Entropies,tstack2Enthalpies,triloopEntropies1,triloopEnthalpies1,tetraloopEntropies1,tetraloopEnthalpies1,triloopEntropies2,triloopEnthalpies2,tetraloopEntropies2,tetraloopEnthalpies2,numTriloops,numTetraloops,atpS,atpH,type);
-        printf("%lf\n",result);
+	int type,i;
+	FILE *fp;
+	char line[200],primer[26];
 
-	memset(one,'\0',30);
-	strcpy(one,"TTAGACTTCTAAGCGCTGTGAAC");
-	memset(two,'\0',30);
-	strcpy(two,"TGGTTCACGTATGCCTGC");
-printf("two-any: real is 1.78, ours is ");
-	type=1;
-	result=thal(one,two,stackEntropies,stackEnthalpies,stackint2Entropies,stackint2Enthalpies,dangleEntropies3,dangleEnthalpies3,dangleEntropies5,dangleEnthalpies5,hairpinLoopEntropies,interiorLoopEntropies,bulgeLoopEntropies,hairpinLoopEnthalpies,interiorLoopEnthalpies,bulgeLoopEnthalpies,tstackEntropies,tstackEnthalpies,tstack2Entropies,tstack2Enthalpies,triloopEntropies1,triloopEnthalpies1,tetraloopEntropies1,tetraloopEnthalpies1,triloopEntropies2,triloopEnthalpies2,tetraloopEntropies2,tetraloopEnthalpies2,numTriloops,numTetraloops,atpS,atpH,type);
-        printf("%lf\n",result);
+	fp=fopen("test-single-primer-list.txt","r");
+        if(fp==NULL)
+        {
+                printf("Can't open test-single-primer-list.txt file!\n");
+                exit(1);
+        }
+        memset(line,'\0',200);
+        i=0;
+        while(fgets(line,200,fp)!=NULL)
+        {
+                if(line[0]=='S'&&line[9]=='P')
+                {
+                        line[strlen(line)-1]='\0';
+			memset(primer,'\0',26);
+                        strcpy(primer,&line[16]);
+			printf("%d",i);
+			type=1;
+		        result=thal(primer,primer,stackEntropies,stackEnthalpies,stackint2Entropies,stackint2Enthalpies,dangleEntropies3,dangleEnthalpies3,dangleEntropies5,dangleEnthalpies5,hairpinLoopEntropies,interiorLoopEntropies,bulgeLoopEntropies,hairpinLoopEnthalpies,interiorLoopEnthalpies,bulgeLoopEnthalpies,tstackEntropies,tstackEnthalpies,tstack2Entropies,tstack2Enthalpies,triloopEntropies1,triloopEnthalpies1,tetraloopEntropies1,tetraloopEnthalpies1,triloopEntropies2,triloopEnthalpies2,tetraloopEntropies2,tetraloopEnthalpies2,numTriloops,numTetraloops,atpS,atpH,type);
+			printf("\t%lf",result);
 
-printf("two-end: real is 6.76, ours is ");
-	type=3;
-	result=thal(one,two,stackEntropies,stackEnthalpies,stackint2Entropies,stackint2Enthalpies,dangleEntropies3,dangleEnthalpies3,dangleEntropies5,dangleEnthalpies5,hairpinLoopEntropies,interiorLoopEntropies,bulgeLoopEntropies,hairpinLoopEnthalpies,interiorLoopEnthalpies,bulgeLoopEnthalpies,tstackEntropies,tstackEnthalpies,tstack2Entropies,tstack2Enthalpies,triloopEntropies1,triloopEnthalpies1,tetraloopEntropies1,tetraloopEnthalpies1,triloopEntropies2,triloopEnthalpies2,tetraloopEntropies2,tetraloopEnthalpies2,numTriloops,numTetraloops,atpS,atpH,type);
-        printf("%lf\n",result);
-//when calculate the compl_end, a->type=2 and 3, inputs are (one, two) and (rev_one,rev_two :5'-3'), total four times, select the biggest
+		        type=2;
+		        result=thal(primer,primer,stackEntropies,stackEnthalpies,stackint2Entropies,stackint2Enthalpies,dangleEntropies3,dangleEnthalpies3,dangleEntropies5,dangleEnthalpies5,hairpinLoopEntropies,interiorLoopEntropies,bulgeLoopEntropies,hairpinLoopEnthalpies,interiorLoopEnthalpies,bulgeLoopEnthalpies,tstackEntropies,tstackEnthalpies,tstack2Entropies,tstack2Enthalpies,triloopEntropies1,triloopEnthalpies1,tetraloopEntropies1,tetraloopEnthalpies1,triloopEntropies2,triloopEnthalpies2,tetraloopEntropies2,tetraloopEnthalpies2,numTriloops,numTetraloops,atpS,atpH,type);
+			printf("\t%lf\t",result);
+
+		        type=4;
+		        result=thal(primer,primer,stackEntropies,stackEnthalpies,stackint2Entropies,stackint2Enthalpies,dangleEntropies3,dangleEnthalpies3,dangleEntropies5,dangleEnthalpies5,hairpinLoopEntropies,interiorLoopEntropies,bulgeLoopEntropies,hairpinLoopEnthalpies,interiorLoopEnthalpies,bulgeLoopEnthalpies,tstackEntropies,tstackEnthalpies,tstack2Entropies,tstack2Enthalpies,triloopEntropies1,triloopEnthalpies1,tetraloopEntropies1,tetraloopEnthalpies1,triloopEntropies2,triloopEnthalpies2,tetraloopEntropies2,tetraloopEnthalpies2,numTriloops,numTetraloops,atpS,atpH,type);
+        		printf("%lf\n",result);
+			i++;
+			memset(line,'\0',200);
+		}
+	}
+	fclose(fp);
 	free(triloopEntropies1);
 	free(triloopEnthalpies1);
 	free(tetraloopEntropies1);
