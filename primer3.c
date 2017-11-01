@@ -2256,7 +2256,6 @@ double drawDimer(int *ps1,int *ps2,double H,double S,double Initdouble[],int Ini
 
 int symmetry_thermo(char seq[])
 {
-        char s,e;
         int i = 0;
         int seq_len=strlen(seq);
         int mp = seq_len/2;
@@ -2266,9 +2265,9 @@ int symmetry_thermo(char seq[])
         while(i<mp) 
         {
                 i++;
-                if((seq[i]=='A'&&e!='T')||(seq[i]=='T'&&e!='A')||(seq[seq_len-1-i]=='A'&&s!='T')||(seq[seq_len-1-i]=='T'&&s!='A'))
+                if((seq[i]=='A'&&seq[seq_len-1-i]!='T')||(seq[i]=='T'&&seq[seq_len-1-i]!='A')||(seq[seq_len-1-i]=='A'&&seq[i]!='T')||(seq[seq_len-1-i]=='T'&&seq[i]!='A'))
                         return 0;   
-                if((seq[i]=='C'&&e!='G')||(seq[i]=='G'&&e!='C')||(seq[seq_len-1-i]=='C'&&s!='G')||(seq[seq_len-1-i]=='G'&&s!='C'))
+                if((seq[i]=='C'&&seq[seq_len-1-i]!='G')||(seq[i]=='G'&&seq[seq_len-1-i]!='C')||(seq[seq_len-1-i]=='C'&&seq[i]!='G')||(seq[seq_len-1-i]=='G'&&seq[i]!='C'))
                         return 0;
         }
         return 1;
