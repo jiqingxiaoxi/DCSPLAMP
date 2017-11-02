@@ -11,13 +11,13 @@ char str2int(char c)
 {
         switch (c)
         {
-                case 'A': case 'a': case '0':
+                case 'A':
                         return 0;
-                case 'C': case 'c': case '1':
+                case 'C':
                         return 1;
-                case 'G': case 'g': case '2':
+                case 'G':
                         return 2;
-                case 'T': case 't': case '3':
+                case 'T':
                         return 3;
         }
         return 4;
@@ -2457,11 +2457,11 @@ int gc(char seq[],int length)
 ///translate A...G to int
 int translate(char a)
 {
-	if(a=='A' || a=='a')
+	if(a=='A')
 		return 0;
-	if(a=='T' || a=='t')
+	if(a=='T')
 		return 1;
-	if(a=='C' || a=='c')
+	if(a=='C')
 		return 2;
 	return 3;
 }
@@ -2484,7 +2484,7 @@ int tm(char seq[],float deltah[],float deltas[],int length,float max_tm,float mi
 
 	total_deltah=(-1.0)*total_deltah;
 	total_deltas=(-1.0)*total_deltas;
-	if((seq[0]=='A')||(seq[0]=='T')||(seq[0]=='a')||(seq[0]=='t'))
+	if((seq[0]=='A')||(seq[0]=='T'))
 	{
 		total_deltah+=2.3;
 		total_deltas+=4.1;
@@ -2494,7 +2494,7 @@ int tm(char seq[],float deltah[],float deltas[],int length,float max_tm,float mi
 		total_deltah+=0.1;
 		total_deltas-=2.8;
 	}
-        if((seq[length-1]=='A')||(seq[length-1]=='T')||seq[length-1]=='a'||seq[length-1]=='t')
+        if((seq[length-1]=='A')||(seq[length-1]=='T'))
         {
                 total_deltah+=2.3;
                 total_deltas+=4.1;
@@ -2561,31 +2561,16 @@ int stability(char seq[],float stab[],int length,int strand)
 //whether species chars in reads
 int words(char *seq,int position,int length)
 {
-	int i,flag;
+	int i;
 	
-	flag=1;
 	for(i=0;i<length;i++)
 	{
-		if(seq[position+i]=='A'||seq[position+i]=='a')
+		if(seq[position+i]=='N')
 		{
-			continue;
+			return 0;
 		}
-		if(seq[position+i]=='T'||seq[position+i]=='t')
-		{
-			continue;
-		}
-		if(seq[position+i]=='C'||seq[position+i]=='c')
-                {
-                        continue;
-                }
-                if(seq[position+i]=='G'||seq[position+i]=='g')
-                {
-                        continue;
-                }
-		flag--;
-		break;
 	}
-	return flag;
+	return 1;
 }
 
 //reverse the strand,+ to - strand
@@ -2595,17 +2580,17 @@ void reverse(char seq[],char rev[],int length)
 	
 	for(i=0;i<length;i++)
 	{
-		if(seq[length-1-i]=='A'||seq[length-1-i]=='a')
+		if(seq[length-1-i]=='A')
 		{
 			rev[i]='T';
 			continue;
 		}
-                if(seq[length-1-i]=='T'||seq[length-1-i]=='t')
+                if(seq[length-1-i]=='T')
                 {
                         rev[i]='A';
                         continue;
                 }
-                if(seq[length-1-i]=='C'||seq[length-1-i]=='c')
+                if(seq[length-1-i]=='C')
                 {
                         rev[i]='G';
                         continue;
@@ -2613,6 +2598,30 @@ void reverse(char seq[],char rev[],int length)
 		rev[i]='C';
 	}
 	rev[i]='\0';
+}
+
+int check_long_ploy(char primer[],int length)
+{
+	int i,same;
+	char ref;
+
+	same=1;
+	ref=primer[0];
+	for(i=1;i<length;i++)
+	{
+		if(primer[i]==ref)
+			same++;
+		else
+		{
+			if(same>=6)
+				return 0;
+			same=1;
+			ref=primer[i];
+		}
+	}
+	if(same>=6)
+		return 0;
+	return 1;
 }
 
 ///function: int length: the length of genome
@@ -2652,6 +2661,9 @@ int candidate_primer(char *seq,char *prefix,char *dir,float stab[],float deltah[
 			if(check==0)
 				continue;
 
+			check=check_long_ploy(primer,i);
+			if(check==0)
+				continue;
 			check=tm(primer,deltah,deltas,i,max_tm,min_tm);
 			if(check==0)
 				continue;
@@ -3095,7 +3107,16 @@ main(int argc, char **argv)
                         i++;
                         continue;
                 }
-                seq[length]=temp[i];
+		if(temp[i]=='a'||temp[i]=='A')
+	                seq[length]='A';
+		else if(temp[i]=='t'||temp[i]=='T')
+			seq[length]='T';
+		else if(temp[i]=='c'||temp[i]=='C')
+                        seq[length]='C';
+		else if(temp[i]=='g'||temp[i]=='G')
+                        seq[length]='G';
+		else
+			seq[length]='N';
                 i++;
                 length++;
         }
