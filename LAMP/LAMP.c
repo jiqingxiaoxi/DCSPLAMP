@@ -2933,9 +2933,9 @@ main(int argc,char **argv)
 			break;
         	for(p_F3=headS;p_F3;p_F3=p_F3->next)   //F3
         	{
-			if(flag[10]&&p_F3->pos<min_loop)
+			if(flag[10]&&(p_F3->pos-200)<min_loop)
 				continue;
-			if(flag[10]&&p_F3->pos>max_loop)
+			if(flag[10]&&(p_F3->pos+200)>max_loop)
 				break;
 			if(turn>=expect)
 				break;
