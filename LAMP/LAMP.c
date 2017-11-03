@@ -2346,10 +2346,8 @@ double thal(char oligo_f[],char oligo_r[],double stackEntropies[],double stackEn
 		{
 			tracebacku(ps1,stackEntropies,stackEnthalpies,stackint2Entropies,stackint2Enthalpies,dangleEntropies3,dangleEnthalpies3,dangleEntropies5,dangleEnthalpies5,hairpinLoopEntropies,interiorLoopEntropies,bulgeLoopEntropies,hairpinLoopEnthalpies,interiorLoopEnthalpies,bulgeLoopEnthalpies,tstackEntropies,tstackEnthalpies,tstack2Entropies,tstack2Enthalpies,triloopEntropies1,triloopEnthalpies1,tetraloopEntropies1,tetraloopEnthalpies1,triloopEntropies2,triloopEnthalpies2,tetraloopEntropies2,tetraloopEnthalpies2,numTriloops,numTetraloops,atpS,atpH,Initdouble,Initint,enthalpyDPT,entropyDPT,send5,hend5,numSeq1,numSeq2);
 			result_TH=drawHairpin(ps1,mh,ms,Initint);
+			result_TH=(int)(result_TH*100+0.5)/100.0;
 		}
-		if(result_TH<0)
-			return 0.0;
-		return result_TH;
 	}
 	else if(type!=4) /* Hybridization of two moleculs */
 	{
@@ -2409,11 +2407,10 @@ double thal(char oligo_f[],char oligo_r[],double stackEntropies[],double stackEn
 		{
 			traceback(Initint[3],Initint[4],ps1,ps2,stackEntropies,stackEnthalpies,stackint2Entropies,stackint2Enthalpies,dangleEntropies3,dangleEnthalpies3,dangleEntropies5,dangleEnthalpies5,interiorLoopEntropies,bulgeLoopEntropies,interiorLoopEnthalpies,bulgeLoopEnthalpies,tstackEntropies,tstackEnthalpies,tstack2Entropies,tstack2Enthalpies,atpS,atpH,Initdouble,Initint,enthalpyDPT,entropyDPT,numSeq1,numSeq2);
 			result_TH=drawDimer(ps1,ps2,(enthalpyDPT[(Initint[3]-1)*Initint[2]+Initint[4]-1]+SH[1]+Initdouble[0]),(entropyDPT[(Initint[3]-1)*Initint[2]+Initint[4]-1]+SH[0]+Initdouble[1]),Initdouble,Initint);
+			result_TH=(int)(result_TH*100+0.5)/100.0;
 		}
-		if(result_TH<0)
-			return 0.0;
-		return result_TH;
 	}
+	return result_TH;
 }
 
 struct Node
@@ -2508,7 +2505,7 @@ main(int argc,char **argv)
 	double stackEntropies[625],stackEnthalpies[625],stackint2Entropies[625],stackint2Enthalpies[625],dangleEntropies3[125],dangleEnthalpies3[125],dangleEntropies5[125],dangleEnthalpies5[125];
         double hairpinLoopEntropies[30],interiorLoopEntropies[30],bulgeLoopEntropies[30],hairpinLoopEnthalpies[30],interiorLoopEnthalpies[30],bulgeLoopEnthalpies[30],tstackEntropies[625],tstackEnthalpies[625],tstack2Entropies[625],tstack2Enthalpies[625];
         double *triloopEntropies2,*triloopEnthalpies2,*tetraloopEntropies2,*tetraloopEnthalpies2,atpS[25],atpH[25];
-	int i,j,*result,new,*best_par,*record,expect,flag[12],common_num[1],turn,success,numTriloops,numTetraloops;
+	int i,j,*result,new,*best_par,*record,expect,flag[12],common_num[1],turn,success,numTriloops,numTetraloops,max_loop,min_loop;
 	char *output,*prefix,*store_path,*path_fa,*inner,*outer,*loop,*par_path;
 	char *temp,*seq,F3[26],F2[26],F1c[26],B1c[26],B2[26],B3[26],LF[26],LB[26],*triloopEntropies1,*triloopEnthalpies1,*tetraloopEntropies1,*tetraloopEnthalpies1;
 	FILE *fp;
@@ -2883,7 +2880,14 @@ main(int argc,char **argv)
 	headS=read_par(outer,flag[5],flag[6]);
 	headL=read_par(inner,flag[5],flag[6]);
 	if(flag[10])
+	{
 		headLoop=read_par(loop,flag[5],flag[6]);
+		p_F3=headLoop;
+		while(p_F3->next!=NULL)
+			p_F3=p_F3->next;
+		max_loop=p_F3->pos;
+		min_loop=headLoop->pos;
+	}
 
 //common statistics
 	if(flag[5])
@@ -2929,6 +2933,10 @@ main(int argc,char **argv)
 			break;
         	for(p_F3=headS;p_F3;p_F3=p_F3->next)   //F3
         	{
+			if(flag[10]&&p_F3->pos<min_loop)
+				continue;
+			if(flag[10]&&p_F3->pos>max_loop)
+				break;
 			if(turn>=expect)
 				break;
 			if(p_F3->total<j)
@@ -3722,6 +3730,7 @@ int check_structure(char F3[],char F2[],char F1c[],char B1c[],char B2[],char B3[
 			TH=thal(list[i],list[j],stackEntropies,stackEnthalpies,stackint2Entropies,stackint2Enthalpies,dangleEntropies3,dangleEnthalpies3,dangleEntropies5,dangleEnthalpies5,hairpinLoopEntropies,interiorLoopEntropies,bulgeLoopEntropies,hairpinLoopEnthalpies,interiorLoopEnthalpies,bulgeLoopEnthalpies,tstackEntropies,tstackEnthalpies,tstack2Entropies,tstack2Enthalpies,triloopEntropies1,triloopEnthalpies1,tetraloopEntropies1,tetraloopEnthalpies1,triloopEntropies2,triloopEnthalpies2,tetraloopEntropies2,tetraloopEnthalpies2,numTriloops,numTetraloops,atpS,atpH,1);
 			if(TH>44+5*flag)
 				return 0;
+
 			TH=thal(list[i],list[j],stackEntropies,stackEnthalpies,stackint2Entropies,stackint2Enthalpies,dangleEntropies3,dangleEnthalpies3,dangleEntropies5,dangleEnthalpies5,hairpinLoopEntropies,interiorLoopEntropies,bulgeLoopEntropies,hairpinLoopEnthalpies,interiorLoopEnthalpies,bulgeLoopEnthalpies,tstackEntropies,tstackEnthalpies,tstack2Entropies,tstack2Enthalpies,triloopEntropies1,triloopEnthalpies1,tetraloopEntropies1,tetraloopEnthalpies1,triloopEntropies2,triloopEnthalpies2,tetraloopEntropies2,tetraloopEnthalpies2,numTriloops,numTetraloops,atpS,atpH,2);
 			if(TH>44+5*flag)
                                 return 0;
@@ -3828,7 +3837,7 @@ int check_structure_loop(char F3[],char F2[],char F1c[],char B1c[],char B2[],cha
                                 return 0;
 			TH=thal(rev1,rev2,stackEntropies,stackEnthalpies,stackint2Entropies,stackint2Enthalpies,dangleEntropies3,dangleEnthalpies3,dangleEntropies5,dangleEnthalpies5,hairpinLoopEntropies,interiorLoopEntropies,bulgeLoopEntropies,hairpinLoopEnthalpies,interiorLoopEnthalpies,bulgeLoopEnthalpies,tstackEntropies,tstackEnthalpies,tstack2Entropies,tstack2Enthalpies,triloopEntropies1,triloopEnthalpies1,tetraloopEntropies1,tetraloopEnthalpies1,triloopEntropies2,triloopEnthalpies2,tetraloopEntropies2,tetraloopEnthalpies2,numTriloops,numTetraloops,atpS,atpH,3);
 			if(TH>44+5*flag)
-                                return 0;
+				return 0;
 		}
 		for(i=6;i<8;i++)
 		{
