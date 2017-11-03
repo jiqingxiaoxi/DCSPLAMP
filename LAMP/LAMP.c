@@ -2881,7 +2881,7 @@ main(int argc,char **argv)
 	headL=read_par(inner,flag[5],flag[6]);
 	if(flag[10])
 	{
-		headLoop=read_par(loop,flag[5],flag[6]);
+		headLoop=read_par(loop,flag[5],0);//don't use special info
 		p_F3=headLoop;
 		while(p_F3->next!=NULL)
 			p_F3=p_F3->next;
