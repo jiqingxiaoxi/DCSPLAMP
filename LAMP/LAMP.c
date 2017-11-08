@@ -2933,9 +2933,9 @@ main(int argc,char **argv)
 			break;
         	for(p_F3=headS;p_F3;p_F3=p_F3->next)   //F3
         	{
-			if(flag[10]&&(p_F3->pos-200)<min_loop)
+			if(flag[10]&&(p_F3->pos+200)<min_loop)
 				continue;
-			if(flag[10]&&(p_F3->pos+200)>max_loop)
+			if(flag[10]&&(p_F3->pos-200)>max_loop)
 				break;
 			if(turn>=expect)
 				break;
@@ -4163,6 +4163,8 @@ int design_loop(struct Primer *p_F3,struct Primer *p_F2,struct Primer *p_LF,stru
 	{
 		if(LF->pos+LF->len>p_F1c->pos)
 			break;
+		if(LF->minus!=1)
+			continue;
 		LB=p_LB;
 		if(flag[7])
 			generate_primer(seq,primer_LF,LF->pos,LF->len,1);
@@ -4170,6 +4172,8 @@ int design_loop(struct Primer *p_F3,struct Primer *p_F2,struct Primer *p_LF,stru
 		{
 			if(LB->pos+LB->len>p_B2->pos)
 				break;
+			if(LB->plus!=1)
+				continue;
 		//check_common
 			if(flag[5])
 			{
@@ -4210,6 +4214,8 @@ int design_loop(struct Primer *p_F3,struct Primer *p_F2,struct Primer *p_LF,stru
         {
                 if(LF->pos+LF->len>p_F1c->pos)
                         break;
+		if(LF->minus!=1)
+			continue;
 	//check_common
 		if(flag[5])
 		{
@@ -4244,6 +4250,8 @@ int design_loop(struct Primer *p_F3,struct Primer *p_F2,struct Primer *p_LF,stru
         {
                 if(LB->pos+LB->len>p_B2->pos)
                         break;
+		if(LB->plus!=1)
+			continue;
 	//check_common
 		if(flag[5])
 		{
