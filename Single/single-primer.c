@@ -2266,11 +2266,11 @@ int symmetry_thermo(char seq[])
 
         while(i<mp) 
         {
-                i++;
                 if((seq[i]=='A'&&seq[seq_len-1-i]!='T')||(seq[i]=='T'&&seq[seq_len-1-i]!='A')||(seq[seq_len-1-i]=='A'&&seq[i]!='T')||(seq[seq_len-1-i]=='T'&&seq[i]!='A'))
                         return 0;   
                 if((seq[i]=='C'&&seq[seq_len-1-i]!='G')||(seq[i]=='G'&&seq[seq_len-1-i]!='C')||(seq[seq_len-1-i]=='C'&&seq[i]!='G')||(seq[seq_len-1-i]=='G'&&seq[i]!='C'))
                         return 0;
+		i++;
         }
         return 1;
 }
@@ -2434,20 +2434,20 @@ int gc(char seq[],int length)
 	number=0;
 	for(i=0;i<length;i++)
 	{
-		if(seq[i]=='C' || seq[i]=='c')
+		if(seq[i]=='C')
 		{
 			number++;
 			continue;
 		}
 	
-		if(seq[i]=='G' || seq[i]=='g')
+		if(seq[i]=='G')
 		{
 			number++;
 		}
 	}
 
 	gc=1.0*number/length*100;
-	if((gc<40)||(gc>60))
+	if((gc<40)||(gc>65))
 	{
 		return 0;
 	}
@@ -2653,7 +2653,7 @@ int candidate_primer(char *seq,char *prefix,char *dir,float stab[],float deltah[
 				break;
 			check=words(seq,circle,i);
 			if(check==0)
-                                continue;
+                                break;
 
 			memset(primer,'\0',30);
 			generate(seq,primer,circle,i);
