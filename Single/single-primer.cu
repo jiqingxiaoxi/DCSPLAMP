@@ -2292,11 +2292,11 @@ __device__ int symmetry_thermo(char seq[])
 
 	while(i<seq_len/2)
 	{
-		i++;
 		if((seq[i]=='A'&&seq[seq_len-1-i]!='T')||(seq[i]=='T'&&seq[seq_len-1-i]!='A')||(seq[seq_len-1-i]=='A'&&seq[i]!='T')||(seq[seq_len-1-i]=='T'&&seq[i]!='A'))
 			return 0;
 		if((seq[i]=='C'&&seq[seq_len-1-i]!='G')||(seq[i]=='G'&&seq[seq_len-1-i]!='C')||(seq[seq_len-1-i]=='C'&&seq[i]!='G')||(seq[seq_len-1-i]=='G'&&seq[i]!='C'))
 			return 0;
+		i++;
 	}
 	return 1;
 }
@@ -2459,20 +2459,20 @@ __device__ int gc(char seq[],int length)
 	number=0;
 	for(i=0;i<length;i++)
 	{
-		if(seq[i]=='C'||seq[i]=='c')
+		if(seq[i]=='C')
 		{
 			number++;
 			continue;
 		}
 	
-		if(seq[i]=='G'||seq[i]=='g')
+		if(seq[i]=='G')
 		{
 			number++;
 		}
 	}
 
 	gc=1.0*number/length*100;
-	if((gc<40)||(gc>60))
+	if((gc<40)||(gc>65))
 	{
 		return 0;
 	}
@@ -2672,7 +2672,7 @@ __global__ void candidate_primer(char *d_seq,int *d_pos,int *d_len,int *d_rev_le
 				break;
 			check=words(d_seq,circle,i);
 			if(check==0)
-                                continue;
+                                break;
 
 			generate(d_seq,primer,circle,i);
 			check=gc(primer,i);
