@@ -646,172 +646,6 @@ void getTstack2(char *path,double *parameter)
         free(line);
 }
 
-int get_num_line(char *path,int flag)
-{
-	FILE *fp;
-	int i,size;
-	char *line;
-
-	i=strlen(path)+20;
-        line=(char *)malloc(i);
-        memset(line,'\0',i);
-        strcpy(line,path);
-	if(flag==0)
-	        strcat(line,"triloop.ds");
-	else
-		strcat(line,"tetraloop.ds");
-
-        if(access(line,0)==-1)
-        {
-                printf("Error! Don't have %s file!\n",line);
-                exit(1);
-        }
-        fp=fopen(line,"r");
-        if(fp==NULL)
-        {
-                printf("Error! Can't open the %s file!\n",line);
-                exit(1);
-        }
-
-	size=0;
-	while(fgets(line,i,fp)!=NULL)
-		size++;
-	return size;
-}
-
-void getTriloop(char *path,double *parameter,char *Pchar,int NumL[])
-{
-        FILE *sFile, *hFile;
-        int i,turn;
-        char *line,seq[10],value[10];
-        
-        i=strlen(path)+20;
-        line=(char *)malloc(i);
-        memset(line,'\0',i);
-        strcpy(line,path);
-        strcat(line,"triloop.ds");
-        if(access(line,0)==-1)
-        {
-                printf("Error! Don't have %s file!\n",line);
-                exit(1);
-        }
-        sFile=fopen(line,"r");
-        if(sFile==NULL)
-        {
-                printf("Error! Can't open the %s file!\n",line);
-                exit(1);
-        }
-	
-	turn=0;
-        while(fscanf(sFile,"%s\t%s\n",seq,value)!=EOF)
-        {
-		for (i=0;i<5;i++)
-			Pchar[5*turn+i]=str2int_CPU(seq[i]);
-		if(value[0]=='i')
-			parameter[5730+turn]=1.0*INFINITY;
-		else
-			parameter[5730+turn]=atof(value);
-		turn++;
-        }
-        fclose(sFile);
-
-	i=strlen(path)+20;
-        memset(line,'\0',i);
-        strcpy(line,path);
-        strcat(line,"triloop.dh");
-        if(access(line,0)==-1)
-        {
-                printf("Error! Don't have %s file!\n",line);
-                exit(1);
-        }
-        hFile=fopen(line,"r");
-        if(hFile==NULL)
-        {
-                printf("Error! Can't open the %s file!\n",line);
-                exit(1);
-        }
-        free(line);
-
-	turn=0;
-        while(fscanf(hFile,"%s\t%s\n",seq,value)!=EOF)
-        {
-		for(i=0;i<5;i++)
-			Pchar[5*NumL[0]+turn*5+i]=str2int_CPU(seq[i]);
-		if(value[0]=='i')
-			parameter[5730+NumL[0]+turn]=1.0*INFINITY;
-		else
-			parameter[5730+NumL[0]+turn]=atof(value);
-		turn++;
-        }
-        fclose(hFile);
-}
-
-void getTetraloop(char *path,double *parameter,char *Pchar,int NumL[])
-{
-        FILE *sFile, *hFile;
-        int i, turn;
-        char *line,seq[10],value[10];
-
-        i=strlen(path)+20;
-        line=(char *)malloc(i);
-        memset(line,'\0',i);
-        strcpy(line,path);
-        strcat(line,"tetraloop.ds");
-        if(access(line,0)==-1)
-        {
-                printf("Error! Don't have %s file!\n",line);
-                exit(1);
-        }
-        sFile=fopen(line,"r");
-        if(sFile==NULL)
-        {
-                printf("Error! Can't open the %s file!\n",line);
-                exit(1);
-        }
-
-	turn=0;
-        while(fscanf(sFile,"%s\t%s\n",seq,value)!=EOF)
-        {
-		for(i=0;i<6;i++)
-			Pchar[10*NumL[0]+turn*6+i]=str2int_CPU(seq[i]);
-		if(value[0]=='i')
-			parameter[5730+2*NumL[0]+turn]=1.0*INFINITY;
-		else
-			parameter[5730+2*NumL[0]+turn]=atof(value);
-		turn++;
-        }
-        fclose(sFile);
-
-        memset(line,'\0',i);
-        strcpy(line,path);
-        strcat(line,"tetraloop.dh");
-        if(access(line,0)==-1)
-        {
-                printf("Error! Don't have %s file!\n",line);
-                exit(1);
-        }
-        hFile=fopen(line,"r");
-        if(hFile==NULL)
-        {
-                printf("Error! Can't open the %s file!\n",line);
-                exit(1);
-        }
-        free(line);
-        
-	turn=0;
-        while(fscanf(hFile,"%s\t%s\n",seq,value)!=EOF)
-        {
-		for(i=0;i<6;i++)
-			Pchar[10*NumL[0]+6*NumL[1]+6*turn+i]=str2int_CPU(seq[i]);
-		if(value[0]=='i')
-			parameter[5730+2*NumL[0]+NumL[1]+turn]=1.0*INFINITY;
-		else
-			parameter[5730+2*NumL[0]+NumL[1]+turn]=atof(value);
-		turn++;
-        }
-        fclose(hFile);
-}
-
 void tableStartATS(double atp_value,double parameter[] )
 {
         int i, j;
@@ -1470,7 +1304,7 @@ __device__ int symmetry_thermo(char *d_seq,int start,int length )
 	return 1;
 }
 
-__device__ double thal(char *d_seq,int *d_primer,int one_turn,int two_turn,int one_flag,int two_flag,int type,double *parameter,char *d_Pchar,int *d_NumL)
+__device__ double thal(char *d_seq,int *d_primer,int one_turn,int two_turn,int one_flag,int two_flag,int type,double *parameter)
 {
 	double SH[2],Initdouble[4];//0 is dplx_init_H, 1 is dplx_init_S, 2 is RC, 3 is SHleft
 	int Initint[5]; //0 is len1, 1 is len2, 2 is len3, 3 is bestI, 4 is bestJ
@@ -1672,7 +1506,7 @@ void generate_primer(char *seq,char primer[],int start,int length,int flag)
 	primer[length]='\0';
 }
 
-__device__ int check_structure(char *d_seq,int *d_primer,int turn[],int *d_int,double *parameter,char *d_Pchar,int *d_NumL,double *d_TH,int id)
+__device__ int check_structure(char *d_seq,int *d_primer,int turn[],int *d_int,double *parameter,double *d_TH,int id)
 {
 	double TH;
 	int i,j;
@@ -1683,25 +1517,25 @@ __device__ int check_structure(char *d_seq,int *d_primer,int turn[],int *d_int,d
 		{
 		if(i!=2||j!=3)
 			continue;
-			TH=thal(d_seq,d_primer,turn[i],turn[j],d_int[11+i],d_int[11+j],1,parameter,d_Pchar,d_NumL);
+			TH=thal(d_seq,d_primer,turn[i],turn[j],d_int[11+i],d_int[11+j],1,parameter);
 			if(TH>44+5*d_int[9])
                                 return 0;
 		d_TH[id*2]=TH;
-			TH=thal(d_seq,d_primer,turn[i],turn[j],d_int[11+i],d_int[11+j],2,parameter,d_Pchar,d_NumL);
+			TH=thal(d_seq,d_primer,turn[i],turn[j],d_int[11+i],d_int[11+j],2,parameter);
                         if(TH>44+5*d_int[9])
                                 return 0;
 		d_TH[id*2+1]=TH;
-			TH=thal(d_seq,d_primer,turn[i],turn[j],d_int[11+i],d_int[11+j],3,parameter,d_Pchar,d_NumL);
+			TH=thal(d_seq,d_primer,turn[i],turn[j],d_int[11+i],d_int[11+j],3,parameter);
                         if(TH>44+5*d_int[9])
                                 return 0;
 		if(TH>d_TH[id*2+1])
 			d_TH[id*2+1]=TH;
-			TH=thal(d_seq,d_primer,turn[j],turn[i],(1-d_int[11+j]),(1-d_int[11+i]),2,parameter,d_Pchar,d_NumL);
+			TH=thal(d_seq,d_primer,turn[j],turn[i],(1-d_int[11+j]),(1-d_int[11+i]),2,parameter);
                         if(TH>44+5*d_int[9])
                                 return 0;
 		if(TH>d_TH[id*2+1])
                         d_TH[id*2+1]=TH;
-                        TH=thal(d_seq,d_primer,turn[j],turn[i],(1-d_int[11+j]),(1-d_int[11+i]),3,parameter,d_Pchar,d_NumL);
+                        TH=thal(d_seq,d_primer,turn[j],turn[i],(1-d_int[11+j]),(1-d_int[11+i]),3,parameter);
                         if(TH>44+5*d_int[9])
                                 return 0;
 		if(TH>d_TH[id*2+1])
@@ -2549,7 +2383,7 @@ __device__ int check_common_loop(int *d_primer,int *d_common,int *d_sc,int *d_ec
         return 1;
 }
 
-__device__ int check_structure_loop(char *d_seq,int *d_primer,int turn[],int *d_int,int LF,int LB,double *parameter,char *d_Pchar,int *d_NumL)
+__device__ int check_structure_loop(char *d_seq,int *d_primer,int turn[],int *d_int,int LF,int LB,double *parameter)
 {
         int i;
         double TH;
@@ -2558,40 +2392,40 @@ __device__ int check_structure_loop(char *d_seq,int *d_primer,int turn[],int *d_
         {
                 for(i=0;i<=1;i++)
                 {
-                        TH=thal(d_seq,d_primer,turn[i],LF,d_int[11+i],1,1,parameter,d_Pchar,d_NumL);
+                        TH=thal(d_seq,d_primer,turn[i],LF,d_int[11+i],1,1,parameter);
                         if(TH>44+5*d_int[9])
                                 return 0;
-                        TH=thal(d_seq,d_primer,turn[i],LF,d_int[11+i],1,2,parameter,d_Pchar,d_NumL);
+                        TH=thal(d_seq,d_primer,turn[i],LF,d_int[11+i],1,2,parameter);
                         if(TH>44+5*d_int[9])
                                 return 0;
-                        TH=thal(d_seq,d_primer,turn[i],LF,d_int[11+i],1,3,parameter,d_Pchar,d_NumL);
+                        TH=thal(d_seq,d_primer,turn[i],LF,d_int[11+i],1,3,parameter);
                         if(TH>44+5*d_int[9])
                                 return 0;
 
-                        TH=thal(d_seq,d_primer,LF,turn[i],0,(1-d_int[11+i]),2,parameter,d_Pchar,d_NumL);
+                        TH=thal(d_seq,d_primer,LF,turn[i],0,(1-d_int[11+i]),2,parameter);
                         if(TH>44+5*d_int[9])
                                 return 0;
-                        TH=thal(d_seq,d_primer,LF,turn[i],0,(1-d_int[11+i]),3,parameter,d_Pchar,d_NumL);
+                        TH=thal(d_seq,d_primer,LF,turn[i],0,(1-d_int[11+i]),3,parameter);
                         if(TH>44+5*d_int[9])
                                 return 0;
                 }
 
                 for(i=2;i<6;i++)
                 {
-                        TH=thal(d_seq,d_primer,LF,turn[i],1,d_int[11+i],1,parameter,d_Pchar,d_NumL);
+                        TH=thal(d_seq,d_primer,LF,turn[i],1,d_int[11+i],1,parameter);
                         if(TH>44+5*d_int[9])
                                 return 0;
-                        TH=thal(d_seq,d_primer,LF,turn[i],1,d_int[11+i],2,parameter,d_Pchar,d_NumL);
+                        TH=thal(d_seq,d_primer,LF,turn[i],1,d_int[11+i],2,parameter);
                         if(TH>44+5*d_int[9])
                                 return 0;
-                        TH=thal(d_seq,d_primer,LF,turn[i],1,d_int[11+i],3,parameter,d_Pchar,d_NumL);
+                        TH=thal(d_seq,d_primer,LF,turn[i],1,d_int[11+i],3,parameter);
                         if(TH>44+5*d_int[9])
                                 return 0;
 
-                        TH=thal(d_seq,d_primer,turn[i],LF,(1-d_int[11+i]),0,2,parameter,d_Pchar,d_NumL);
+                        TH=thal(d_seq,d_primer,turn[i],LF,(1-d_int[11+i]),0,2,parameter);
                         if(TH>44+5*d_int[9]) 
                                 return 0;
-                        TH=thal(d_seq,d_primer,turn[i],LF,(1-d_int[11+i]),0,3,parameter,d_Pchar,d_NumL);
+                        TH=thal(d_seq,d_primer,turn[i],LF,(1-d_int[11+i]),0,3,parameter);
                         if(TH>44+5*d_int[9])
                                 return 0;
                 }
@@ -2600,66 +2434,66 @@ __device__ int check_structure_loop(char *d_seq,int *d_primer,int turn[],int *d_
         {
                 for(i=0;i<4;i++)
                 {
-                        TH=thal(d_seq,d_primer,turn[i],LB,d_int[11+i],0,1,parameter,d_Pchar,d_NumL);
+                        TH=thal(d_seq,d_primer,turn[i],LB,d_int[11+i],0,1,parameter);
                         if(TH>44+5*d_int[9])
                                 return 0;
-                        TH=thal(d_seq,d_primer,turn[i],LB,d_int[11+i],0,2,parameter,d_Pchar,d_NumL);
+                        TH=thal(d_seq,d_primer,turn[i],LB,d_int[11+i],0,2,parameter);
                         if(TH>44+5*d_int[9])
                                 return 0;
-                        TH=thal(d_seq,d_primer,turn[i],LB,d_int[11+i],0,3,parameter,d_Pchar,d_NumL);
+                        TH=thal(d_seq,d_primer,turn[i],LB,d_int[11+i],0,3,parameter);
                         if(TH>44+5*d_int[9])
                                 return 0;
 
-                        TH=thal(d_seq,d_primer,LB,turn[i],1,(1-d_int[11+i]),2,parameter,d_Pchar,d_NumL);
+                        TH=thal(d_seq,d_primer,LB,turn[i],1,(1-d_int[11+i]),2,parameter);
                         if(TH>44+5*d_int[9])
                                 return 0;
-                        TH=thal(d_seq,d_primer,LB,turn[i],1,(1-d_int[11+i]),3,parameter,d_Pchar,d_NumL);
+                        TH=thal(d_seq,d_primer,LB,turn[i],1,(1-d_int[11+i]),3,parameter);
                         if(TH>44+5*d_int[9])
                                 return 0;
                 }
                 for(i=4;i<6;i++)
                 {
-                        TH=thal(d_seq,d_primer,LB,turn[i],0,d_int[11+i],1,parameter,d_Pchar,d_NumL);
+                        TH=thal(d_seq,d_primer,LB,turn[i],0,d_int[11+i],1,parameter);
                         if(TH>44+5*d_int[9])
                                 return 0;
-                        TH=thal(d_seq,d_primer,LB,turn[i],0,d_int[11+i],2,parameter,d_Pchar,d_NumL);
+                        TH=thal(d_seq,d_primer,LB,turn[i],0,d_int[11+i],2,parameter);
                         if(TH>44+5*d_int[9])
                                 return 0;
-                        TH=thal(d_seq,d_primer,LB,turn[i],0,d_int[11+i],3,parameter,d_Pchar,d_NumL);
+                        TH=thal(d_seq,d_primer,LB,turn[i],0,d_int[11+i],3,parameter);
                         if(TH>44+5*d_int[9])
                                 return 0;
 
-                        TH=thal(d_seq,d_primer,turn[i],LB,(1-d_int[11+i]),1,2,parameter,d_Pchar,d_NumL);
+                        TH=thal(d_seq,d_primer,turn[i],LB,(1-d_int[11+i]),1,2,parameter);
                         if(TH>44+5*d_int[9])
                                 return 0;
-                        TH=thal(d_seq,d_primer,turn[i],LB,(1-d_int[11+i]),1,3,parameter,d_Pchar,d_NumL);
+                        TH=thal(d_seq,d_primer,turn[i],LB,(1-d_int[11+i]),1,3,parameter);
                         if(TH>44+5*d_int[9])
                                 return 0;
                 }
         }
         if(LF!=-1&&LB!=-1)
         {
-                TH=thal(d_seq,d_primer,LF,LB,1,0,1,parameter,d_Pchar,d_NumL);
+                TH=thal(d_seq,d_primer,LF,LB,1,0,1,parameter);
                 if(TH>44+5*d_int[9])
                         return 0;
-                TH=thal(d_seq,d_primer,LF,LB,1,0,2,parameter,d_Pchar,d_NumL);
+                TH=thal(d_seq,d_primer,LF,LB,1,0,2,parameter);
                 if(TH>44+5*d_int[9])
                         return 0;
-                TH=thal(d_seq,d_primer,LF,LB,1,0,3,parameter,d_Pchar,d_NumL);
+                TH=thal(d_seq,d_primer,LF,LB,1,0,3,parameter);
                 if(TH>44+5*d_int[9])
                         return 0;
 
-                TH=thal(d_seq,d_primer,LB,LF,1,0,2,parameter,d_Pchar,d_NumL);
+                TH=thal(d_seq,d_primer,LB,LF,1,0,2,parameter);
                 if(TH>44+5*d_int[9])
                         return 0;
-                TH=thal(d_seq,d_primer,LB,LF,1,0,3,parameter,d_Pchar,d_NumL);
+                TH=thal(d_seq,d_primer,LB,LF,1,0,3,parameter);
                 if(TH>44+5*d_int[9])
                         return 0;
         }
         return 1;
 }
 
-__device__ int design_loop(int *d_primer,int *d_SLp,int *d_LLp,int *d_LpLp,char *d_seq,int *d_common,int *d_sc,int *d_ec,int turn[],int *d_int,int *d_apply,int *d_par,double *parameter,char *d_Pchar,int *d_NumL)
+__device__ int design_loop(int *d_primer,int *d_SLp,int *d_LLp,int *d_LpLp,char *d_seq,int *d_common,int *d_sc,int *d_ec,int turn[],int *d_int,int *d_apply,int *d_par,double *parameter)
 {
         int success,LF,LB;
 
@@ -2702,7 +2536,7 @@ __device__ int design_loop(int *d_primer,int *d_SLp,int *d_LLp,int *d_LpLp,char 
                 //check_structure
                         if(d_int[6])
                         {
-                                success=check_structure_loop(d_seq,d_primer,turn,d_int,LF,LB,parameter,d_Pchar,d_NumL);
+                                success=check_structure_loop(d_seq,d_primer,turn,d_int,LF,LB,parameter);
                                 if(success==0)
                                 {
                                         LB++;
@@ -2749,7 +2583,7 @@ __device__ int design_loop(int *d_primer,int *d_SLp,int *d_LLp,int *d_LpLp,char 
         //check_structure
                 if(d_int[6])
                 {
-                        success=check_structure_loop(d_seq,d_primer,turn,d_int,LF,-1,parameter,d_Pchar,d_NumL);
+                        success=check_structure_loop(d_seq,d_primer,turn,d_int,LF,-1,parameter);
                         if(success==0)
                         {
                                 LF++;
@@ -2791,7 +2625,7 @@ __device__ int design_loop(int *d_primer,int *d_SLp,int *d_LLp,int *d_LpLp,char 
         //check_structure
                 if(d_int[6])
                 {
-                        success=check_structure_loop(d_seq,d_primer,turn,d_int,-1,LB,parameter,d_Pchar,d_NumL);
+                        success=check_structure_loop(d_seq,d_primer,turn,d_int,-1,LB,parameter);
                         if(success==0)
                         {
                                 LB++;
@@ -2809,7 +2643,7 @@ __device__ int design_loop(int *d_primer,int *d_SLp,int *d_LLp,int *d_LpLp,char 
 }
 
 //caculate
-__global__ void LAMP(char *d_seq,int *d_primer,int *d_common,int *d_special,int *d_sc,int *d_ec,int *d_ss,int *d_es,int *d_SS,int *d_SL,int *d_SLp,int *d_LL,int *d_LS,int *d_LLp,int *d_LpLp,int *d_int,int *d_par,int *d_apply,double *parameter,char *d_Pchar,int *d_NumL,int *d_pos,double *d_TH)
+__global__ void LAMP(char *d_seq,int *d_primer,int *d_common,int *d_special,int *d_sc,int *d_ec,int *d_ss,int *d_es,int *d_SS,int *d_SL,int *d_SLp,int *d_LL,int *d_LS,int *d_LLp,int *d_LpLp,int *d_int,int *d_par,int *d_apply,double *parameter,int *d_pos,double *d_TH)
 //d_int: 0:numS,1:numL,2:numLp,3:common_flag,4:special_flag,5:loop_flag,6:secondary_flag,7:common_num,8:this turn common_num,9:high_GC_flag; 10:expect
 {
 	int id=blockDim.x*blockIdx.x+threadIdx.x;
@@ -2944,14 +2778,14 @@ __global__ void LAMP(char *d_seq,int *d_primer,int *d_common,int *d_special,int 
 
 							if(d_int[6])
 							{
-								flag=check_structure(d_seq,d_primer,turn,d_int,parameter,d_Pchar,d_NumL,d_TH,id);
+								flag=check_structure(d_seq,d_primer,turn,d_int,parameter,d_TH,id);
 								if(flag==0)
 									continue;
 							}
 	
 							if(d_int[5])
 							{
-								flag=design_loop(d_primer,d_SLp,d_LLp,d_LpLp,d_seq,d_common,d_sc,d_ec,turn,d_int,d_apply,d_par,parameter,d_Pchar,d_NumL);
+								flag=design_loop(d_primer,d_SLp,d_LLp,d_LpLp,d_seq,d_common,d_sc,d_ec,turn,d_int,d_apply,d_par,parameter);
 								if(flag==0)
 									continue;
 							}
@@ -3051,8 +2885,8 @@ struct INFO *read_list(char *path,int common_num[])
 
 main(int argc,char **argv)
 {
-	int i,j,flag[12],expect,circle,have,common_num[1],NumL[2],*d_NumL,num[11],max_loop,min_loop,count[3],block,thread;
-	char *output,*prefix,*store_path,*path_fa,*inner,*outer,*loop,*par_path,*Pchar,*d_Pchar,*temp,*seq,*d_seq,primer[26];
+	int i,j,flag[12],expect,circle,have,common_num[1],num[11],max_loop,min_loop,count[3],block,thread;
+	char *output,*prefix,*store_path,*path_fa,*inner,*outer,*loop,*par_path,*temp,*seq,*d_seq,primer[26];
 	FILE *fp;
 	struct Primer *headL,*headS,*headLoop,*tempL,*tempS,*tempLoop,*storeL,*storeS,*storeLoop; 
 	struct Node *p_node,*p_temp;
@@ -3298,18 +3132,10 @@ main(int argc,char **argv)
         }
         if(flag[7])
         {
-		NumL[0]=get_num_line(par_path,0);
-                NumL[1]=get_num_line(par_path,1);
-                H_parameter=(double *)malloc((5730+2*NumL[0]+2*NumL[1])*sizeof(double));
-                memset(H_parameter,'\0',(5730+2*NumL[0]+2*NumL[1])*sizeof(double));
-                Pchar=(char *)malloc(10*NumL[0]+12*NumL[1]);
-                memset(Pchar,'\0',10*NumL[0]+12*NumL[1]);
-                cudaMalloc((void **)&d_Pchar,10*NumL[0]+12*NumL[1]);
-                cudaMemset(d_Pchar,'\0',10*NumL[0]+12*NumL[1]);
-                cudaMalloc((void **)&parameter,(5730+2*NumL[0]+2*NumL[1])*sizeof(double));
-                cudaMemset(parameter,'\0',(5730+2*NumL[0]+2*NumL[1])*sizeof(double));
-                cudaMalloc((void **)&d_NumL,2*sizeof(int));
-                cudaMemset(d_NumL,'\0',2*sizeof(int));
+                H_parameter=(double *)malloc(5730*sizeof(double));
+                memset(H_parameter,'\0',5730*sizeof(double));
+                cudaMalloc((void **)&parameter,5730*sizeof(double));
+                cudaMemset(parameter,'\0',5730*sizeof(double));
 
                 getStack(par_path,H_parameter);
                 getStackint2(par_path,H_parameter);
@@ -3317,13 +3143,9 @@ main(int argc,char **argv)
                 getLoop(par_path,H_parameter);
                 getTstack(par_path,H_parameter);
                 getTstack2(par_path,H_parameter);
-                getTriloop(par_path,H_parameter,Pchar,NumL);
-                getTetraloop(par_path,H_parameter,Pchar,NumL);
                 tableStartATS(6.9,H_parameter);
                 tableStartATH(2200.0,H_parameter);
-		cudaMemcpy(parameter,H_parameter,(5730+2*NumL[0]+2*NumL[1])*sizeof(double),cudaMemcpyHostToDevice);
-		cudaMemcpy(d_Pchar,Pchar,10*NumL[0]+12*NumL[1],cudaMemcpyHostToDevice);
-		cudaMemcpy(d_NumL,NumL,2*sizeof(int),cudaMemcpyHostToDevice);
+		cudaMemcpy(parameter,H_parameter,5730*sizeof(double),cudaMemcpyHostToDevice);
 
 		h_int[11]=0; //F3,plus
 		h_int[12]=0;
@@ -3838,7 +3660,7 @@ main(int argc,char **argv)
 			cudaMalloc((void **)&d_par,num[2]*16*sizeof(int));
 		cudaMalloc((void **)&d_TH,2*num[2]*sizeof(double));
 		h_TH=(double *)malloc(2*num[2]*sizeof(double));
-			LAMP<<<block,thread>>>(d_seq,d_primer,d_common,d_special,d_sc,d_ec,d_ss,d_es,d_SS,d_SL,d_SLp,d_LL,d_LS,d_LLp,d_LpLp,d_int,d_par,d_apply,parameter,d_Pchar,d_NumL,d_pos,d_TH);
+			LAMP<<<block,thread>>>(d_seq,d_primer,d_common,d_special,d_sc,d_ec,d_ss,d_es,d_SS,d_SL,d_SLp,d_LL,d_LS,d_LLp,d_LpLp,d_int,d_par,d_apply,parameter,d_pos,d_TH);
 		cudaMemcpy(h_TH,d_TH,2*num[2]*sizeof(double),cudaMemcpyDeviceToHost);
 		cudaFree(d_TH);
 		printf("%lf\t%lf\n",h_TH[0],h_TH[1]);
@@ -4028,11 +3850,8 @@ main(int argc,char **argv)
 
         if(flag[7])
         {
-		free(Pchar);
                 free(H_parameter);
                 cudaFree(parameter);
-                cudaFree(d_Pchar);
-                cudaFree(d_NumL);
         }
         if(flag[7]||flag[11])
                 free(par_path);
