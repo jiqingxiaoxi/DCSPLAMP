@@ -717,21 +717,19 @@ __device__ int equal(double a,double b)
 
 __device__ void initMatrix(int *d_ps,double *d_DPT,int id,char *d_numSeq)
 {
-	int i,j;
-
-	for(i=1;i<=d_ps[id*64+50];++i)
+	for(d_ps[id*64+54]=1;d_ps[id*64+54]<=d_ps[id*64+50];++d_ps[id*64+54])
 	{
-		for(j=1;j<=d_ps[id*64+51];++j)
+		for(d_ps[id*64+55]=1;d_ps[id*64+55]<=d_ps[id*64+51];++d_ps[id*64+55])
 		{
-			if(d_numSeq[id*54+i]+d_numSeq[id*54+27+j]!=3)
+			if(d_numSeq[id*54+d_ps[id*64+54]]+d_numSeq[id*54+27+d_ps[id*64+55]]!=3)
 			{
-				d_DPT[id*1250+(i-1)*d_ps[id*64+51]+j-1]=1.0*INFINITY;
-				d_DPT[id*1250+625+(i-1)*d_ps[id*64+51]+j-1]=-1.0;
+				d_DPT[id*1250+(d_ps[id*64+54]-1)*d_ps[id*64+51]+d_ps[id*64+55]-1]=1.0*INFINITY;
+				d_DPT[id*1250+625+(d_ps[id*64+54]-1)*d_ps[id*64+51]+d_ps[id*64+55]-1]=-1.0;
 			}
 			else
 			{
-				d_DPT[id*1250+(i-1)*d_ps[id*64+51]+j-1]=0.0;
-				d_DPT[id*1250+625+(i-1)*d_ps[id*64+51]+j-1]=-3224.0;
+				d_DPT[id*1250+(d_ps[id*64+54]-1)*d_ps[id*64+51]+d_ps[id*64+55]-1]=0.0;
+				d_DPT[id*1250+625+(d_ps[id*64+54]-1)*d_ps[id*64+51]+d_ps[id*64+55]-1]=-3224.0;
 			}
 		}
 	}
@@ -1030,43 +1028,43 @@ __device__ void calc_bulge_internal(int i,int j,int ii,int jj,double* EntropyEnt
 
 __device__ void fillMatrix(double Initdouble[],int *d_ps,double *d_DPT,int id,char *d_numSeq,double *parameter)
 {
-	int d,i,j,ii,jj;
+	int i;
 	double SH[2];
 
-	for(i=1;i<=d_ps[id*64+50];++i)
+	for(i=1;i<=d_ps[id*64+50];i++)
 	{
-		for(j=1;j<=d_ps[id*64+51];++j)
+		for(d_ps[id*64+58]=1;d_ps[id*64+58]<=d_ps[id*64+51];d_ps[id*64+58]++)
 		{
-			if(fabs(d_DPT[id*1250+(i-1)*d_ps[id*64+51]+j-1])<999999999)
+			if(fabs(d_DPT[id*1250+(i-1)*d_ps[id*64+51]+d_ps[id*64+58]-1])<999999999)
 			{
 				SH[0]=-1.0;
 				SH[1]=1.0*INFINITY;
-				LSH(i,j,SH,Initdouble,d_ps,d_DPT,id,d_numSeq,parameter);
+				LSH(i,d_ps[id*64+58],SH,Initdouble,d_ps,d_DPT,id,d_numSeq,parameter);
 
 				if(fabs(SH[1])<999999999)
 				{
-					d_DPT[id*1250+625+(i-1)*d_ps[id*64+51]+j-1]=SH[0];
-					d_DPT[id*1250+(i-1)*d_ps[id*64+51]+j-1]=SH[1];
+					d_DPT[id*1250+625+(i-1)*d_ps[id*64+51]+d_ps[id*64+58]-1]=SH[0];
+					d_DPT[id*1250+(i-1)*d_ps[id*64+51]+d_ps[id*64+58]-1]=SH[1];
 				}
-				if(i>1&&j>1)
+				if(i>1&&d_ps[id*64+58]>1)
 				{
-					maxTM(i,j,Initdouble,d_ps,d_DPT,id,d_numSeq,parameter);
-					for(d=3;d<=32;d++)
+					maxTM(i,d_ps[id*64+58],Initdouble,d_ps,d_DPT,id,d_numSeq,parameter);
+					for(d_ps[id*64+54]=3;d_ps[id*64+54]<=32;d_ps[id*64+54]++)
 					{
-						ii=i-1;
-						jj=-ii-d+(j+i);
-						if(jj<1)
+						d_ps[id*64+55]=i-1;
+						d_ps[id*64+56]=0-d_ps[id*64+55]-d_ps[id*64+54]+d_ps[id*64+58]+i;
+						if(d_ps[id*64+56]<1)
 						{
-							ii-=abs(jj-1);
-							jj=1;
+							d_ps[id*64+55]-=abs(d_ps[id*64+56]-1);
+							d_ps[id*64+56]=1;
 						}
-						for(;ii>0&&jj<j;--ii,++jj)
+						for(;d_ps[id*64+55]>0&&d_ps[id*64+56]<d_ps[id*64+58];d_ps[id*64+55]--,d_ps[id*64+56]++)
 						{
-							if(fabs(d_DPT[id*1250+(ii-1)*d_ps[id*64+51]+jj-1])<999999999)
+							if(fabs(d_DPT[id*1250+(d_ps[id*64+55]-1)*d_ps[id*64+51]+d_ps[id*64+56]-1])<999999999)
 							{
 								SH[0]=-1.0;
 								SH[1]=1.0*INFINITY;
-								calc_bulge_internal(ii,jj,i,j,SH,0,Initdouble,d_ps,d_DPT,id,d_numSeq,parameter);
+								calc_bulge_internal(d_ps[id*64+55],d_ps[id*64+56],i,d_ps[id*64+58],SH,0,Initdouble,d_ps,d_DPT,id,d_numSeq,parameter);
 
 								if(SH[0]<-2500.0)
 								{
@@ -1075,8 +1073,8 @@ __device__ void fillMatrix(double Initdouble[],int *d_ps,double *d_DPT,int id,ch
 								}
 								if(fabs(SH[1])<999999999)
 								{
-									d_DPT[id*1250+(i-1)*d_ps[id*64+51]+j-1]=SH[1];
-									d_DPT[id*1250+625+(i-1)*d_ps[id*64+51]+j-1]=SH[0];
+									d_DPT[id*1250+(i-1)*d_ps[id*64+51]+d_ps[id*64+58]-1]=SH[1];
+									d_DPT[id*1250+625+(i-1)*d_ps[id*64+51]+d_ps[id*64+58]-1]=SH[0];
 								}
 							}
 						}
@@ -1287,19 +1285,19 @@ __device__ double drawDimer(int *d_ps,int id,double H,double S,double Initdouble
         }
 }
 
-__device__ int symmetry_thermo(char *d_seq,int start,int length )
+__device__ int symmetry_thermo(char *d_seq,int start,int length,int *d_ps,int id)
 {
-	int i = 0;
+	d_ps[id*64+54]=0;
 	if(length%2==1)
 		return 0;
 
-	while(i<length/2)
+	while(d_ps[id*64+54]<length/2)
 	{
-		if((d_seq[i+start]=='A'&&d_seq[start+length-1-i]!='T')||(d_seq[i+start]=='T'&&d_seq[start+length-1-i]!='A')||(d_seq[start+length-1-i]=='A'&&d_seq[i+start]!='T')||(d_seq[start+length-1-i]=='T'&&d_seq[i+start]!='A'))
+		if((d_seq[d_ps[id*64+54]+start]=='A'&&d_seq[start+length-1-d_ps[id*64+54]]!='T')||(d_seq[d_ps[id*64+54]+start]=='T'&&d_seq[start+length-1-d_ps[id*64+54]]!='A')||(d_seq[start+length-1-d_ps[id*64+54]]=='A'&&d_seq[d_ps[id*64+54]+start]!='T')||(d_seq[start+length-1-d_ps[id*64+54]]=='T'&&d_seq[d_ps[id*64+54]+start]!='A'))
 			return 0;
-		if((d_seq[i+start]=='C'&&d_seq[start+length-1-i]!='G')||(d_seq[i+start]=='G'&&d_seq[start+length-1-i]!='C')||(d_seq[start+length-1-i]=='C'&&d_seq[i+start]!='G')||(d_seq[start+length-1-i]=='G'&&d_seq[i+start]!='C'))
+		if((d_seq[d_ps[id*64+54]+start]=='C'&&d_seq[start+length-1-d_ps[id*64+54]]!='G')||(d_seq[d_ps[id*64+54]+start]=='G'&&d_seq[start+length-1-d_ps[id*64+54]]!='C')||(d_seq[start+length-1-d_ps[id*64+54]]=='C'&&d_seq[d_ps[id*64+54]+start]!='G')||(d_seq[start+length-1-d_ps[id*64+54]]=='G'&&d_seq[d_ps[id*64+54]+start]!='C'))
 			return 0;
-		i++;
+		d_ps[id*64+54]++;
 	}
 	return 1;
 }
@@ -1311,7 +1309,7 @@ __device__ double thal(char *d_seq,int *d_primer,int one_turn,int two_turn,int o
 	double T1;
 
 /*** INIT values for unimolecular and bimolecular structures ***/
-	if(symmetry_thermo(d_seq,d_primer[4*one_turn],d_primer[4*one_turn+1])&&symmetry_thermo(d_seq,d_primer[4*two_turn],d_primer[4*two_turn+1]))
+	if(symmetry_thermo(d_seq,d_primer[4*one_turn],d_primer[4*one_turn+1],d_ps,id)&&symmetry_thermo(d_seq,d_primer[4*two_turn],d_primer[4*two_turn+1],d_ps,id))
 		Initdouble[2]=1.9872* log(38/1000000000.0);
 	else
 		Initdouble[2]=1.9872* log(38/4000000000.0);
