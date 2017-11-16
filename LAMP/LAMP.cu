@@ -673,13 +673,13 @@ __device__ double Ss(int i,int j,int k,int *d_ps,char *d_numSeq,int id,double pa
 	{
 		if(i>=j)
 			return -1.0;
-		if(i==d_ps[id*64+50]||j==d_ps[id*64+51]+1)
+		if(i==d_ps[id*62+50]||j==d_ps[id*62+51]+1)
 			return -1.0;
 
-		if(i>d_ps[id*64+50])
-			i-=d_ps[id*64+50];
-		if(j>d_ps[id*64+51])
-			j-=d_ps[id*64+51];
+		if(i>d_ps[id*62+50])
+			i-=d_ps[id*62+50];
+		if(j>d_ps[id*62+51])
+			j-=d_ps[id*62+51];
 		return parameter[d_numSeq[id*54+i]*125+d_numSeq[id*54+i+1]*25+d_numSeq[id*54+27+j]*5+d_numSeq[id*54+27+j-1]];
 	}
 	else
@@ -692,13 +692,13 @@ __device__ double Hs(int i,int j,int k,int *d_ps,char *d_numSeq,int id,double pa
 	{
 		if(i>= j)
 			return 1.0*INFINITY;
-		if(i==d_ps[id*64+50]||j==d_ps[id*64+51]+1)
+		if(i==d_ps[id*62+50]||j==d_ps[id*62+51]+1)
 			return 1.0*INFINITY;
 
-		if(i>d_ps[id*64+50])
-			i-=d_ps[id*64+50];
-		if(j>d_ps[id*64+51])
-			j-=d_ps[id*64+51];
+		if(i>d_ps[id*62+50])
+			i-=d_ps[id*62+50];
+		if(j>d_ps[id*62+51])
+			j-=d_ps[id*62+51];
 		if(fabs(parameter[625+d_numSeq[id*54+i]*125+d_numSeq[id*54+i+1]*25+d_numSeq[id*54+27+j]*5+d_numSeq[id*54+27+j-1]])<999999999)
 			return parameter[625+d_numSeq[id*54+i]*125+d_numSeq[id*54+i+1]*25+d_numSeq[id*54+27+j]*5+d_numSeq[id*54+27+j-1]];
 		else
@@ -717,19 +717,19 @@ __device__ int equal(double a,double b)
 
 __device__ void initMatrix(int *d_ps,double *d_DPT,int id,char *d_numSeq)
 {
-	for(d_ps[id*64+54]=1;d_ps[id*64+54]<=d_ps[id*64+50];++d_ps[id*64+54])
+	for(d_ps[id*62+54]=1;d_ps[id*62+54]<=d_ps[id*62+50];++d_ps[id*62+54])
 	{
-		for(d_ps[id*64+55]=1;d_ps[id*64+55]<=d_ps[id*64+51];++d_ps[id*64+55])
+		for(d_ps[id*62+55]=1;d_ps[id*62+55]<=d_ps[id*62+51];++d_ps[id*62+55])
 		{
-			if(d_numSeq[id*54+d_ps[id*64+54]]+d_numSeq[id*54+27+d_ps[id*64+55]]!=3)
+			if(d_numSeq[id*54+d_ps[id*62+54]]+d_numSeq[id*54+27+d_ps[id*62+55]]!=3)
 			{
-				d_DPT[id*1250+(d_ps[id*64+54]-1)*d_ps[id*64+51]+d_ps[id*64+55]-1]=1.0*INFINITY;
-				d_DPT[id*1250+625+(d_ps[id*64+54]-1)*d_ps[id*64+51]+d_ps[id*64+55]-1]=-1.0;
+				d_DPT[id*1250+(d_ps[id*62+54]-1)*d_ps[id*62+51]+d_ps[id*62+55]-1]=1.0*INFINITY;
+				d_DPT[id*1250+625+(d_ps[id*62+54]-1)*d_ps[id*62+51]+d_ps[id*62+55]-1]=-1.0;
 			}
 			else
 			{
-				d_DPT[id*1250+(d_ps[id*64+54]-1)*d_ps[id*64+51]+d_ps[id*64+55]-1]=0.0;
-				d_DPT[id*1250+625+(d_ps[id*64+54]-1)*d_ps[id*64+51]+d_ps[id*64+55]-1]=-3224.0;
+				d_DPT[id*1250+(d_ps[id*62+54]-1)*d_ps[id*62+51]+d_ps[id*62+55]-1]=0.0;
+				d_DPT[id*1250+625+(d_ps[id*62+54]-1)*d_ps[id*62+51]+d_ps[id*62+55]-1]=-3224.0;
 			}
 		}
 	}
@@ -741,8 +741,8 @@ __device__ void LSH(int i,int j,double *EntropyEnthalpy,double Initdouble[],int 
 
 	if(d_numSeq[id*54+i]+d_numSeq[id*54+27+j]!=3)
 	{
-		d_DPT[id*1250+625+(i-1)*d_ps[id*64+51]+j-1]=-1.0;
-		d_DPT[id*1250+(i-1)*d_ps[id*64+51]+j-1]=1.0*INFINITY;
+		d_DPT[id*1250+625+(i-1)*d_ps[id*62+51]+j-1]=-1.0;
+		d_DPT[id*1250+(i-1)*d_ps[id*62+51]+j-1]=1.0*INFINITY;
 		return;
 	}
 
@@ -864,13 +864,13 @@ __device__ void maxTM(int i,int j,double Initdouble[],int *d_ps,double *d_DPT,in
 {
 	double T0,T1,S0,S1,H0,H1;
 
-	S0=d_DPT[id*1250+625+(i-1)*d_ps[id*64+51]+j-1];
-	H0=d_DPT[id*1250+(i-1)*d_ps[id*64+51]+j-1];
+	S0=d_DPT[id*1250+625+(i-1)*d_ps[id*62+51]+j-1];
+	H0=d_DPT[id*1250+(i-1)*d_ps[id*62+51]+j-1];
 	T0=(H0+200)/(S0-5.7+Initdouble[2]); // at current position 
-	if(fabs(d_DPT[id*1250+(i-2)*d_ps[id*64+51]+j-2])<999999999&&fabs(Hs(i-1,j-1,1,d_ps,d_numSeq,id,parameter))<999999999)
+	if(fabs(d_DPT[id*1250+(i-2)*d_ps[id*62+51]+j-2])<999999999&&fabs(Hs(i-1,j-1,1,d_ps,d_numSeq,id,parameter))<999999999)
 	{
-		S1=(d_DPT[id*1250+625+(i-2)*d_ps[id*64+51]+j-2]+Ss(i-1,j-1,1,d_ps,d_numSeq,id,parameter));
-		H1=(d_DPT[id*1250+(i-2)*d_ps[id*64+51]+j-2]+Hs(i-1,j-1,1,d_ps,d_numSeq,id,parameter));
+		S1=(d_DPT[id*1250+625+(i-2)*d_ps[id*62+51]+j-2]+Ss(i-1,j-1,1,d_ps,d_numSeq,id,parameter));
+		H1=(d_DPT[id*1250+(i-2)*d_ps[id*62+51]+j-2]+Hs(i-1,j-1,1,d_ps,d_numSeq,id,parameter));
 	}
 	else
 	{
@@ -893,57 +893,36 @@ __device__ void maxTM(int i,int j,double Initdouble[],int *d_ps,double *d_DPT,in
 	}
 	if((T1>T0)||(S0>0&&H0>0)) // T1 on suurem 
 	{
-		d_DPT[id*1250+625+(i-1)*d_ps[id*64+51]+j-1]=S1;
-		d_DPT[id*1250+(i-1)*d_ps[id*64+51]+j-1]=H1;
+		d_DPT[id*1250+625+(i-1)*d_ps[id*62+51]+j-1]=S1;
+		d_DPT[id*1250+(i-1)*d_ps[id*62+51]+j-1]=H1;
 	}
 	else if(T0>=T1)
 	{
-		d_DPT[id*1250+625+(i-1)*d_ps[id*64+51]+j-1]=S0;
-		d_DPT[id*1250+(i-1)*d_ps[id*64+51]+j-1]=H0;
+		d_DPT[id*1250+625+(i-1)*d_ps[id*62+51]+j-1]=S0;
+		d_DPT[id*1250+(i-1)*d_ps[id*62+51]+j-1]=H0;
 	}
 }
 
 __device__ void calc_bulge_internal(int i,int j,int ii,int jj,double* EntropyEnthalpy,int traceback,double Initdouble[],int *d_ps,double *d_DPT,int id,char *d_numSeq,double parameter[])
 {
-	int loopSize1,loopSize2,loopSize,N,N_loop;
 	double T1,T2,S,H;
 
 	S=-3224.0;
 	H=0;
-	loopSize1=ii-i-1;
-	loopSize2=jj-j-1;
-	if(ii<jj)
+	d_ps[id*62+59]=ii-i-1;
+	d_ps[id*62+60]=jj-j-1;
+	d_ps[id*62+61]=d_ps[id*62+59]+d_ps[id*62+60]-1;
+	if((d_ps[id*62+59]==0&&d_ps[id*62+60]>0)||(d_ps[id*62+60]==0&&d_ps[id*62+59]>0))// only bulges have to be considered
 	{
-		N=i;
-		N_loop=N;
-		if(loopSize1>2)
-			N_loop-=(loopSize1-2);
-		if(loopSize2>2)
-			N_loop-=(loopSize2-2);
-	}
-	else
-	{
-		N=j;
-		N_loop=2*jj;
-		if(loopSize1>2)
-			N_loop-=(loopSize1-2);
-		if(loopSize2>2)
-			N_loop-=(loopSize2-2);
-		N_loop=(N_loop/2)-1;
-	}
-
-	loopSize=loopSize1+loopSize2-1;
-	if((loopSize1==0&&loopSize2>0)||(loopSize2==0&&loopSize1>0))// only bulges have to be considered
-	{
-		if(loopSize2==1||loopSize1==1) // bulge loop of size one is treated differently the intervening nn-pair must be added
+		if(d_ps[id*62+60]==1||d_ps[id*62+59]==1) // bulge loop of size one is treated differently the intervening nn-pair must be added
 		{
-			if((loopSize2==1&&loopSize1==0)||(loopSize2==0&&loopSize1==1))
+			if((d_ps[id*62+60]==1&&d_ps[id*62+59]==0)||(d_ps[id*62+60]==0&&d_ps[id*62+59]==1))
 			{
-				H=parameter[3150+loopSize]+parameter[625+d_numSeq[id*54+i]*125+d_numSeq[id*54+ii]*25+d_numSeq[id*54+27+j]*5+d_numSeq[id*54+27+jj]];
-				S=parameter[3060+loopSize]+parameter[d_numSeq[id*54+i]*125+d_numSeq[id*54+ii]*25+d_numSeq[id*54+27+j]*5+d_numSeq[id*54+27+jj]];
+				H=parameter[3150+d_ps[id*62+61]]+parameter[625+d_numSeq[id*54+i]*125+d_numSeq[id*54+ii]*25+d_numSeq[id*54+27+j]*5+d_numSeq[id*54+27+jj]];
+				S=parameter[3060+d_ps[id*62+61]]+parameter[d_numSeq[id*54+i]*125+d_numSeq[id*54+ii]*25+d_numSeq[id*54+27+j]*5+d_numSeq[id*54+27+jj]];
 			}
-			H+=d_DPT[id*1250+(i-1)*d_ps[id*64+51]+j-1];
-			S+=d_DPT[id*1250+625+(i-1)*d_ps[id*64+51]+j-1];
+			H+=d_DPT[id*1250+(i-1)*d_ps[id*62+51]+j-1];
+			S+=d_DPT[id*1250+625+(i-1)*d_ps[id*62+51]+j-1];
 			if(fabs(H)>999999999)
 			{
 				H=1.0*INFINITY;
@@ -951,7 +930,7 @@ __device__ void calc_bulge_internal(int i,int j,int ii,int jj,double* EntropyEnt
 			}
 
 			T1=(H+200)/((S-5.7)+Initdouble[2]);
-			T2=(d_DPT[id*1250+(ii-1)*d_ps[id*64+51]+jj-1]+200)/((d_DPT[id*1250+625+(ii-1)*d_ps[id*64+51]+jj-1])-5.7+Initdouble[2]);
+			T2=(d_DPT[id*1250+(ii-1)*d_ps[id*62+51]+jj-1]+200)/((d_DPT[id*1250+625+(ii-1)*d_ps[id*62+51]+jj-1])-5.7+Initdouble[2]);
 			if((T1>T2)||((traceback&&T1>=T2)||(traceback==1)))
 			{
 				EntropyEnthalpy[0]=S;
@@ -960,18 +939,18 @@ __device__ void calc_bulge_internal(int i,int j,int ii,int jj,double* EntropyEnt
 		}
 		else // we have _not_ implemented Jacobson-Stockaymayer equation; the maximum bulgeloop size is 30
 		{
-			H=parameter[3150+loopSize]+parameter[5705+d_numSeq[id*54+i]*5+d_numSeq[id*54+27+j]]+parameter[5705+d_numSeq[id*54+ii]*5+d_numSeq[id*54+27+jj]];
-			H+=d_DPT[id*1250+(i-1)*d_ps[id*64+51]+j-1];
+			H=parameter[3150+d_ps[id*62+61]]+parameter[5705+d_numSeq[id*54+i]*5+d_numSeq[id*54+27+j]]+parameter[5705+d_numSeq[id*54+ii]*5+d_numSeq[id*54+27+jj]];
+			H+=d_DPT[id*1250+(i-1)*d_ps[id*62+51]+j-1];
 
-			S=parameter[3060+loopSize]+parameter[5680+d_numSeq[id*54+i]*5+d_numSeq[id*54+27+j]]+parameter[5680+d_numSeq[id*54+ii]*5+d_numSeq[id*54+27+jj]];
-			S+=d_DPT[id*1250+625+(i-1)*d_ps[id*64+51]+j-1];
+			S=parameter[3060+d_ps[id*62+61]]+parameter[5680+d_numSeq[id*54+i]*5+d_numSeq[id*54+27+j]]+parameter[5680+d_numSeq[id*54+ii]*5+d_numSeq[id*54+27+jj]];
+			S+=d_DPT[id*1250+625+(i-1)*d_ps[id*62+51]+j-1];
 			if(fabs(H)>999999999)
 			{
 				H=1.0*INFINITY;
 				S=-1.0;
 			}
 			T1=(H+200)/((S-5.7)+Initdouble[2]);
-			T2=(d_DPT[id*1250+(ii-1)*d_ps[id*64+51]+jj-1]+200)/(d_DPT[id*1250+625+(ii-1)*d_ps[id*64+51]+jj-1]-5.7+Initdouble[2]);
+			T2=(d_DPT[id*1250+(ii-1)*d_ps[id*62+51]+jj-1]+200)/(d_DPT[id*1250+625+(ii-1)*d_ps[id*62+51]+jj-1]-5.7+Initdouble[2]);
 			if((T1>T2)||((traceback&&T1>=T2)||(traceback==1)))
 			{
 				EntropyEnthalpy[0]=S;
@@ -979,20 +958,20 @@ __device__ void calc_bulge_internal(int i,int j,int ii,int jj,double* EntropyEnt
 			}
 		}
 	}
-	else if(loopSize1==1&&loopSize2==1)
+	else if(d_ps[id*62+59]==1&&d_ps[id*62+60]==1)
 	{
 		S=parameter[1250+d_numSeq[id*54+i]*125+d_numSeq[id*54+i+1]*25+d_numSeq[id*54+27+j]*5+d_numSeq[id*54+27+j+1]]+parameter[1250+d_numSeq[id*54+27+jj]*125+d_numSeq[id*54+27+jj-1]*25+d_numSeq[id*54+ii]*5+d_numSeq[id*54+ii-1]];
-		S+=d_DPT[id*1250+625+(i-1)*d_ps[id*64+51]+j-1];
+		S+=d_DPT[id*1250+625+(i-1)*d_ps[id*62+51]+j-1];
 
 		H=parameter[1875+d_numSeq[id*54+i]*125+d_numSeq[id*54+i+1]*25+d_numSeq[id*54+27+j]*5+d_numSeq[id*54+27+j+1]]+parameter[1875+d_numSeq[id*54+27+jj]*125+d_numSeq[id*54+27+jj-1]*25+d_numSeq[id*54+ii]*5+d_numSeq[id*54+ii-1]];
-		H+=d_DPT[id*1250+(i-1)*d_ps[id*64+51]+j-1];
+		H+=d_DPT[id*1250+(i-1)*d_ps[id*62+51]+j-1];
 		if(fabs(H)>999999999)
 		{
 			H=1.0*INFINITY;
 			S=-1.0;
 		}
 		T1=(H+200)/((S-5.7)+Initdouble[2]);
-		T2=(d_DPT[id*1250+(ii-1)*d_ps[id*64+51]+jj-1]+200)/(d_DPT[id*1250+625+(ii-1)*d_ps[id*64+51]+jj-1]-5.7+Initdouble[2]);
+		T2=(d_DPT[id*1250+(ii-1)*d_ps[id*62+51]+jj-1]+200)/(d_DPT[id*1250+625+(ii-1)*d_ps[id*62+51]+jj-1]-5.7+Initdouble[2]);
 		if((T1-T2>=0.000001)||traceback==1)
 		{
 			if((T1>T2)||(traceback&&T1>=T2))
@@ -1005,18 +984,18 @@ __device__ void calc_bulge_internal(int i,int j,int ii,int jj,double* EntropyEnt
 	}
 	else // only internal loops
 	{
-		H=parameter[3120+loopSize]+parameter[3805+d_numSeq[id*54+i]*125+d_numSeq[id*54+i+1]*25+d_numSeq[id*54+27+j]*5+d_numSeq[id*54+27+j+1]]+parameter[3805+d_numSeq[id*54+27+jj]*125+d_numSeq[id*54+27+jj-1]*25+d_numSeq[id*54+ii]*5+d_numSeq[id*54+ii-1]];
-		H+=d_DPT[id*1250+(i-1)*d_ps[id*64+51]+j-1];
+		H=parameter[3120+d_ps[id*62+61]]+parameter[3805+d_numSeq[id*54+i]*125+d_numSeq[id*54+i+1]*25+d_numSeq[id*54+27+j]*5+d_numSeq[id*54+27+j+1]]+parameter[3805+d_numSeq[id*54+27+jj]*125+d_numSeq[id*54+27+jj-1]*25+d_numSeq[id*54+ii]*5+d_numSeq[id*54+ii-1]];
+		H+=d_DPT[id*1250+(i-1)*d_ps[id*62+51]+j-1];
 
-		S=parameter[3030+loopSize]+parameter[3180+d_numSeq[id*54+i]*125+d_numSeq[id*54+i+1]*25+d_numSeq[id*54+27+j]*5+d_numSeq[id*54+27+j+1]]+parameter[3180+d_numSeq[id*54+27+jj]*125+d_numSeq[id*54+27+jj-1]*25+d_numSeq[id*54+ii]*5+d_numSeq[id*54+ii-1]]+(-300/310.15*abs(loopSize1-loopSize2));
-		S+=d_DPT[id*1250+625+(i-1)*d_ps[id*64+51]+j-1];
+		S=parameter[3030+d_ps[id*62+61]]+parameter[3180+d_numSeq[id*54+i]*125+d_numSeq[id*54+i+1]*25+d_numSeq[id*54+27+j]*5+d_numSeq[id*54+27+j+1]]+parameter[3180+d_numSeq[id*54+27+jj]*125+d_numSeq[id*54+27+jj-1]*25+d_numSeq[id*54+ii]*5+d_numSeq[id*54+ii-1]]+(-300/310.15*abs(d_ps[id*62+59]-d_ps[id*62+60]));
+		S+=d_DPT[id*1250+625+(i-1)*d_ps[id*62+51]+j-1];
 		if(fabs(H)>999999999)
 		{
 			H=1.0*INFINITY;
 			S=-1.0;
 		}
 		T1=(H+200)/((S-5.7)+Initdouble[2]);
-		T2=(d_DPT[id*1250+(ii-1)*d_ps[id*64+51]+jj-1]+200)/((d_DPT[id*1250+625+(ii-1)*d_ps[id*64+51]+jj-1])-5.7+Initdouble[2]);
+		T2=(d_DPT[id*1250+(ii-1)*d_ps[id*62+51]+jj-1]+200)/((d_DPT[id*1250+625+(ii-1)*d_ps[id*62+51]+jj-1])-5.7+Initdouble[2]);
 		if((T1>T2)||((traceback&&T1>=T2)||(traceback==1)))
 		{
 			EntropyEnthalpy[0]=S;
@@ -1031,40 +1010,40 @@ __device__ void fillMatrix(double Initdouble[],int *d_ps,double *d_DPT,int id,ch
 	int i;
 	double SH[2];
 
-	for(i=1;i<=d_ps[id*64+50];i++)
+	for(i=1;i<=d_ps[id*62+50];i++)
 	{
-		for(d_ps[id*64+58]=1;d_ps[id*64+58]<=d_ps[id*64+51];d_ps[id*64+58]++)
+		for(d_ps[id*62+58]=1;d_ps[id*62+58]<=d_ps[id*62+51];d_ps[id*62+58]++)
 		{
-			if(fabs(d_DPT[id*1250+(i-1)*d_ps[id*64+51]+d_ps[id*64+58]-1])<999999999)
+			if(fabs(d_DPT[id*1250+(i-1)*d_ps[id*62+51]+d_ps[id*62+58]-1])<999999999)
 			{
 				SH[0]=-1.0;
 				SH[1]=1.0*INFINITY;
-				LSH(i,d_ps[id*64+58],SH,Initdouble,d_ps,d_DPT,id,d_numSeq,parameter);
+				LSH(i,d_ps[id*62+58],SH,Initdouble,d_ps,d_DPT,id,d_numSeq,parameter);
 
 				if(fabs(SH[1])<999999999)
 				{
-					d_DPT[id*1250+625+(i-1)*d_ps[id*64+51]+d_ps[id*64+58]-1]=SH[0];
-					d_DPT[id*1250+(i-1)*d_ps[id*64+51]+d_ps[id*64+58]-1]=SH[1];
+					d_DPT[id*1250+625+(i-1)*d_ps[id*62+51]+d_ps[id*62+58]-1]=SH[0];
+					d_DPT[id*1250+(i-1)*d_ps[id*62+51]+d_ps[id*62+58]-1]=SH[1];
 				}
-				if(i>1&&d_ps[id*64+58]>1)
+				if(i>1&&d_ps[id*62+58]>1)
 				{
-					maxTM(i,d_ps[id*64+58],Initdouble,d_ps,d_DPT,id,d_numSeq,parameter);
-					for(d_ps[id*64+54]=3;d_ps[id*64+54]<=32;d_ps[id*64+54]++)
+					maxTM(i,d_ps[id*62+58],Initdouble,d_ps,d_DPT,id,d_numSeq,parameter);
+					for(d_ps[id*62+54]=3;d_ps[id*62+54]<=32;d_ps[id*62+54]++)
 					{
-						d_ps[id*64+55]=i-1;
-						d_ps[id*64+56]=0-d_ps[id*64+55]-d_ps[id*64+54]+d_ps[id*64+58]+i;
-						if(d_ps[id*64+56]<1)
+						d_ps[id*62+55]=i-1;
+						d_ps[id*62+56]=0-d_ps[id*62+55]-d_ps[id*62+54]+d_ps[id*62+58]+i;
+						if(d_ps[id*62+56]<1)
 						{
-							d_ps[id*64+55]-=abs(d_ps[id*64+56]-1);
-							d_ps[id*64+56]=1;
+							d_ps[id*62+55]-=abs(d_ps[id*62+56]-1);
+							d_ps[id*62+56]=1;
 						}
-						for(;d_ps[id*64+55]>0&&d_ps[id*64+56]<d_ps[id*64+58];d_ps[id*64+55]--,d_ps[id*64+56]++)
+						for(;d_ps[id*62+55]>0&&d_ps[id*62+56]<d_ps[id*62+58];d_ps[id*62+55]--,d_ps[id*62+56]++)
 						{
-							if(fabs(d_DPT[id*1250+(d_ps[id*64+55]-1)*d_ps[id*64+51]+d_ps[id*64+56]-1])<999999999)
+							if(fabs(d_DPT[id*1250+(d_ps[id*62+55]-1)*d_ps[id*62+51]+d_ps[id*62+56]-1])<999999999)
 							{
 								SH[0]=-1.0;
 								SH[1]=1.0*INFINITY;
-								calc_bulge_internal(d_ps[id*64+55],d_ps[id*64+56],i,d_ps[id*64+58],SH,0,Initdouble,d_ps,d_DPT,id,d_numSeq,parameter);
+								calc_bulge_internal(d_ps[id*62+55],d_ps[id*62+56],i,d_ps[id*62+58],SH,0,Initdouble,d_ps,d_DPT,id,d_numSeq,parameter);
 
 								if(SH[0]<-2500.0)
 								{
@@ -1073,8 +1052,8 @@ __device__ void fillMatrix(double Initdouble[],int *d_ps,double *d_DPT,int id,ch
 								}
 								if(fabs(SH[1])<999999999)
 								{
-									d_DPT[id*1250+(i-1)*d_ps[id*64+51]+d_ps[id*64+58]-1]=SH[1];
-									d_DPT[id*1250+625+(i-1)*d_ps[id*64+51]+d_ps[id*64+58]-1]=SH[0];
+									d_DPT[id*1250+(i-1)*d_ps[id*62+51]+d_ps[id*62+58]-1]=SH[1];
+									d_DPT[id*1250+625+(i-1)*d_ps[id*62+51]+d_ps[id*62+58]-1]=SH[0];
 								}
 							}
 						}
@@ -1211,49 +1190,48 @@ __device__ void RSH(int i,int j,double EntropyEnthalpy[],double Initdouble[],cha
 
 __device__ void traceback(int i,int j,int *d_ps,double Initdouble[],double *d_DPT,int id,char *d_numSeq,double *parameter)
 {
-	int d,ii,jj,done;
 	double SH[2];
 
-	d_ps[id*64+i-1]=j;
-	d_ps[id*64+25+j-1]=i;
+	d_ps[id*62+i-1]=j;
+	d_ps[id*62+25+j-1]=i;
 	while(1)
 	{
 		SH[0]=-1.0;
 		SH[1]=1.0*INFINITY;
 		LSH(i,j,SH,Initdouble,d_ps,d_DPT,id,d_numSeq,parameter);
-		if(equal(d_DPT[id*1250+625+(i-1)*d_ps[id*64+51]+j-1],SH[0])&&equal(d_DPT[id*1250+(i-1)*d_ps[id*64+51]+j-1],SH[1]))
+		if(equal(d_DPT[id*1250+625+(i-1)*d_ps[id*62+51]+j-1],SH[0])&&equal(d_DPT[id*1250+(i-1)*d_ps[id*62+51]+j-1],SH[1]))
 			break;
 
-		done = 0;
-		if(i>1&&j>1&&equal(d_DPT[id*1250+625+(i-1)*d_ps[id*64+51]+j-1],Ss(i-1,j-1,1,d_ps,d_numSeq,id,parameter)+d_DPT[id*1250+625+(i-2)*d_ps[id*64+51]+j-2]))
+		d_ps[id*62+57]=0;
+		if(i>1&&j>1&&equal(d_DPT[id*1250+625+(i-1)*d_ps[id*62+51]+j-1],Ss(i-1,j-1,1,d_ps,d_numSeq,id,parameter)+d_DPT[id*1250+625+(i-2)*d_ps[id*62+51]+j-2]))
 		{
 			i=i-1;
 			j=j-1;
-			d_ps[id*64+i-1]=j;
-			d_ps[id*64+25+j-1]=i;
-			done=1;
+			d_ps[id*62+i-1]=j;
+			d_ps[id*62+25+j-1]=i;
+			d_ps[id*62+57]=1;
 		}
-		for(d=3;!done&&d<=32;++d)
+		for(d_ps[id*62+54]=3;!d_ps[id*62+57]&&d_ps[id*62+54]<=32;++d_ps[id*62+54])
 		{
-			ii=i-1;
-			jj=-ii-d+(j+i);
-			if(jj<1)
+			d_ps[id*62+55]=i-1;
+			d_ps[id*62+56]=-d_ps[id*62+55]-d_ps[id*62+54]+(j+i);
+			if(d_ps[id*62+56]<1)
 			{
-				ii-=abs(jj-1);
-				jj=1;
+				d_ps[id*62+55]-=abs(d_ps[id*62+56]-1);
+				d_ps[id*62+56]=1;
 			}
-			for(;!done&&ii>0&&jj<j;--ii,++jj)
+			for(;!d_ps[id*62+57]&&d_ps[id*62+55]>0&&d_ps[id*62+56]<j;--d_ps[id*62+55],++d_ps[id*62+56])
 			{
 				SH[0]=-1.0;
 				SH[1]=1.0*INFINITY;
-				calc_bulge_internal(ii,jj,i,j,SH,1,Initdouble,d_ps,d_DPT,id,d_numSeq,parameter);
-				if(equal(d_DPT[id*1250+625+(i-1)*d_ps[id*64+51]+j-1],SH[0])&&equal(d_DPT[1250*id+(i-1)*d_ps[id*64+51]+j-1],SH[1]))
+				calc_bulge_internal(d_ps[id*62+55],d_ps[id*62+56],i,j,SH,1,Initdouble,d_ps,d_DPT,id,d_numSeq,parameter);
+				if(equal(d_DPT[id*1250+625+(i-1)*d_ps[id*62+51]+j-1],SH[0])&&equal(d_DPT[1250*id+(i-1)*d_ps[id*62+51]+j-1],SH[1]))
 				{
-					i=ii;
-					j=jj;
-					d_ps[id*64+i-1]=j;
-					d_ps[id*64+25+j-1]=i;
-					done=1;
+					i=d_ps[id*62+55];
+					j=d_ps[id*62+56];
+					d_ps[id*62+i-1]=j;
+					d_ps[id*62+25+j-1]=i;
+					d_ps[id*62+57]=1;
 					break;
 				}
 			}
@@ -1263,41 +1241,39 @@ __device__ void traceback(int i,int j,int *d_ps,double Initdouble[],double *d_DP
 
 __device__ double drawDimer(int *d_ps,int id,double H,double S,double Initdouble[])
 {
-        int i,N;
-
         if(fabs(Initdouble[3])>999999999)
                 return (double)0.0;
         else
         {
-                N=0;
-                for(i=0;i<d_ps[id*64+50];i++)
+                d_ps[id*62+55]=0;
+                for(d_ps[id*62+54]=0;d_ps[id*62+54]<d_ps[id*62+50];d_ps[id*62+54]++)
                 {
-                        if(d_ps[id*64+i]>0)
-                                ++N;
+                        if(d_ps[id*62+d_ps[id*62+54]]>0)
+                                ++d_ps[id*62+55];
                 }
-                for(i=0;i<d_ps[id*64+51];i++)
+                for(d_ps[id*62+54]=0;d_ps[id*62+54]<d_ps[id*62+51];d_ps[id*62+54]++)
                 {
-                        if(d_ps[id*64+25+i]>0)
-                                ++N;
+                        if(d_ps[id*62+25+d_ps[id*62+54]]>0)
+                                ++d_ps[id*62+55];
                 }
-                N=(N/2)-1;
-                return (double)(H/(S+(N*-0.51986)+Initdouble[2])-273.15);
+                d_ps[id*62+55]=(d_ps[id*62+55]/2)-1;
+                return (double)(H/(S+(d_ps[id*62+55]*-0.51986)+Initdouble[2])-273.15);
         }
 }
 
 __device__ int symmetry_thermo(char *d_seq,int start,int length,int *d_ps,int id)
 {
-	d_ps[id*64+54]=0;
+	d_ps[id*62+54]=0;
 	if(length%2==1)
 		return 0;
 
-	while(d_ps[id*64+54]<length/2)
+	while(d_ps[id*62+54]<length/2)
 	{
-		if((d_seq[d_ps[id*64+54]+start]=='A'&&d_seq[start+length-1-d_ps[id*64+54]]!='T')||(d_seq[d_ps[id*64+54]+start]=='T'&&d_seq[start+length-1-d_ps[id*64+54]]!='A')||(d_seq[start+length-1-d_ps[id*64+54]]=='A'&&d_seq[d_ps[id*64+54]+start]!='T')||(d_seq[start+length-1-d_ps[id*64+54]]=='T'&&d_seq[d_ps[id*64+54]+start]!='A'))
+		if((d_seq[d_ps[id*62+54]+start]=='A'&&d_seq[start+length-1-d_ps[id*62+54]]!='T')||(d_seq[d_ps[id*62+54]+start]=='T'&&d_seq[start+length-1-d_ps[id*62+54]]!='A')||(d_seq[start+length-1-d_ps[id*62+54]]=='A'&&d_seq[d_ps[id*62+54]+start]!='T')||(d_seq[start+length-1-d_ps[id*62+54]]=='T'&&d_seq[d_ps[id*62+54]+start]!='A'))
 			return 0;
-		if((d_seq[d_ps[id*64+54]+start]=='C'&&d_seq[start+length-1-d_ps[id*64+54]]!='G')||(d_seq[d_ps[id*64+54]+start]=='G'&&d_seq[start+length-1-d_ps[id*64+54]]!='C')||(d_seq[start+length-1-d_ps[id*64+54]]=='C'&&d_seq[d_ps[id*64+54]+start]!='G')||(d_seq[start+length-1-d_ps[id*64+54]]=='G'&&d_seq[d_ps[id*64+54]+start]!='C'))
+		if((d_seq[d_ps[id*62+54]+start]=='C'&&d_seq[start+length-1-d_ps[id*62+54]]!='G')||(d_seq[d_ps[id*62+54]+start]=='G'&&d_seq[start+length-1-d_ps[id*62+54]]!='C')||(d_seq[start+length-1-d_ps[id*62+54]]=='C'&&d_seq[d_ps[id*62+54]+start]!='G')||(d_seq[start+length-1-d_ps[id*62+54]]=='G'&&d_seq[d_ps[id*62+54]+start]!='C'))
 			return 0;
-		d_ps[id*64+54]++;
+		d_ps[id*62+54]++;
 	}
 	return 1;
 }
@@ -1316,112 +1292,112 @@ __device__ double thal(char *d_seq,int *d_primer,int one_turn,int two_turn,int o
 /* convert nucleotides to numbers */
 	if(type==1 || type==2)
 	{
-		d_ps[id*64+50]=d_primer[4*one_turn+1];
-		d_ps[id*64+51]=d_primer[4*two_turn+1];
+		d_ps[id*62+50]=d_primer[4*one_turn+1];
+		d_ps[id*62+51]=d_primer[4*two_turn+1];
 		if(one_flag==0) //plus
 		{
-	 		for(i=1;i<=d_ps[id*64+50];++i)
+	 		for(i=1;i<=d_ps[id*62+50];++i)
 				d_numSeq[id*54+i]=str2int(d_seq[d_primer[4*one_turn]+i-1]);
 		}
 		else
 		{
-			for(i=1;i<=d_ps[id*64+50];++i)
+			for(i=1;i<=d_ps[id*62+50];++i)
 				d_numSeq[id*54+i]=str2int_rev(d_seq[d_primer[4*one_turn]+d_primer[4*one_turn+1]-i]);
 		}
 
 		if(two_flag==0)
 		{
-			for(i=1;i<=d_ps[id*64+51];++i)
+			for(i=1;i<=d_ps[id*62+51];++i)
 				d_numSeq[id*54+27+i]=str2int(d_seq[d_primer[4*two_turn]+d_primer[4*two_turn+1]-i]);
 		}
 		else
 		{
-			for(i=1;i<=d_ps[id*64+51];++i)
+			for(i=1;i<=d_ps[id*62+51];++i)
 				d_numSeq[id*54+27+i]=str2int_rev(d_seq[d_primer[4*two_turn]+i-1]);
 		}
 	}
 	else if(type==3)
 	{
-		d_ps[id*64+50]=d_primer[4*two_turn+1];
-		d_ps[id*64+51]=d_primer[4*one_turn+1];
+		d_ps[id*62+50]=d_primer[4*two_turn+1];
+		d_ps[id*62+51]=d_primer[4*one_turn+1];
 		if(two_flag==0)
 		{
-			for(i=1;i<=d_ps[id*64+50];++i)
+			for(i=1;i<=d_ps[id*62+50];++i)
 				d_numSeq[id*54+i]=str2int(d_seq[d_primer[4*two_turn]+i-1]);
 		}
 		else
 		{
-			for(i=1;i<=d_ps[id*64+50];++i)
+			for(i=1;i<=d_ps[id*62+50];++i)
 				d_numSeq[id*54+i]=str2int_rev(d_seq[d_primer[4*two_turn]+d_primer[4*two_turn+1]-i]);
 		}
 		if(one_flag==0)
 		{
-			for(i=1;i<=d_ps[id*64+51];++i)
+			for(i=1;i<=d_ps[id*62+51];++i)
 				d_numSeq[id*54+27+i]=str2int(d_seq[d_primer[4*one_turn]+d_primer[4*one_turn+1]-i]);
 		}
 		else
 		{
-			for(i=1;i<=d_ps[id*64+51];++i)
+			for(i=1;i<=d_ps[id*62+51];++i)
 				d_numSeq[id*54+27+i]=str2int_rev(d_seq[d_primer[4*one_turn]+i-1]);
 		}
 	}
-	d_numSeq[id*54+0]=d_numSeq[id*54+d_ps[id*64+50]+1]=d_numSeq[id*54+27+0]=d_numSeq[id*54+27+d_ps[id*64+51]+1]=4; /* mark as N-s */
+	d_numSeq[id*54+0]=d_numSeq[id*54+d_ps[id*62+50]+1]=d_numSeq[id*54+27+0]=d_numSeq[id*54+27+d_ps[id*62+51]+1]=4; /* mark as N-s */
 
 	initMatrix(d_ps,d_DPT,id,d_numSeq);
 	fillMatrix(Initdouble,d_ps,d_DPT,id,d_numSeq,parameter);
 
 	Initdouble[3]=-1.0*INFINITY;
 /* calculate terminal basepairs */
-	d_ps[id*64+52]=d_ps[id*64+53]=0;
+	d_ps[id*62+52]=d_ps[id*62+53]=0;
 	if(type==1)
-		for (i=1;i<=d_ps[id*64+50];i++)
+		for (i=1;i<=d_ps[id*62+50];i++)
 		{
-			for (j=1;j<=d_ps[id*64+51];j++)
+			for (j=1;j<=d_ps[id*62+51];j++)
 			{
 				RSH(i,j,SH,Initdouble,d_numSeq,id,parameter);
 				SH[0]=SH[0]+0.000001; /* this adding is done for compiler, optimization -O2 vs -O0 */
 				SH[1]=SH[1]+0.000001;
-				T1=((d_DPT[id*1250+(i-1)*d_ps[id*64+51]+j-1]+SH[1]+200)/((d_DPT[id*1250+625+(i-1)*d_ps[id*64+51]+j-1])+SH[0]-5.7+Initdouble[2]))-273.15;
-				if(T1>Initdouble[3]&&((d_DPT[id*1250+625+(i-1)*d_ps[id*64+51]+j-1]+SH[0])<0&&(SH[1]+d_DPT[id*1250+(i-1)*d_ps[id*64+51]+j-1])<0))
+				T1=((d_DPT[id*1250+(i-1)*d_ps[id*62+51]+j-1]+SH[1]+200)/((d_DPT[id*1250+625+(i-1)*d_ps[id*62+51]+j-1])+SH[0]-5.7+Initdouble[2]))-273.15;
+				if(T1>Initdouble[3]&&((d_DPT[id*1250+625+(i-1)*d_ps[id*62+51]+j-1]+SH[0])<0&&(SH[1]+d_DPT[id*1250+(i-1)*d_ps[id*62+51]+j-1])<0))
 				{
 					Initdouble[3]=T1;
-					d_ps[id*64+52]=i;
-					d_ps[id*64+53]=j;
+					d_ps[id*62+52]=i;
+					d_ps[id*62+53]=j;
 				}
 			}
 		}
 	if(type==2||type==3)
 	{
 	 //THAL_END1
-		d_ps[id*64+53]=0;
-		d_ps[id*64+52]=d_ps[id*64+50];
-		i=d_ps[id*64+50];
+		d_ps[id*62+53]=0;
+		d_ps[id*62+52]=d_ps[id*62+50];
+		i=d_ps[id*62+50];
 		Initdouble[3]=-1.0*INFINITY;
-		for (j=1;j<=d_ps[id*64+51];++j)
+		for (j=1;j<=d_ps[id*62+51];++j)
 		{
 			RSH(i,j,SH,Initdouble,d_numSeq,id,parameter);
 			SH[0]=SH[0]+0.000001; // this adding is done for compiler, optimization -O2 vs -O0,that compiler could understand that SH is changed in this cycle 
 			SH[1]=SH[1]+0.000001;
-			T1=((d_DPT[id*1250+(i-1)*d_ps[id*64+51]+j-1]+SH[1]+200)/((d_DPT[id*1250+625+(i-1)*d_ps[id*64+51]+j-1])+SH[0]-5.7+Initdouble[2]))-273.15;
-			if (T1>Initdouble[3]&&((SH[0]+d_DPT[id*1250+625+(i-1)*d_ps[id*64+51]+j-1])<0&&(SH[1]+d_DPT[id*1250+(i-1)*d_ps[id*64+51]+j-1])<0))
+			T1=((d_DPT[id*1250+(i-1)*d_ps[id*62+51]+j-1]+SH[1]+200)/((d_DPT[id*1250+625+(i-1)*d_ps[id*62+51]+j-1])+SH[0]-5.7+Initdouble[2]))-273.15;
+			if (T1>Initdouble[3]&&((SH[0]+d_DPT[id*1250+625+(i-1)*d_ps[id*62+51]+j-1])<0&&(SH[1]+d_DPT[id*1250+(i-1)*d_ps[id*62+51]+j-1])<0))
 			{
 				Initdouble[3]=T1;
-				d_ps[id*64+53]=j;
+				d_ps[id*62+53]=j;
 			}
 		}
 	}
 	if(fabs(Initdouble[3])>999999999)
-		d_ps[id*64+52]=d_ps[id*64+53]=1;
-	RSH(d_ps[id*64+52],d_ps[id*64+53],SH,Initdouble,d_numSeq,id,parameter);
+		d_ps[id*62+52]=d_ps[id*62+53]=1;
+	RSH(d_ps[id*62+52],d_ps[id*62+53],SH,Initdouble,d_numSeq,id,parameter);
  // tracebacking 
-	for (i=0;i<d_ps[id*64+50];++i)
-		d_ps[id*64+i]=0;
-	for (j=0;j<d_ps[id*64+51];++j)
-		d_ps[id*64+25+j] = 0;
-	if(fabs(d_DPT[id*1250+(d_ps[id*64+52]-1)*d_ps[id*64+51]+d_ps[id*64+53]-1])<999999999)
+	for (i=0;i<d_ps[id*62+50];++i)
+		d_ps[id*62+i]=0;
+	for (j=0;j<d_ps[id*62+51];++j)
+		d_ps[id*62+25+j] = 0;
+	if(fabs(d_DPT[id*1250+(d_ps[id*62+52]-1)*d_ps[id*62+51]+d_ps[id*62+53]-1])<999999999)
 	{
-		traceback(d_ps[id*64+52],d_ps[id*64+53],d_ps,Initdouble,d_DPT,id,d_numSeq,parameter);
-		T1=drawDimer(d_ps,id,(d_DPT[id*1250+(d_ps[id*64+52]-1)*d_ps[id*64+51]+d_ps[id*64+53]-1]+SH[1]+200),(d_DPT[id*1250+625+(d_ps[id*64+52]-1)*d_ps[id*64+51]+d_ps[id*64+53]-1]+SH[0]-5.7),Initdouble);
+		traceback(d_ps[id*62+52],d_ps[id*62+53],d_ps,Initdouble,d_DPT,id,d_numSeq,parameter);
+		T1=drawDimer(d_ps,id,(d_DPT[id*1250+(d_ps[id*62+52]-1)*d_ps[id*62+51]+d_ps[id*62+53]-1]+SH[1]+200),(d_DPT[id*1250+625+(d_ps[id*62+52]-1)*d_ps[id*62+51]+d_ps[id*62+53]-1]+SH[0]-5.7),Initdouble);
 		T1=(int)(100*T1+0.5)/100.0;
 		return T1;
 	}
@@ -3655,7 +3631,7 @@ main(int argc,char **argv)
 		cudaMalloc((void **)&d_TH,2*num[2]*sizeof(double));
 		h_TH=(double *)malloc(2*num[2]*sizeof(double));
 			cudaMalloc((void **)&d_DPT,num[2]*1250*sizeof(double));
-			cudaMalloc((void **)&d_ps,num[2]*64*sizeof(int));
+			cudaMalloc((void **)&d_ps,num[2]*62*sizeof(int));
 			cudaMalloc((void **)&d_numSeq,num[2]*54*sizeof(char));
 			LAMP<<<block,thread>>>(d_seq,d_primer,d_common,d_special,d_sc,d_ec,d_ss,d_es,d_SS,d_SL,d_SLp,d_LL,d_LS,d_LLp,d_LpLp,d_int,d_par,d_apply,parameter,d_pos,d_TH,d_DPT,d_ps,d_numSeq);
 			cudaFree(d_DPT);
