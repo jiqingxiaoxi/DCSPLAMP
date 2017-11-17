@@ -8,6 +8,9 @@
 #include<cuda.h>
 #include<cuda_runtime.h>
 
+__constant__ int const_int[17];
+__constant__ double parameter[5730];
+
 char str2int_CPU(char c)
 {
         switch (c)
@@ -999,7 +1002,7 @@ __device__ void calc_bulge_internal(int i,int j,int ii,int jj,int traceback,int 
 	return;
 }
 
-__device__ void fillMatrix(int *d_ps,double *d_DPT,int id,char *d_numSeq,double *parameter)
+__device__ void fillMatrix(int *d_ps,double *d_DPT,int id,char *d_numSeq)
 {
 	int i;
 
@@ -1057,7 +1060,7 @@ __device__ void fillMatrix(int *d_ps,double *d_DPT,int id,char *d_numSeq,double 
 	} //for
 }
 
-__device__ void RSH(int i,int j,double *d_DPT,char *d_numSeq,int id,double *parameter)
+__device__ void RSH(int i,int j,double *d_DPT,char *d_numSeq,int id)
 {
 	if(d_numSeq[id*54+i]+d_numSeq[id*54+27+j]!=3)
 	{
@@ -1179,7 +1182,7 @@ __device__ void RSH(int i,int j,double *d_DPT,char *d_numSeq,int id,double *para
 	return;
 }
 
-__device__ void traceback(int i,int j,int *d_ps,double *d_DPT,int id,char *d_numSeq,double *parameter)
+__device__ void traceback(int i,int j,int *d_ps,double *d_DPT,int id,char *d_numSeq)
 {
 	d_ps[id*62+i-1]=j;
 	d_ps[id*62+25+j-1]=i;
@@ -1267,7 +1270,7 @@ __device__ int symmetry_thermo(char *d_seq,int start,int length,int *d_ps,int id
 	return 1;
 }
 
-__device__ double thal(char *d_seq,int *d_primer,int one_turn,int two_turn,int one_flag,int two_flag,int type,double *parameter,double *d_DPT,int id,int *d_ps,char *d_numSeq)
+__device__ double thal(char *d_seq,int *d_primer,int one_turn,int two_turn,int one_flag,int two_flag,int type,double *d_DPT,int id,int *d_ps,char *d_numSeq)
 {
 	int i, j;
 
@@ -1331,7 +1334,7 @@ __device__ double thal(char *d_seq,int *d_primer,int one_turn,int two_turn,int o
 	d_numSeq[id*54+0]=d_numSeq[id*54+d_ps[id*62+50]+1]=d_numSeq[id*54+27+0]=d_numSeq[id*54+27+d_ps[id*62+51]+1]=4; /* mark as N-s */
 
 	initMatrix(d_ps,d_DPT,id,d_numSeq);
-	fillMatrix(d_ps,d_DPT,id,d_numSeq,parameter);
+	fillMatrix(d_ps,d_DPT,id,d_numSeq);
 
 	d_DPT[id*1263+1253]=-1.0*INFINITY;
 /* calculate terminal basepairs */
@@ -1341,7 +1344,7 @@ __device__ double thal(char *d_seq,int *d_primer,int one_turn,int two_turn,int o
 		{
 			for (j=1;j<=d_ps[id*62+51];j++)
 			{
-				RSH(i,j,d_DPT,d_numSeq,id,parameter);
+				RSH(i,j,d_DPT,d_numSeq,id);
 				d_DPT[id*1263+1250]=d_DPT[id*1263+1250]+0.000001; /* this adding is done for compiler, optimization -O2 vs -O0 */
 				d_DPT[id*1263+1251]=d_DPT[id*1263+1251]+0.000001;
 				d_DPT[id*1263+1254]=((d_DPT[id*1263+(i-1)*d_ps[id*62+51]+j-1]+d_DPT[id*1263+1251]+200)/((d_DPT[id*1263+625+(i-1)*d_ps[id*62+51]+j-1])+d_DPT[id*1263+1250]-5.7+d_DPT[id*1263+1252]))-273.15;
@@ -1362,7 +1365,7 @@ __device__ double thal(char *d_seq,int *d_primer,int one_turn,int two_turn,int o
 		d_DPT[id*1263+1253]=-1.0*INFINITY;
 		for (j=1;j<=d_ps[id*62+51];++j)
 		{
-			RSH(i,j,d_DPT,d_numSeq,id,parameter);
+			RSH(i,j,d_DPT,d_numSeq,id);
 			d_DPT[id*1263+1250]=d_DPT[id*1263+1250]+0.000001; // this adding is done for compiler, optimization -O2 vs -O0,that compiler could understand that SH is changed in this cycle 
 			d_DPT[id*1263+1251]=d_DPT[id*1263+1251]+0.000001;
 			d_DPT[id*1263+1254]=((d_DPT[id*1263+(i-1)*d_ps[id*62+51]+j-1]+d_DPT[id*1263+1251]+200)/((d_DPT[id*1263+625+(i-1)*d_ps[id*62+51]+j-1])+d_DPT[id*1263+1250]-5.7+d_DPT[id*1263+1252]))-273.15;
@@ -1375,7 +1378,7 @@ __device__ double thal(char *d_seq,int *d_primer,int one_turn,int two_turn,int o
 	}
 	if(fabs(d_DPT[id*1263+1253])>999999999)
 		d_ps[id*62+52]=d_ps[id*62+53]=1;
-	RSH(d_ps[id*62+52],d_ps[id*62+53],d_DPT,d_numSeq,id,parameter);
+	RSH(d_ps[id*62+52],d_ps[id*62+53],d_DPT,d_numSeq,id);
  // tracebacking 
 	for (i=0;i<d_ps[id*62+50];++i)
 		d_ps[id*62+i]=0;
@@ -1383,7 +1386,7 @@ __device__ double thal(char *d_seq,int *d_primer,int one_turn,int two_turn,int o
 		d_ps[id*62+25+j] = 0;
 	if(fabs(d_DPT[id*1263+(d_ps[id*62+52]-1)*d_ps[id*62+51]+d_ps[id*62+53]-1])<999999999)
 	{
-		traceback(d_ps[id*62+52],d_ps[id*62+53],d_ps,d_DPT,id,d_numSeq,parameter);
+		traceback(d_ps[id*62+52],d_ps[id*62+53],d_ps,d_DPT,id,d_numSeq);
 		d_DPT[id*1263+1254]=drawDimer(d_ps,id,(d_DPT[id*1263+(d_ps[id*62+52]-1)*d_ps[id*62+51]+d_ps[id*62+53]-1]+d_DPT[id*1263+1251]+200),(d_DPT[id*1263+625+(d_ps[id*62+52]-1)*d_ps[id*62+51]+d_ps[id*62+53]-1]+d_DPT[id*1263+1250]-5.7),d_DPT);
 		d_DPT[id*1263+1254]=(int)(100*d_DPT[id*1263+1254]+0.5)/100.0;
 		return d_DPT[id*1263+1254];
@@ -1459,7 +1462,7 @@ void generate_primer(char *seq,char primer[],int start,int length,int flag)
 	primer[length]='\0';
 }
 
-__device__ int check_structure(char *d_seq,int *d_primer,int turn[],int *d_int,double *parameter,double *d_TH,int id,double *d_DPT,int *d_ps,char *d_numSeq)
+__device__ int check_structure(char *d_seq,int *d_primer,int turn[],double *d_TH,int id,double *d_DPT,int *d_ps,char *d_numSeq)
 {
 	double TH;
 	int i,j;
@@ -1470,26 +1473,26 @@ __device__ int check_structure(char *d_seq,int *d_primer,int turn[],int *d_int,d
 		{
 		if(i!=2||j!=3)
 			continue;
-			TH=thal(d_seq,d_primer,turn[i],turn[j],d_int[11+i],d_int[11+j],1,parameter,d_DPT,id,d_ps,d_numSeq);
-			if(TH>44+5*d_int[9])
+			TH=thal(d_seq,d_primer,turn[i],turn[j],const_int[11+i],const_int[11+j],1,d_DPT,id,d_ps,d_numSeq);
+			if(TH>44+5*const_int[9])
                                 return 0;
 		d_TH[id*2]=TH;
-			TH=thal(d_seq,d_primer,turn[i],turn[j],d_int[11+i],d_int[11+j],2,parameter,d_DPT,id,d_ps,d_numSeq);
-                        if(TH>44+5*d_int[9])
+			TH=thal(d_seq,d_primer,turn[i],turn[j],const_int[11+i],const_int[11+j],2,d_DPT,id,d_ps,d_numSeq);
+                        if(TH>44+5*const_int[9])
                                 return 0;
 		d_TH[id*2+1]=TH;
-			TH=thal(d_seq,d_primer,turn[i],turn[j],d_int[11+i],d_int[11+j],3,parameter,d_DPT,id,d_ps,d_numSeq);
-                        if(TH>44+5*d_int[9])
+			TH=thal(d_seq,d_primer,turn[i],turn[j],const_int[11+i],const_int[11+j],3,d_DPT,id,d_ps,d_numSeq);
+                        if(TH>44+5*const_int[9])
                                 return 0;
 		if(TH>d_TH[id*2+1])
 			d_TH[id*2+1]=TH;
-			TH=thal(d_seq,d_primer,turn[j],turn[i],(1-d_int[11+j]),(1-d_int[11+i]),2,parameter,d_DPT,id,d_ps,d_numSeq);
-                        if(TH>44+5*d_int[9])
+			TH=thal(d_seq,d_primer,turn[j],turn[i],(1-const_int[11+j]),(1-const_int[11+i]),2,d_DPT,id,d_ps,d_numSeq);
+                        if(TH>44+5*const_int[9])
                                 return 0;
 		if(TH>d_TH[id*2+1])
                         d_TH[id*2+1]=TH;
-                        TH=thal(d_seq,d_primer,turn[j],turn[i],(1-d_int[11+j]),(1-d_int[11+i]),3,parameter,d_DPT,id,d_ps,d_numSeq);
-                        if(TH>44+5*d_int[9])
+                        TH=thal(d_seq,d_primer,turn[j],turn[i],(1-const_int[11+j]),(1-const_int[11+i]),3,d_DPT,id,d_ps,d_numSeq);
+                        if(TH>44+5*const_int[9])
                                 return 0;
 		if(TH>d_TH[id*2+1])
                         d_TH[id*2+1]=TH;
@@ -1933,13 +1936,13 @@ __device__ int check_gc(char *d_seq,int start,int end,int flag)
         return 0;
 }
 
-__device__ int check_common(int *d_primer,int *d_info,int turn[],int LF,int LB,int common,int *d_apply)
+__device__ int check_common(int *d_primer,int *d_info,int turn[],int LF,int LB,int *d_apply)
 {
         int dis,i,pos[7];
 
-	for(i=0;i<common;i++)
+	for(i=0;i<const_int[7];i++)
         {
-                d_apply[common*turn[0]+i]=0;             
+                d_apply[const_int[7]*turn[0]+i]=0;             
         }
 //plus
         for(pos[0]=d_primer[turn[0]*10+3];pos[0]<d_primer[turn[0]*10+4];pos[0]++)
@@ -1947,7 +1950,7 @@ __device__ int check_common(int *d_primer,int *d_info,int turn[],int LF,int LB,i
                 if((d_info[pos[0]*3+2]&1)!=1)
                         continue;
 		i=d_info[pos[0]*3];
-                if(d_apply[turn[0]*common+i]!=0)
+                if(d_apply[turn[0]*const_int[7]+i]!=0)
                         continue;
                 for(pos[1]=d_primer[turn[1]*10+3];pos[1]<d_primer[turn[1]*10+4];pos[1]++)
                 {
@@ -2053,7 +2056,7 @@ __device__ int check_common(int *d_primer,int *d_info,int turn[],int LF,int LB,i
                                                                 if(dis==0)
                                                                         continue;
                                                         }
-                                                        d_apply[turn[0]*common+i]=1;
+                                                        d_apply[turn[0]*const_int[7]+i]=1;
                                                 }
                                         }
                                 }
@@ -2066,7 +2069,7 @@ __device__ int check_common(int *d_primer,int *d_info,int turn[],int LF,int LB,i
                 if((d_info[pos[0]*3+2]&2)!=2)
                         continue;
                 i=d_info[pos[0]*3];
-                if(d_apply[turn[0]*common+i]!=0)
+                if(d_apply[turn[0]*const_int[7]+i]!=0)
                         continue;
                 for(pos[1]=d_primer[turn[1]*10+3];pos[1]<d_primer[turn[1]*10+4];pos[1]++)
                 {
@@ -2172,7 +2175,7 @@ __device__ int check_common(int *d_primer,int *d_info,int turn[],int LF,int LB,i
                                                                 if(dis==0)
                                                                         continue;
                                                         }
-							d_apply[turn[0]*common+i]=1;
+							d_apply[turn[0]*const_int[7]+i]=1;
                                                 }
                                         }
                                 }
@@ -2180,14 +2183,14 @@ __device__ int check_common(int *d_primer,int *d_info,int turn[],int LF,int LB,i
                 }
         }
 	dis=0;
-        for(i=0;i<common;i++)
+        for(i=0;i<const_int[7];i++)
         {
-                dis=dis+d_apply[common*turn[0]+i];
+                dis=dis+d_apply[const_int[7]*turn[0]+i];
         }
         return dis;
 }
 
-__device__ int check_structure_loop(char *d_seq,int *d_primer,int turn[],int *d_int,int LF,int LB,double *parameter,double *d_DPT,int id,int *d_ps,char *d_numSeq)
+__device__ int check_structure_loop(char *d_seq,int *d_primer,int turn[],int LF,int LB,double *d_DPT,int id,int *d_ps,char *d_numSeq)
 {
         int i;
         double TH;
@@ -2196,41 +2199,41 @@ __device__ int check_structure_loop(char *d_seq,int *d_primer,int turn[],int *d_
         {
                 for(i=0;i<=1;i++)
                 {
-                        TH=thal(d_seq,d_primer,turn[i],LF,d_int[11+i],1,1,parameter,d_DPT,id,d_ps,d_numSeq);
-                        if(TH>44+5*d_int[9])
+                        TH=thal(d_seq,d_primer,turn[i],LF,const_int[11+i],1,1,d_DPT,id,d_ps,d_numSeq);
+                        if(TH>44+5*const_int[9])
                                 return 0;
-                        TH=thal(d_seq,d_primer,turn[i],LF,d_int[11+i],1,2,parameter,d_DPT,id,d_ps,d_numSeq);
-                        if(TH>44+5*d_int[9])
+                        TH=thal(d_seq,d_primer,turn[i],LF,const_int[11+i],1,2,d_DPT,id,d_ps,d_numSeq);
+                        if(TH>44+5*const_int[9])
                                 return 0;
-                        TH=thal(d_seq,d_primer,turn[i],LF,d_int[11+i],1,3,parameter,d_DPT,id,d_ps,d_numSeq);
-                        if(TH>44+5*d_int[9])
+                        TH=thal(d_seq,d_primer,turn[i],LF,const_int[11+i],1,3,d_DPT,id,d_ps,d_numSeq);
+                        if(TH>44+5*const_int[9])
                                 return 0;
 
-                        TH=thal(d_seq,d_primer,LF,turn[i],0,(1-d_int[11+i]),2,parameter,d_DPT,id,d_ps,d_numSeq);
-                        if(TH>44+5*d_int[9])
+                        TH=thal(d_seq,d_primer,LF,turn[i],0,(1-const_int[11+i]),2,d_DPT,id,d_ps,d_numSeq);
+                        if(TH>44+5*const_int[9])
                                 return 0;
-                        TH=thal(d_seq,d_primer,LF,turn[i],0,(1-d_int[11+i]),3,parameter,d_DPT,id,d_ps,d_numSeq);
-                        if(TH>44+5*d_int[9])
+                        TH=thal(d_seq,d_primer,LF,turn[i],0,(1-const_int[11+i]),3,d_DPT,id,d_ps,d_numSeq);
+                        if(TH>44+5*const_int[9])
                                 return 0;
                 }
 
                 for(i=2;i<6;i++)
                 {
-                        TH=thal(d_seq,d_primer,LF,turn[i],1,d_int[11+i],1,parameter,d_DPT,id,d_ps,d_numSeq);
-                        if(TH>44+5*d_int[9])
+                        TH=thal(d_seq,d_primer,LF,turn[i],1,const_int[11+i],1,d_DPT,id,d_ps,d_numSeq);
+                        if(TH>44+5*const_int[9])
                                 return 0;
-                        TH=thal(d_seq,d_primer,LF,turn[i],1,d_int[11+i],2,parameter,d_DPT,id,d_ps,d_numSeq);
-                        if(TH>44+5*d_int[9])
+                        TH=thal(d_seq,d_primer,LF,turn[i],1,const_int[11+i],2,d_DPT,id,d_ps,d_numSeq);
+                        if(TH>44+5*const_int[9])
                                 return 0;
-                        TH=thal(d_seq,d_primer,LF,turn[i],1,d_int[11+i],3,parameter,d_DPT,id,d_ps,d_numSeq);
-                        if(TH>44+5*d_int[9])
+                        TH=thal(d_seq,d_primer,LF,turn[i],1,const_int[11+i],3,d_DPT,id,d_ps,d_numSeq);
+                        if(TH>44+5*const_int[9])
                                 return 0;
 
-                        TH=thal(d_seq,d_primer,turn[i],LF,(1-d_int[11+i]),0,2,parameter,d_DPT,id,d_ps,d_numSeq);
-                        if(TH>44+5*d_int[9]) 
+                        TH=thal(d_seq,d_primer,turn[i],LF,(1-const_int[11+i]),0,2,d_DPT,id,d_ps,d_numSeq);
+                        if(TH>44+5*const_int[9]) 
                                 return 0;
-                        TH=thal(d_seq,d_primer,turn[i],LF,(1-d_int[11+i]),0,3,parameter,d_DPT,id,d_ps,d_numSeq);
-                        if(TH>44+5*d_int[9])
+                        TH=thal(d_seq,d_primer,turn[i],LF,(1-const_int[11+i]),0,3,d_DPT,id,d_ps,d_numSeq);
+                        if(TH>44+5*const_int[9])
                                 return 0;
                 }
         }
@@ -2238,73 +2241,73 @@ __device__ int check_structure_loop(char *d_seq,int *d_primer,int turn[],int *d_
         {
                 for(i=0;i<4;i++)
                 {
-                        TH=thal(d_seq,d_primer,turn[i],LB,d_int[11+i],0,1,parameter,d_DPT,id,d_ps,d_numSeq);
-                        if(TH>44+5*d_int[9])
+                        TH=thal(d_seq,d_primer,turn[i],LB,const_int[11+i],0,1,d_DPT,id,d_ps,d_numSeq);
+                        if(TH>44+5*const_int[9])
                                 return 0;
-                        TH=thal(d_seq,d_primer,turn[i],LB,d_int[11+i],0,2,parameter,d_DPT,id,d_ps,d_numSeq);
-                        if(TH>44+5*d_int[9])
+                        TH=thal(d_seq,d_primer,turn[i],LB,const_int[11+i],0,2,d_DPT,id,d_ps,d_numSeq);
+                        if(TH>44+5*const_int[9])
                                 return 0;
-                        TH=thal(d_seq,d_primer,turn[i],LB,d_int[11+i],0,3,parameter,d_DPT,id,d_ps,d_numSeq);
-                        if(TH>44+5*d_int[9])
+                        TH=thal(d_seq,d_primer,turn[i],LB,const_int[11+i],0,3,d_DPT,id,d_ps,d_numSeq);
+                        if(TH>44+5*const_int[9])
                                 return 0;
 
-                        TH=thal(d_seq,d_primer,LB,turn[i],1,(1-d_int[11+i]),2,parameter,d_DPT,id,d_ps,d_numSeq);
-                        if(TH>44+5*d_int[9])
+                        TH=thal(d_seq,d_primer,LB,turn[i],1,(1-const_int[11+i]),2,d_DPT,id,d_ps,d_numSeq);
+                        if(TH>44+5*const_int[9])
                                 return 0;
-                        TH=thal(d_seq,d_primer,LB,turn[i],1,(1-d_int[11+i]),3,parameter,d_DPT,id,d_ps,d_numSeq);
-                        if(TH>44+5*d_int[9])
+                        TH=thal(d_seq,d_primer,LB,turn[i],1,(1-const_int[11+i]),3,d_DPT,id,d_ps,d_numSeq);
+                        if(TH>44+5*const_int[9])
                                 return 0;
                 }
                 for(i=4;i<6;i++)
                 {
-                        TH=thal(d_seq,d_primer,LB,turn[i],0,d_int[11+i],1,parameter,d_DPT,id,d_ps,d_numSeq);
-                        if(TH>44+5*d_int[9])
+                        TH=thal(d_seq,d_primer,LB,turn[i],0,const_int[11+i],1,d_DPT,id,d_ps,d_numSeq);
+                        if(TH>44+5*const_int[9])
                                 return 0;
-                        TH=thal(d_seq,d_primer,LB,turn[i],0,d_int[11+i],2,parameter,d_DPT,id,d_ps,d_numSeq);
-                        if(TH>44+5*d_int[9])
+                        TH=thal(d_seq,d_primer,LB,turn[i],0,const_int[11+i],2,d_DPT,id,d_ps,d_numSeq);
+                        if(TH>44+5*const_int[9])
                                 return 0;
-                        TH=thal(d_seq,d_primer,LB,turn[i],0,d_int[11+i],3,parameter,d_DPT,id,d_ps,d_numSeq);
-                        if(TH>44+5*d_int[9])
+                        TH=thal(d_seq,d_primer,LB,turn[i],0,const_int[11+i],3,d_DPT,id,d_ps,d_numSeq);
+                        if(TH>44+5*const_int[9])
                                 return 0;
 
-                        TH=thal(d_seq,d_primer,turn[i],LB,(1-d_int[11+i]),1,2,parameter,d_DPT,id,d_ps,d_numSeq);
-                        if(TH>44+5*d_int[9])
+                        TH=thal(d_seq,d_primer,turn[i],LB,(1-const_int[11+i]),1,2,d_DPT,id,d_ps,d_numSeq);
+                        if(TH>44+5*const_int[9])
                                 return 0;
-                        TH=thal(d_seq,d_primer,turn[i],LB,(1-d_int[11+i]),1,3,parameter,d_DPT,id,d_ps,d_numSeq);
-                        if(TH>44+5*d_int[9])
+                        TH=thal(d_seq,d_primer,turn[i],LB,(1-const_int[11+i]),1,3,d_DPT,id,d_ps,d_numSeq);
+                        if(TH>44+5*const_int[9])
                                 return 0;
                 }
         }
         if(LF!=-1&&LB!=-1)
         {
-                TH=thal(d_seq,d_primer,LF,LB,1,0,1,parameter,d_DPT,id,d_ps,d_numSeq);
-                if(TH>44+5*d_int[9])
+                TH=thal(d_seq,d_primer,LF,LB,1,0,1,d_DPT,id,d_ps,d_numSeq);
+                if(TH>44+5*const_int[9])
                         return 0;
-                TH=thal(d_seq,d_primer,LF,LB,1,0,2,parameter,d_DPT,id,d_ps,d_numSeq);
-                if(TH>44+5*d_int[9])
+                TH=thal(d_seq,d_primer,LF,LB,1,0,2,d_DPT,id,d_ps,d_numSeq);
+                if(TH>44+5*const_int[9])
                         return 0;
-                TH=thal(d_seq,d_primer,LF,LB,1,0,3,parameter,d_DPT,id,d_ps,d_numSeq);
-                if(TH>44+5*d_int[9])
+                TH=thal(d_seq,d_primer,LF,LB,1,0,3,d_DPT,id,d_ps,d_numSeq);
+                if(TH>44+5*const_int[9])
                         return 0;
 
-                TH=thal(d_seq,d_primer,LB,LF,1,0,2,parameter,d_DPT,id,d_ps,d_numSeq);
-                if(TH>44+5*d_int[9])
+                TH=thal(d_seq,d_primer,LB,LF,1,0,2,d_DPT,id,d_ps,d_numSeq);
+                if(TH>44+5*const_int[9])
                         return 0;
-                TH=thal(d_seq,d_primer,LB,LF,1,0,3,parameter,d_DPT,id,d_ps,d_numSeq);
-                if(TH>44+5*d_int[9])
+                TH=thal(d_seq,d_primer,LB,LF,1,0,3,d_DPT,id,d_ps,d_numSeq);
+                if(TH>44+5*const_int[9])
                         return 0;
         }
         return 1;
 }
 
-__device__ int design_loop(int *d_primer,char *d_seq,int *d_info,int turn[],int *d_int,int *d_apply,int *d_par,double *parameter,double *d_DPT,int id,int *d_ps,char *d_numSeq)
+__device__ int design_loop(int *d_primer,char *d_seq,int *d_info,int turn[],int *d_apply,int *d_par,double *d_DPT,int id,int *d_ps,char *d_numSeq)
 {
         int success,LF,LB;
 
 //LF and LB 
         success=0;
 	LF=d_primer[turn[1]*10+9];
-        while(LF<d_int[2]+d_int[0]+d_int[1])
+        while(LF<const_int[2]+const_int[0]+const_int[1])
         {
 		if(LF==-1)
 			break;
@@ -2318,7 +2321,7 @@ __device__ int design_loop(int *d_primer,char *d_seq,int *d_info,int turn[],int 
                 LB=d_primer[turn[3]*10+9];
 		if(LB==-1||d_primer[4*LB]+18>d_primer[4*turn[4]])
 			break;
-                while(LB<d_int[2]+d_int[0]+d_int[1])
+                while(LB<const_int[2]+const_int[0]+const_int[1])
                 {
 			if(d_primer[4*LB+2]!=1)
 			{
@@ -2328,9 +2331,9 @@ __device__ int design_loop(int *d_primer,char *d_seq,int *d_info,int turn[],int 
                         if(d_primer[4*LB]+18>d_primer[4*turn[4]])
                                 break;
                 //check_common
-                        if(d_int[3])
+                        if(const_int[3])
                         {
-                                success=check_common(d_primer,d_info,turn,LF,LB,d_int[7],d_apply);
+                                success=check_common(d_primer,d_info,turn,LF,LB,d_apply);
                                 if(success==0)
                                 {
                                         LB++;
@@ -2338,9 +2341,9 @@ __device__ int design_loop(int *d_primer,char *d_seq,int *d_info,int turn[],int 
                                 }
                         }
                 //check_structure
-                        if(d_int[6])
+                        if(const_int[6])
                         {
-                                success=check_structure_loop(d_seq,d_primer,turn,d_int,LF,LB,parameter,d_DPT,id,d_ps,d_numSeq);
+                                success=check_structure_loop(d_seq,d_primer,turn,LF,LB,d_DPT,id,d_ps,d_numSeq);
                                 if(success==0)
                                 {
                                         LB++;
@@ -2363,7 +2366,7 @@ __device__ int design_loop(int *d_primer,char *d_seq,int *d_info,int turn[],int 
                 return success;
 //only LF
         LF=d_primer[turn[1]*10+9];
-        while(LF<d_int[2]+d_int[1]+d_int[0])
+        while(LF<const_int[2]+const_int[1]+const_int[0])
         {
 		if(LF==-1)
 			break;
@@ -2375,9 +2378,9 @@ __device__ int design_loop(int *d_primer,char *d_seq,int *d_info,int turn[],int 
 			continue;
 		}
         //check_common
-                if(d_int[3])
+                if(const_int[3])
                 {
-                        success=check_common(d_primer,d_info,turn,LF,-1,d_int[7],d_apply);
+                        success=check_common(d_primer,d_info,turn,LF,-1,d_apply);
                         if(success==0)
                         {
                                 LF++;
@@ -2385,9 +2388,9 @@ __device__ int design_loop(int *d_primer,char *d_seq,int *d_info,int turn[],int 
                         }
                 }
         //check_structure
-                if(d_int[6])
+                if(const_int[6])
                 {
-                        success=check_structure_loop(d_seq,d_primer,turn,d_int,LF,-1,parameter,d_DPT,id,d_ps,d_numSeq);
+                        success=check_structure_loop(d_seq,d_primer,turn,LF,-1,d_DPT,id,d_ps,d_numSeq);
                         if(success==0)
                         {
                                 LF++;
@@ -2405,7 +2408,7 @@ __device__ int design_loop(int *d_primer,char *d_seq,int *d_info,int turn[],int 
                 return success;
 //only LB
         LB=d_primer[turn[3]*10+9];
-        while(LB<d_int[2]+d_int[0]+d_int[1])
+        while(LB<const_int[2]+const_int[0]+const_int[1])
         {
 		if(LB==-1)
 			break;
@@ -2417,9 +2420,9 @@ __device__ int design_loop(int *d_primer,char *d_seq,int *d_info,int turn[],int 
 			continue;
 		}
         //check_common
-                if(d_int[3])
+                if(const_int[3])
                 {
-                        success=check_common(d_primer,d_info,turn,-1,LB,d_int[7],d_apply);
+                        success=check_common(d_primer,d_info,turn,-1,LB,d_apply);
                         if(success==0)
                         {
                                 LB++;
@@ -2427,9 +2430,9 @@ __device__ int design_loop(int *d_primer,char *d_seq,int *d_info,int turn[],int 
                         }
                 }
         //check_structure
-                if(d_int[6])
+                if(const_int[6])
                 {
-                        success=check_structure_loop(d_seq,d_primer,turn,d_int,-1,LB,parameter,d_DPT,id,d_ps,d_numSeq);
+                        success=check_structure_loop(d_seq,d_primer,turn,-1,LB,d_DPT,id,d_ps,d_numSeq);
                         if(success==0)
                         {
                                 LB++;
@@ -2447,32 +2450,16 @@ __device__ int design_loop(int *d_primer,char *d_seq,int *d_info,int turn[],int 
 }
 
 //caculate
-__global__ void LAMP(char *d_seq,int *d_primer,int *d_info,int *d_int,int *d_par,int *d_apply,double *parameter,int *d_pos,double *d_TH,double *d_DPT,int *d_ps,char *d_numSeq)
-//d_int: 0:numS,1:numL,2:numLp,3:common_flag,4:special_flag,5:loop_flag,6:secondary_flag,7:common_num,8:this turn common_num,9:high_GC_flag; 10:expect
+__global__ void LAMP(char *d_seq,int *d_primer,int *d_info,int *d_par,int *d_apply,double *d_TH,double *d_DPT,int *d_ps,char *d_numSeq)
+//const_int: 0:numS,1:numL,2:numLp,3:common_flag,4:special_flag,5:loop_flag,6:secondary_flag,7:common_num,8:this turn common_num,9:high_GC_flag; 10:expect
 {
 	int id=blockDim.x*blockIdx.x+threadIdx.x;
 	int turn[6],flag;
 
-	while(id<d_int[0])
+	while(id<const_int[0])
 	{
 		d_par[16*id+1]=0;//not LAMP, as a flag
 //check add by F3'pos
-		turn[0]=0;
-		for(turn[1]=0;turn[1]<d_int[10];turn[1]++)
-		{
-			if(d_pos[turn[1]]==-1)
-				break;
-			if(d_primer[id*10]-d_pos[turn[1]]<300&&d_primer[id*10]-d_pos[turn[1]]>-300)
-			{
-				turn[0]++;
-				break;
-			}
-		}
-		if(turn[0])
-		{
-			id=id+blockDim.x*gridDim.x;
-			continue;
-		}
 		if((d_primer[id*10+2]&1)!=1)
 		{
 			id=id+blockDim.x*gridDim.x;	
@@ -2481,7 +2468,7 @@ __global__ void LAMP(char *d_seq,int *d_primer,int *d_info,int *d_int,int *d_par
 	//combine
 		turn[0]=id; //one thread, one F3
 		flag=0;
-		for(turn[1]=d_primer[id*10+7];turn[1]<d_int[0];turn[1]++) //F2
+		for(turn[1]=d_primer[id*10+7];turn[1]<const_int[0];turn[1]++) //F2
 		{
 			if(turn[1]==-1)
 				break;
@@ -2491,7 +2478,7 @@ __global__ void LAMP(char *d_seq,int *d_primer,int *d_info,int *d_int,int *d_par
 				continue;
 			if(d_primer[turn[1]*10]-(d_primer[turn[0]*10]+d_primer[turn[0]*10+1])>20)
 				break;
-			for(turn[2]=d_primer[turn[1]*10+8];turn[2]<d_int[1]+d_int[0];turn[2]++) //F1c
+			for(turn[2]=d_primer[turn[1]*10+8];turn[2]<const_int[1]+const_int[0];turn[2]++) //F1c
 			{
 				if(turn[2]==-1)
 					break;
@@ -2503,7 +2490,7 @@ __global__ void LAMP(char *d_seq,int *d_primer,int *d_info,int *d_int,int *d_par
 					continue;
                                 if(d_primer[turn[2]*10]-d_primer[turn[1]*10]-1>60)
                                 	break;
-                                for(turn[3]=d_primer[turn[2]*10+7];turn[3]<d_int[1]+d_int[0];turn[3]++)   //B1c
+                                for(turn[3]=d_primer[turn[2]*10+7];turn[3]<const_int[1]+const_int[0];turn[3]++)   //B1c
                                 {
                                         if(turn[3]==-1)
                                         	break;
@@ -2513,7 +2500,7 @@ __global__ void LAMP(char *d_seq,int *d_primer,int *d_info,int *d_int,int *d_par
 						continue;
                                         if(d_primer[turn[3]*10]-d_primer[turn[2]*10]>85)
                                         	break;
-                                        for(turn[4]=d_primer[turn[3]*10+8];turn[4]<d_int[0];turn[4]++)   //B2
+                                        for(turn[4]=d_primer[turn[3]*10+8];turn[4]<const_int[0];turn[4]++)   //B2
                                         {
                                                 if(turn[4]==-1)
                                                 	break;
@@ -2529,9 +2516,9 @@ __global__ void LAMP(char *d_seq,int *d_primer,int *d_info,int *d_int,int *d_par
                                                 	continue;
                                                 if(d_primer[turn[4]*10]+d_primer[turn[4]*10+1]-1-d_primer[turn[1]*10]-1>180)
                                                 	break;
-						if(d_int[5]&&(d_primer[turn[1]*10+9]==-1||(d_primer[d_primer[turn[1]*10+9]*10]+18>d_primer[turn[2]*10]))&&(d_primer[turn[3]*10+9]==-1||(d_primer[d_primer[turn[3]*10+9]*10]+18>d_primer[turn[4]*10])))
+						if(const_int[5]&&(d_primer[turn[1]*10+9]==-1||(d_primer[d_primer[turn[1]*10+9]*10]+18>d_primer[turn[2]*10]))&&(d_primer[turn[3]*10+9]==-1||(d_primer[d_primer[turn[3]*10+9]*10]+18>d_primer[turn[4]*10])))
 							continue;
-                                                for(turn[5]=d_primer[turn[4]*10+7];turn[5]<d_int[0];turn[5]++)  //B3
+                                                for(turn[5]=d_primer[turn[4]*10+7];turn[5]<const_int[0];turn[5]++)  //B3
                                                 {
                                                         if(turn[5]==-1)
                                                         	break;
@@ -2539,33 +2526,33 @@ __global__ void LAMP(char *d_seq,int *d_primer,int *d_info,int *d_int,int *d_par
 								continue;
                                                         if(d_primer[turn[5]*10]-(d_primer[turn[4]*10]+d_primer[turn[4]*10+1])>20)
                                                         	break;
-							flag=check_gc(d_seq,d_primer[turn[0]*10],(d_primer[turn[5]*10]+d_primer[turn[5]*10+1]),d_int[9]);
+							flag=check_gc(d_seq,d_primer[turn[0]*10],(d_primer[turn[5]*10]+d_primer[turn[5]*10+1]),const_int[9]);
 							if(flag==0)
 								continue;
-							if(d_int[4]!=0)
+							if(const_int[4]!=0)
 							{
 								flag=check_uniq(d_primer,d_info,turn);
 								if(flag==0)
 									continue;
 							}
-							if(d_int[3])
+							if(const_int[3])
 							{
-								flag=check_common(d_primer,d_info,turn,-1,-1,d_int[7],d_apply);
-								if(flag<d_int[8])
+								flag=check_common(d_primer,d_info,turn,-1,-1,d_apply);
+								if(flag<const_int[8])
 								{
 									flag=0;
 									continue;
 								}
 							}
-							if(d_int[6])
+							if(const_int[6])
 							{
-								flag=check_structure(d_seq,d_primer,turn,d_int,parameter,d_TH,id,d_DPT,d_ps,d_numSeq);
+								flag=check_structure(d_seq,d_primer,turn,d_TH,id,d_DPT,d_ps,d_numSeq);
 								if(flag==0)
 									continue;
 							}
-							if(d_int[5])
+							if(const_int[5])
 							{
-								flag=design_loop(d_primer,d_seq,d_info,turn,d_int,d_apply,d_par,parameter,d_DPT,id,d_ps,d_numSeq);
+								flag=design_loop(d_primer,d_seq,d_info,turn,d_apply,d_par,d_DPT,id,d_ps,d_numSeq);
 								if(flag==0)
 									continue;
 							}
@@ -2672,10 +2659,10 @@ main(int argc,char **argv)
 	struct Node *p_node,*p_temp;
 	struct INFO *headList,*p_list;
 	time_t start,end;
-	double *H_parameter,*parameter;	
+	double *H_parameter;	
 	long int memory;
 	cudaDeviceProp prop;
-	int *d_primer,*d_info,*d_apply,*d_par,*d_int,*d_pos;
+	int *d_primer,*d_info,*d_apply,*d_par;
 	int *h_primer,*h_info,*h_apply,*h_par,h_int[17],*h_pos,*d_ps;
 	double *h_TH,*d_TH,*d_DPT;
 	
@@ -2914,8 +2901,6 @@ main(int argc,char **argv)
         {
                 H_parameter=(double *)malloc(5730*sizeof(double));
                 memset(H_parameter,'\0',5730*sizeof(double));
-                cudaMalloc((void **)&parameter,5730*sizeof(double));
-                cudaMemset(parameter,'\0',5730*sizeof(double));
 
                 getStack(par_path,H_parameter);
                 getStackint2(par_path,H_parameter);
@@ -2925,7 +2910,8 @@ main(int argc,char **argv)
                 getTstack2(par_path,H_parameter);
                 tableStartATS(6.9,H_parameter);
                 tableStartATH(2200.0,H_parameter);
-		cudaMemcpy(parameter,H_parameter,5730*sizeof(double),cudaMemcpyHostToDevice);
+		cudaMemcpyToSymbol(parameter,H_parameter,5730*sizeof(double));
+		free(H_parameter);
 
 		h_int[11]=0; //F3,plus
 		h_int[12]=0;
@@ -2938,9 +2924,6 @@ main(int argc,char **argv)
 	h_pos=(int *)malloc(expect*sizeof(int));
 	for(i=0;i<expect;i++)
 		h_pos[i]=-1;
-	cudaMalloc((void **)&d_pos,expect*sizeof(int));
-//d_int
-	cudaMalloc((void **)&d_int,17*sizeof(int));
 //directory for single primers
         j=strlen(store_path)+strlen(prefix)+12;
         outer=(char *)malloc(j);
@@ -3385,17 +3368,15 @@ main(int argc,char **argv)
 		//calculate
 			if(flag[5])
 				cudaMalloc((void **)&d_apply,common_num[0]*num[2]*sizeof(int));
-			cudaMemcpy(d_pos,h_pos,expect*sizeof(int),cudaMemcpyHostToDevice);
 			h_int[8]=circle;
-			cudaMemcpy(d_int,h_int,17*sizeof(int),cudaMemcpyHostToDevice);
-			cudaMemcpy(d_pos,h_pos,expect*sizeof(int),cudaMemcpyHostToDevice);
+			cudaMemcpyToSymbol(const_int,h_int,17*sizeof(int));
 			cudaMalloc((void **)&d_par,num[2]*16*sizeof(int));
 		cudaMalloc((void **)&d_TH,2*num[2]*sizeof(double));
 		h_TH=(double *)malloc(2*num[2]*sizeof(double));
 			cudaMalloc((void **)&d_DPT,num[2]*1263*sizeof(double));
 			cudaMalloc((void **)&d_ps,num[2]*62*sizeof(int));
 			cudaMalloc((void **)&d_numSeq,num[2]*54*sizeof(char));
-			LAMP<<<block,thread>>>(d_seq,d_primer,d_info,d_int,d_par,d_apply,parameter,d_pos,d_TH,d_DPT,d_ps,d_numSeq);
+			LAMP<<<block,thread>>>(d_seq,d_primer,d_info,d_par,d_apply,d_TH,d_DPT,d_ps,d_numSeq);
 			cudaFree(d_DPT);
 			cudaFree(d_ps);
 			cudaFree(d_numSeq);
@@ -3500,8 +3481,6 @@ main(int argc,char **argv)
 			}
 		}//one circle
 	}
-	cudaFree(d_int);
-	cudaFree(d_pos);
 	cudaFree(d_seq);
 	free(h_pos);
 	free(seq);
@@ -3566,11 +3545,6 @@ main(int argc,char **argv)
                 }
         }
 
-        if(flag[7])
-        {
-                free(H_parameter);
-                cudaFree(parameter);
-        }
         if(flag[7]||flag[11])
                 free(par_path);
 
