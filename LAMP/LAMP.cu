@@ -1272,60 +1272,60 @@ __device__ double thal(char *d_seq,int *d_primer,int one_turn,int two_turn,int o
 	int i, j;
 
 /*** INIT values for unimolecular and bimolecular structures ***/
-	if(symmetry_thermo(d_seq,d_primer[4*one_turn],d_primer[4*one_turn+1],d_ps,id)&&symmetry_thermo(d_seq,d_primer[4*two_turn],d_primer[4*two_turn+1],d_ps,id))
+	if(symmetry_thermo(d_seq,d_primer[one_turn*10],d_primer[one_turn*10+1],d_ps,id)&&symmetry_thermo(d_seq,d_primer[two_turn*10],d_primer[two_turn*10+1],d_ps,id))
 		d_DPT[id*1263+1252]=1.9872* log(38/1000000000.0);
 	else
 		d_DPT[id*1263+1252]=1.9872* log(38/4000000000.0);
 /* convert nucleotides to numbers */
 	if(type==1 || type==2)
 	{
-		d_ps[id*62+50]=d_primer[4*one_turn+1];
-		d_ps[id*62+51]=d_primer[4*two_turn+1];
+		d_ps[id*62+50]=d_primer[one_turn*10+1];
+		d_ps[id*62+51]=d_primer[two_turn*10+1];
 		if(one_flag==0) //plus
 		{
 	 		for(i=1;i<=d_ps[id*62+50];++i)
-				d_numSeq[id*54+i]=str2int(d_seq[d_primer[4*one_turn]+i-1]);
+				d_numSeq[id*54+i]=str2int(d_seq[d_primer[one_turn*10]+i-1]);
 		}
 		else
 		{
 			for(i=1;i<=d_ps[id*62+50];++i)
-				d_numSeq[id*54+i]=str2int_rev(d_seq[d_primer[4*one_turn]+d_primer[4*one_turn+1]-i]);
+				d_numSeq[id*54+i]=str2int_rev(d_seq[d_primer[one_turn*10]+d_primer[one_turn*10+1]-i]);
 		}
 
 		if(two_flag==0)
 		{
 			for(i=1;i<=d_ps[id*62+51];++i)
-				d_numSeq[id*54+27+i]=str2int(d_seq[d_primer[4*two_turn]+d_primer[4*two_turn+1]-i]);
+				d_numSeq[id*54+27+i]=str2int(d_seq[d_primer[two_turn*10]+d_primer[two_turn*10+1]-i]);
 		}
 		else
 		{
 			for(i=1;i<=d_ps[id*62+51];++i)
-				d_numSeq[id*54+27+i]=str2int_rev(d_seq[d_primer[4*two_turn]+i-1]);
+				d_numSeq[id*54+27+i]=str2int_rev(d_seq[d_primer[two_turn*10]+i-1]);
 		}
 	}
 	else if(type==3)
 	{
-		d_ps[id*62+50]=d_primer[4*two_turn+1];
-		d_ps[id*62+51]=d_primer[4*one_turn+1];
+		d_ps[id*62+50]=d_primer[two_turn*10+1];
+		d_ps[id*62+51]=d_primer[one_turn*10+1];
 		if(two_flag==0)
 		{
 			for(i=1;i<=d_ps[id*62+50];++i)
-				d_numSeq[id*54+i]=str2int(d_seq[d_primer[4*two_turn]+i-1]);
+				d_numSeq[id*54+i]=str2int(d_seq[d_primer[two_turn*10]+i-1]);
 		}
 		else
 		{
 			for(i=1;i<=d_ps[id*62+50];++i)
-				d_numSeq[id*54+i]=str2int_rev(d_seq[d_primer[4*two_turn]+d_primer[4*two_turn+1]-i]);
+				d_numSeq[id*54+i]=str2int_rev(d_seq[d_primer[two_turn*10]+d_primer[two_turn*10+1]-i]);
 		}
 		if(one_flag==0)
 		{
 			for(i=1;i<=d_ps[id*62+51];++i)
-				d_numSeq[id*54+27+i]=str2int(d_seq[d_primer[4*one_turn]+d_primer[4*one_turn+1]-i]);
+				d_numSeq[id*54+27+i]=str2int(d_seq[d_primer[one_turn*10]+d_primer[one_turn*10+1]-i]);
 		}
 		else
 		{
 			for(i=1;i<=d_ps[id*62+51];++i)
-				d_numSeq[id*54+27+i]=str2int_rev(d_seq[d_primer[4*one_turn]+i-1]);
+				d_numSeq[id*54+27+i]=str2int_rev(d_seq[d_primer[one_turn*10]+i-1]);
 		}
 	}
 	d_numSeq[id*54+0]=d_numSeq[id*54+d_ps[id*62+50]+1]=d_numSeq[id*54+27+0]=d_numSeq[id*54+27+d_ps[id*62+51]+1]=4; /* mark as N-s */
@@ -1395,8 +1395,7 @@ struct Node
 {
 	int pos;
 	int gi;
-	int plus;  //as a flag, 1 is OK, 0 is no
-	int minus; //as a flag
+	int strand;  //1:plus,2:minus,3:all ok
 	struct Node *next;
 };
 
@@ -1404,8 +1403,7 @@ struct Primer
 {
 	int pos;
 	int len;
-	int plus;
-	int minus;
+	int strand;
 	int total_common;
 	int total_special;
 	int total; //common number
@@ -1586,8 +1584,15 @@ struct Primer *read_par(char *path,int common_flag,int special_flag)
                 new_primer->total=1;
 		new_primer->total_common=0;
 		new_primer->total_special=0;
-                new_primer->plus=plus;
-                new_primer->minus=minus;
+		if(plus)
+		{
+			if(minus)
+				new_primer->strand=3;
+			else
+				new_primer->strand=1;
+		}
+		else
+	                new_primer->strand=2;
                 new_primer->next=NULL;
                 new_primer->common=NULL;
                 new_primer->special=NULL;
@@ -1639,8 +1644,15 @@ struct Primer *read_par(char *path,int common_flag,int special_flag)
                         new_node=(struct Node *)malloc(size);
                         new_node->pos=position;
                         new_node->gi=gi;
-                        new_node->plus=plus;
-                        new_node->minus=minus;
+			if(plus)
+			{
+				if(minus)
+					new_node->strand=3;
+				else
+					new_node->strand=1;
+			}
+			else
+	                        new_node->strand=2;
 
         //find the primer
                         flag=0;
@@ -1697,8 +1709,15 @@ struct Primer *read_par(char *path,int common_flag,int special_flag)
                         new_node=(struct Node *)malloc(size);
                         new_node->pos=position;
                         new_node->gi=gi;
-                        new_node->plus=plus;
-                        new_node->minus=minus;
+			if(plus)
+			{
+				if(minus)
+					new_node->strand=3;
+				else
+					new_node->strand=1;
+			}
+			else
+	                        new_node->strand=2;
         
                         //find the primer
                         flag=0;
@@ -1729,241 +1748,65 @@ struct Primer *read_par(char *path,int common_flag,int special_flag)
         return head;
 }
 
-//function: check how many GIs this primer can be used for
-__device__ int check_common(int *d_primer,int *d_common,int *d_sc,int *d_ec,int turn[],int common,int *d_apply)
-{
-        int pos[6],i,dis;
-
-        for(i=0;i<common;i++)
-        {
-                d_apply[common*turn[0]+i]=0;
-        }
-//plus
-        for(pos[0]=d_sc[turn[0]];pos[0]<d_ec[turn[0]];pos[0]++)
-        {
-                if(d_common[4*pos[0]+2]!=1)
-                        continue;
-		i=d_common[4*pos[0]];
-                if(d_apply[common*turn[0]+i]==1)
-                        continue;
-                for(pos[1]=d_sc[turn[1]];pos[1]<d_ec[turn[1]];pos[1]++)
-                {
-                        if(d_common[4*pos[1]]!=i)
-                                continue;
-                        if(d_common[4*pos[1]+2]!=1)
-                                continue;
-                        for(pos[2]=d_sc[turn[2]];pos[2]<d_ec[turn[2]];pos[2]++)
-                        {
-                                if(d_common[4*pos[2]]!=i)
-                                        continue;
-                                if(d_common[4*pos[2]+3]!=1)
-                                        continue;
-                                for(pos[3]=d_sc[turn[3]];pos[3]<d_ec[turn[3]];pos[3]++)
-                                {
-                                        if(d_common[4*pos[3]]!=i)
-                                                continue;
-                                        if(d_common[4*pos[3]+2]!=1)
-                                                continue;
-                                        for(pos[4]=d_sc[turn[4]];pos[4]<d_ec[turn[4]];pos[4]++)
-                                        {
-                                                if(d_common[4*pos[4]]!=i)
-                                                        continue;
-                                                if(d_common[4*pos[4]+3]!=1)
-                                                        continue;
-                                                for(pos[5]=d_sc[turn[5]];pos[5]<d_ec[turn[5]];pos[5]++)
-                                                {
-                                                        if(d_common[4*pos[5]]!=i)
-                                                                continue;
-                                                        if(d_common[4*pos[5]+3]!=1)
-                                                                continue;
-                                                //F3-F2 
-                                                        dis=d_common[4*pos[1]+1]-(d_common[4*pos[0]+1]+d_primer[4*turn[0]+1]);
-                                                        if(dis<0)
-                                                                continue;
-                                                        if(dis>20)
-                                                                continue;
-                                                //F2-F1c
-                                                        dis=d_common[4*pos[2]+1]-d_common[4*pos[1]+1]-1;
-                                                        if(dis<40)
-                                                                continue;
-                                                        if(dis>60)
-                                                                continue;
-                                                //F1c-B1c
-                                                        dis=d_common[4*pos[3]+1]-(d_common[4*pos[2]+1]+d_primer[4*turn[2]+1]);
-                                                        if(dis<0)
-                                                                continue;
-                                                //B1c-B2
-                                                        dis=(d_common[4*pos[4]+1]+d_primer[4*turn[4]+1]-1)-(d_common[4*pos[3]+1]+d_primer[4*turn[3]+1]-1)-1;
-                                                        if(dis<40)
-                                                                continue;
-                                                        if(dis>60)
-                                                                continue;
-                                                //F2-B2
-                                                        dis=d_common[4*pos[4]+1]+d_primer[4*turn[4]+1]-1-d_common[4*pos[1]+1]-1;
-                                                        if(dis<120)
-                                                                continue;
-                                                        if(dis>180)
-                                                                continue;
-                                                //B2-B3
-                                                        dis=d_common[4*pos[5]+1]-(d_common[4*pos[4]+1]+d_primer[4*turn[4]+1]);
-                                                        if(dis<0)
-                                                                continue;
-                                                        if(dis>20)
-                                                                continue;
-                                                        d_apply[common*turn[0]+i]=1;
-                                                }
-                                        }
-                                }
-                        }
-                }
-        }
-//minus
-        for(pos[0]=d_sc[turn[0]];pos[0]<d_ec[turn[0]];pos[0]++)
-        {
-                if(d_common[4*pos[0]+3]!=1)
-                        continue;
-		i=d_common[4*pos[0]];
-                if(d_apply[turn[0]*common+i]==1)
-                        continue;  //this GI can common
-
-                for(pos[1]=d_sc[turn[1]];pos[1]<d_ec[turn[1]];pos[1]++)
-                {
-                        if(d_common[4*pos[1]]!=i)
-                                continue;
-                        if(d_common[4*pos[1]+3]!=1)
-                                continue;
-                        for(pos[2]=d_sc[turn[2]];pos[2]<d_ec[turn[2]];pos[2]++)
-                        {
-                                if(d_common[4*pos[2]]!=i)
-                                        continue;
-                                if(d_common[4*pos[2]+2]!=1)
-                                        continue;
-                                for(pos[3]=d_sc[turn[3]];pos[3]<d_ec[turn[3]];pos[3]++)
-                                {
-                                        if(d_common[4*pos[3]]!=i)
-                                                continue;
-                                        if(d_common[4*pos[3]+3]!=1)
-                                                continue;
-                                        for(pos[4]=d_sc[turn[4]];pos[4]<d_ec[turn[4]];pos[4]++)
-                                        {
-                                                if(d_common[4*pos[4]]!=i)
-                                                        continue;
-                                                if(d_common[4*pos[4]+2]!=1)
-                                                        continue;
-                                                for(pos[5]=d_sc[turn[5]];pos[5]<d_ec[turn[5]];pos[5]++)
-                                                {
-                                                        if(d_common[4*pos[5]]!=i)
-                                                                continue;
-                                                        if(d_common[4*pos[5]+2]!=1)
-                                                                continue;
-                                                //F3-F2 
-                                                        dis=d_common[4*pos[0]+1]-(d_common[4*pos[1]+1]+d_primer[4*turn[1]+1]);
-                                                        if(dis<0)
-                                                                continue;
-                                                        if(dis>20)
-                                                                continue;
-                                                //F2-F1c
-                                                        dis=(d_common[4*pos[1]+1]+d_primer[4*turn[1]+1]-1)-(d_common[4*pos[2]+1]+d_primer[4*turn[2]+1]-1)-1;
-                                                        if(dis<40)
-                                                                continue;
-                                                        if(dis>60)
-                                                                continue;
-                                                //F1c-B1c
-                                                        dis=d_common[4*pos[2]+1]-(d_common[4*pos[3]+1]+d_primer[4*turn[3]+1]);
-                                                        if(dis<0)
-                                                                continue;
-                                                //B1c-B2
-                                                        dis=d_common[4*pos[3]+1]-d_common[4*pos[4]+1]-1;
-                                                        if(dis<40)
-                                                                continue;
-                                                        if(dis>60)
-                                                                continue;
-                                                //F2-B2
-                                                        dis=d_common[4*pos[1]+1]+d_primer[4*turn[1]+1]-1-d_common[4*pos[4]+1]-1;
-                                                        if(dis<120)
-                                                                continue;
-                                                        if(dis>180)
-                                                                continue;
-                                                //B2-B3
-                                                        dis=d_common[4*pos[4]+1]-(d_common[4*pos[5]+1]+d_primer[4*turn[5]+1]);
-                                                        if(dis<0)
-                                                                continue;
-                                                        if(dis>20)
-                                                                continue;
-                                                        d_apply[common*turn[0]+i]=1;
-                                                }
-                                        }
-                                }
-                        }
-                }
-        }
-        dis=0;
-        for(i=0;i<common;i++)
-        {
-                dis=dis+d_apply[common*turn[0]+i];
-        }
-        return dis;
-}
-
 //check this LAMP primers are uniq or not
 //return=0: stop and return=1: go on
-__device__ int check_uniq(int *d_primer,int *d_special,int *d_ss,int *d_es,int turn[])
+__device__ int check_uniq(int *d_primer,int *d_info,int turn[])
 {
         int pos[6],gi;
 
 //plus
-        for(pos[0]=d_ss[turn[0]];pos[0]<d_es[turn[0]];pos[0]++)
+        for(pos[0]=d_primer[turn[0]*10+5];pos[0]<d_primer[turn[0]*10+6];pos[0]++)
         {
-                if(d_special[4*pos[0]+2]!=1)
+                if((d_info[pos[0]*3+2]&1)!=1)
                         continue;
-		gi=d_special[4*pos[0]];
-                for(pos[1]=d_ss[turn[1]];pos[1]<d_es[turn[1]];pos[1]++)
+		gi=d_info[pos[0]*3];
+                for(pos[1]=d_primer[turn[1]*10+5];pos[1]<d_primer[turn[1]*10+6];pos[1]++)
                 {
-			if(d_special[4*pos[1]]!=gi)
+			if(d_info[pos[1]*3]!=gi)
                                 continue;
-                        if(d_special[4*pos[1]+2]!=1)
+                        if((d_info[pos[1]*3+2]&1)!=1)
 				continue;
-                        for(pos[2]=d_ss[turn[2]];pos[2]<d_es[turn[2]];pos[2]++) //F1c
+                        for(pos[2]=d_primer[turn[2]*10+5];pos[2]<d_primer[turn[2]*10+6];pos[2]++) //F1c
                         {
-                                if(d_special[4*pos[2]]!=gi)
+                                if(d_info[pos[2]*3]!=gi)
                                         continue;
-                                if(d_special[4*pos[2]+3]!=1)
+                                if((d_info[pos[2]*3+2]&2)!=2)
                                         continue;
-                                for(pos[3]=d_ss[turn[3]];pos[3]<d_es[turn[3]];pos[3]++) //B1c
+                                for(pos[3]=d_primer[turn[3]*10+5];pos[3]<d_primer[turn[3]*10+6];pos[3]++) //B1c
                                 {
-                                        if(d_special[pos[3]*4]!=gi)
+                                        if(d_info[pos[3]*3]!=gi)
                                                 continue;
-                                        if(d_special[4*pos[3]+2]!=1)
+                                        if((d_info[pos[3]*3+2]&1)!=1)
                                                 continue;
-                                        for(pos[4]=d_ss[turn[4]];pos[4]<d_es[turn[4]];pos[4]++) //B2
+                                        for(pos[4]=d_primer[turn[4]*10+5];pos[4]<d_primer[turn[4]*10+6];pos[4]++) //B2
                                         {
-                                                if(d_special[4*pos[4]]!=gi)
+                                                if(d_info[pos[4]*3]!=gi)
                                                         continue;
-                                                if(d_special[4*pos[4]+3]!=1)
+                                                if((d_info[pos[4]*3+2]&2)!=2)
                                                         continue;
-                                                for(pos[5]=d_ss[turn[5]];pos[5]<d_es[turn[5]];pos[5]++)
+                                                for(pos[5]=d_primer[turn[5]*10+5];pos[5]<d_primer[turn[5]*10+6];pos[5]++)
                                                 {
-                                                        if(d_special[4*pos[5]]!=gi)
+                                                        if(d_info[pos[5]*3]!=gi)
                                                                 continue;
-                                                        if(d_special[4*pos[5]+3]!=1)
+                                                        if((d_info[pos[5]*3+2]&2)!=2)
                                                                 continue;
                                                 //F3-F2 
-                                                        if(d_special[4*pos[1]+1]<d_special[4*pos[0]+1])
+                                                        if(d_info[pos[1]*3+1]<d_info[pos[0]*3+1])
                                                                 continue;
                                                 //F2-F1c
-                                                        if(d_special[4*pos[2]+1]<d_special[4*pos[1]+1]+d_primer[4*turn[1]+1])
+                                                        if(d_info[pos[2]*3+1]<d_info[pos[1]*3+1]+d_primer[turn[1]*10+1])
                                                                 continue;
                                                 //F1c-B1c
-                                                        if(d_special[4*pos[3]+1]<d_special[4*pos[2]+1]+d_primer[4*turn[2]+1])
+                                                        if(d_info[pos[3]*3+1]<d_info[pos[2]*3+1]+d_primer[turn[2]*10+1])
                                                                 continue;
                                                 //B1c-B2
-                                                        if(d_special[4*pos[4]+1]<d_special[4*pos[3]+1]+d_primer[4*turn[3]+1])
+                                                        if(d_info[pos[4]*3+1]<d_info[pos[3]*3+1]+d_primer[turn[3]*10+1])
                                                                 continue;
                                                 //B2-B3
-                                                        if(d_special[4*pos[5]+1]<d_special[4*pos[4]+1])
+                                                        if(d_info[pos[5]*3+1]<d_info[pos[4]*3+1])
                                                                 continue;
                                                 //whole
-                                                        if(d_special[4*pos[5]+1]-d_special[4*pos[0]+1]>1000)
+                                                        if(d_info[pos[5]*3+1]-d_info[pos[0]*3+1]>1000)
                                                                 continue;
                                                         return 0;
                                                 }//B3
@@ -1974,58 +1817,58 @@ __device__ int check_uniq(int *d_primer,int *d_special,int *d_ss,int *d_es,int t
         }
 
 //minus
-        for(pos[0]=d_ss[turn[0]];pos[0]<d_es[turn[0]];pos[0]++)
+        for(pos[0]=d_primer[turn[0]*10+5];pos[0]<d_primer[turn[0]*10+6];pos[0]++)
         {
-                if(d_special[4*pos[0]+3]!=1)
+                if((d_info[pos[0]*3+2]&2)!=2)
                         continue;
-		gi=d_special[4*pos[0]];
-                for(pos[1]=d_ss[turn[1]];pos[1]<d_es[turn[1]];pos[1]++)
+		gi=d_info[pos[0]*3];
+                for(pos[1]=d_primer[turn[1]*10+5];pos[1]<d_primer[turn[1]*10+6];pos[1]++)
                 {
-                        if(d_special[4*pos[1]]!=gi)
+                        if(d_info[pos[1]*3]!=gi)
                                 continue;
-                        if(d_special[4*pos[1]+3]!=1)
+                        if((d_info[pos[1]*3+2]&2)!=2)
                                 continue;
-                        for(pos[2]=d_ss[turn[2]];pos[2]<d_es[turn[2]];pos[2]++)
+                        for(pos[2]=d_primer[turn[2]*10+5];pos[2]<d_primer[turn[2]*10+6];pos[2]++)
                         {
-                                if(d_special[4*pos[2]]!=gi)
+                                if(d_info[pos[2]*3]!=gi)
                                         continue;
-                                if(d_special[4*pos[2]+2]!=1)
+                                if((d_info[pos[2]*3+2]&1)!=1)
                                         continue;
-                                for(pos[3]=d_ss[turn[3]];pos[3]<d_es[turn[3]];pos[3]++)
+                                for(pos[3]=d_primer[turn[3]*10+5];pos[3]<d_primer[turn[3]*10+6];pos[3]++)
                                 {
-                                        if(d_special[4*pos[3]]!=gi)
+                                        if(d_info[pos[3]*3]!=gi)
                                                 continue;
-                                        if(d_special[4*pos[3]+3]!=1)
+                                        if((d_info[pos[3]*3+2]&2)!=2)
                                                 continue;
-                                        for(pos[4]=d_ss[turn[4]];pos[4]<d_es[turn[4]];pos[4]++)
+                                        for(pos[4]=d_primer[turn[4]*10];pos[4]<d_primer[turn[4]*10];pos[4]++)
                                         {
-                                                if(d_special[4*pos[4]]!=gi)
+                                                if(d_info[pos[4]*3]!=gi)
                                                         continue;
-                                                if(d_special[4*pos[4]+2]!=1)
+                                                if((d_info[pos[4]*3+2]&1)!=1)
                                                         continue;
-                                                for(pos[5]=d_ss[turn[5]];pos[5]<d_es[turn[5]];pos[5]++)
+                                                for(pos[5]=d_primer[turn[5]*10+5];pos[5]<d_primer[turn[5]*10+6];pos[5]++)
                                                 {
-                                                        if(d_special[4*pos[5]]!=gi)
+                                                        if(d_info[pos[5]*3]!=gi)
                                                                 continue;
-                                                        if(d_special[4*pos[5]+2]!=1)
+                                                        if((d_info[pos[5]*3+2]&1)!=1)
                                                                 continue;
                                                 //F3-F2 
-                                                        if(d_special[4*pos[0]+1]<d_special[4*pos[1]+1])
+                                                        if(d_info[pos[0]*3+1]<d_info[pos[1]*3+1])
                                                                 continue;
                                                 //F2-F1c
-                                                        if(d_special[4*pos[1]+1]<d_special[4*pos[2]+1]+d_primer[4*turn[2]+1])
+                                                        if(d_info[pos[1]*3+1]<d_info[pos[2]*3+1]+d_primer[turn[2]*10+1])
                                                                 continue;
                                                 //F1c-B1c
-                                                        if(d_special[4*pos[2]+1]<d_special[4*pos[3]+1]+d_primer[4*turn[3]+1])
+                                                        if(d_info[pos[2]*3+1]<d_info[pos[3]*3+1]+d_primer[turn[3]*10+1])
                                                                 continue;
                                                 //B1c-B2
-                                                        if(d_special[4*pos[3]+1]<d_special[4*pos[4]+1]+d_primer[4*turn[4]+1])
+                                                        if(d_info[pos[3]*3+1]<d_info[pos[4]*3+1]+d_primer[turn[4]*10+1])
                                                                 continue;
                                                 //B2-B3
-                                                        if(d_special[4*pos[4]+1]<d_special[4*pos[5]+1])
+                                                        if(d_info[pos[4]*3+1]<d_info[pos[5]*3+1])
                                                                 continue;
                                                 //whole
-                                                        if(d_special[4*pos[0]+1]-d_special[4*pos[5]+1]>1000)
+                                                        if(d_info[pos[0]*3+1]-d_info[pos[5]*3+1]>1000)
                                                                 continue;
                                                         return 0;
                                                 }
@@ -2038,7 +1881,7 @@ __device__ int check_uniq(int *d_primer,int *d_special,int *d_ss,int *d_es,int t
 }
 
 //from first to second
-__global__ void next_one(int *d_primer,int *next,int one_start,int one_end,int two_start,int two_end)
+__global__ void next_one(int *d_primer,int one_start,int one_end,int two_start,int two_end,int pos) //7,8,9
 {
         int id=blockDim.x*blockIdx.x+threadIdx.x;
 	int i;
@@ -2050,21 +1893,22 @@ __global__ void next_one(int *d_primer,int *next,int one_start,int one_end,int t
 		{
 			i=two_end-1;
 		}
-		if(d_primer[4*i]>=d_primer[(id+one_start)*4]+d_primer[(id+one_start)*4+1])
+		if(d_primer[10*i]>=d_primer[(id+one_start)*10]+d_primer[(id+one_start)*10+1])
 		{
-			while((i>=two_start)&&(d_primer[4*i]>=d_primer[(id+one_start)*4]+d_primer[(id+one_start)*4+1]))
+			while((i>=two_start)&&(d_primer[10*i]>=d_primer[(id+one_start)*10]+d_primer[(id+one_start)*10+1]))
 			{
-				next[id]=i;
+				d_primer[10*(id+one_start)+pos]=i;
 				i--;
 			}
 		}
 		else
 		{
-			while((i<two_end)&&(d_primer[4*i]<d_primer[(id+one_start)*4]+d_primer[(id+one_start)*4+1]))
+			while((i<two_end)&&(d_primer[10*i]<d_primer[(id+one_start)*10]+d_primer[(id+one_start)*10+1]))
 				i++;
-			next[id]=i;
 			if(i==two_end)
-				next[id]=-1;
+				d_primer[10*(id+one_start)+pos]=-1;
+			else
+				d_primer[10*(id+one_start)+pos]=i;
 		}
 		id=id+blockDim.x*gridDim.x;
 	}
@@ -2089,77 +1933,82 @@ __device__ int check_gc(char *d_seq,int start,int end,int flag)
         return 0;
 }
 
-__device__ int check_common_loop(int *d_primer,int *d_common,int *d_sc,int *d_ec,int turn[],int LF,int LB,int *d_int,int *d_apply)
+__device__ int check_common(int *d_primer,int *d_info,int turn[],int LF,int LB,int common,int *d_apply)
 {
         int dis,i,pos[7];
-//plus
-        for(pos[0]=d_sc[turn[0]];pos[0]<d_ec[turn[0]];pos[0]++)
+
+	for(i=0;i<common;i++)
         {
-                if(d_common[4*pos[0]+2]!=1)
+                d_apply[common*turn[0]+i]=0;             
+        }
+//plus
+        for(pos[0]=d_primer[turn[0]*10+3];pos[0]<d_primer[turn[0]*10+4];pos[0]++)
+        {
+                if((d_info[pos[0]*3+2]&1)!=1)
                         continue;
-		i=d_common[4*pos[0]];
-                if(d_apply[turn[0]*d_int[7]+i]==0||d_apply[turn[0]*d_int[7]+i]==2)
+		i=d_info[pos[0]*3];
+                if(d_apply[turn[0]*common+i]!=0)
                         continue;
-                for(pos[1]=d_sc[turn[1]];pos[1]<d_ec[turn[1]];pos[1]++)
+                for(pos[1]=d_primer[turn[1]*10+3];pos[1]<d_primer[turn[1]*10+4];pos[1]++)
                 {
-                        if(d_common[4*pos[1]]!=i)
+                        if(d_info[pos[1]*3]!=i)
                                 continue;
-                        if(d_common[4*pos[1]+2]!=1)
+                        if((d_info[pos[1]*3+2]&1)!=1)
                                 continue;
-                        for(pos[2]=d_sc[turn[2]];pos[2]<d_ec[turn[2]];pos[2]++)
+                        for(pos[2]=d_primer[turn[2]*10+3];pos[2]<d_primer[turn[2]*10+4];pos[2]++)
                         {
-                                if(d_common[4*pos[2]]!=i)
+                                if(d_info[pos[2]*3]!=i)
                                         continue;
-                                if(d_common[4*pos[2]+3]!=1)
+                                if((d_info[pos[2]*3+2]&2)!=2)
                                         continue;
-                                for(pos[3]=d_sc[turn[3]];pos[3]<d_ec[turn[3]];pos[3]++)
+                                for(pos[3]=d_primer[turn[3]*10+3];pos[3]<d_primer[turn[3]*10+4];pos[3]++)
                                 {
-                                        if(d_common[4*pos[3]]!=i)
+                                        if(d_info[pos[3]*3]!=i)
                                                 continue;
-                                        if(d_common[4*pos[3]+2]!=1)
+                                        if((d_info[pos[3]*3+2]&1)!=1)
                                                 continue;
-                                        for(pos[4]=d_sc[turn[4]];pos[4]<d_ec[turn[4]];pos[4]++)
+                                        for(pos[4]=d_primer[turn[4]*10+3];pos[4]<d_primer[turn[4]*10+4];pos[4]++)
                                         {
-                                                if(d_common[4*pos[4]]!=i)
+                                                if(d_info[pos[4]*3]!=i)
                                                         continue;
-                                                if(d_common[4*pos[4]+3]!=1)
+                                                if((d_info[pos[4]*3+2]&2)!=2)
                                                         continue;
-                                                for(pos[5]=d_sc[turn[5]];pos[5]<d_ec[turn[5]];pos[5]++)
+                                                for(pos[5]=d_primer[turn[5]*10+3];pos[5]<d_primer[turn[5]*10+4];pos[5]++)
                                                 {
-                                                        if(d_common[4*pos[5]]!=i)
+                                                        if(d_info[pos[5]*3]!=i)
                                                                 continue;
-                                                        if(d_common[4*pos[5]+3]!=1)
+                                                        if((d_info[pos[5]*3+2]&2)!=2)
                                                                 continue;
                                                 //F3-F2 
-                                                        dis=d_common[4*pos[1]+1]-(d_common[4*pos[0]+1]+d_primer[4*turn[0]+1]);
+                                                        dis=d_info[pos[1]*3+1]-(d_info[pos[0]*3+1]+d_primer[turn[0]*10+1]);
                                                         if(dis<0)
                                                                 continue;
                                                         if(dis>20)
                                                                 continue;
                                                 //F2-F1c
-                                                        dis=d_common[4*pos[2]+1]-d_common[4*pos[1]+1]-1;
+                                                        dis=d_info[pos[2]*3+1]-d_info[pos[1]*3+1]-1;
                                                         if(dis<40)
                                                                 continue;
                                                         if(dis>60)
                                                                 continue;
                                                 //F1c-B1c
-                                                        dis=d_common[4*pos[3]+1]-(d_common[4*pos[2]+1]+d_primer[4*turn[2]+1]-1)-1;
+                                                        dis=d_info[pos[3]*3+1]-(d_info[pos[2]*3+1]+d_primer[turn[2]*10+1]-1)-1;
                                                         if(dis<0)
                                                                 continue;
                                                 //B1c-B2
-                                                        dis=(d_common[4*pos[4]+1]+d_primer[4*turn[4]+1]-1)-(d_common[4*pos[3]+1]+d_primer[4*turn[3]+1]-1)-1;
+                                                        dis=(d_info[pos[4]*3+1]+d_primer[turn[4]*10+1]-1)-(d_info[pos[3]*3+1]+d_primer[turn[3]*10+1]-1)-1;
                                                         if(dis<40)
                                                                 continue;
                                                         if(dis>60)
                                                                 continue;
                                                 //F2-B2
-                                                        dis=d_common[4*pos[4]+1]+d_primer[4*turn[4]+1]-1-d_common[4*pos[1]+1]-1;
+                                                        dis=d_info[pos[4]*3+1]+d_primer[turn[4]*10+1]-1-d_info[pos[1]*3+1]-1;
                                                         if(dis<120)
                                                                 continue;
                                                         if(dis>180)
                                                                 continue;
                                                 //B2-B3
-                                                        dis=d_common[4*pos[5]+1]-(d_common[4*pos[4]+1]+d_primer[4*turn[4]+1]-1)-1;
+                                                        dis=d_info[pos[5]*3+1]-(d_info[pos[4]*3+1]+d_primer[turn[4]*10+1]-1)-1;
                                                         if(dis<0)
                                                                 continue;
                                                         if(dis>20)
@@ -2168,15 +2017,15 @@ __device__ int check_common_loop(int *d_primer,int *d_common,int *d_sc,int *d_ec
                                                         if(LF!=-1)
                                                         {
                                                                 dis=0;
-                                                                for(pos[6]=d_sc[LF];pos[6]<d_ec[LF];pos[6]++)
+                                                                for(pos[6]=d_primer[LF*10+3];pos[6]<d_primer[LF*10+4];pos[6]++)
                                                                 {
-                                                                        if(d_common[4*pos[6]]!=i)
+                                                                        if(d_info[pos[6]*3]!=i)
                                                                                 continue;
-                                                                        if(d_common[4*pos[6]+3]!=1)
+                                                                        if((d_info[pos[6]*3+2]&2)!=2)
                                                                                 continue;
-                                                                        if(d_common[4*pos[1]+1]+d_primer[4*turn[1]+1]>d_common[4*pos[6]+1])
+                                                                        if(d_info[pos[1]*3+1]+d_primer[turn[1]*10+1]>d_info[pos[6]*3+1])
                                                                                 continue;
-                                                                        if(d_common[4*pos[6]+1]+d_primer[4*LF+1]>d_common[4*pos[2]+1])
+                                                                        if(d_info[pos[6]*3+1]+d_primer[LF*10+1]>d_info[pos[2]*3+1])
                                                                                 continue;
                                                                         dis=1;
                                                                         break;
@@ -2188,15 +2037,15 @@ __device__ int check_common_loop(int *d_primer,int *d_common,int *d_sc,int *d_ec
                                                         if(LB!=-1)
                                                         {
                                                                 dis=0;
-                                                                for(pos[6]=d_sc[LB];pos[6]=d_ec[LB];pos[6]++)
+                                                                for(pos[6]=d_primer[LB*10+3];pos[6]=d_primer[LB*10+4];pos[6]++)
                                                                 {
-                                                                        if(d_common[4*pos[6]]!=i)
+                                                                        if(d_info[pos[6]*3]!=i)
                                                                                 continue;
-                                                                        if(d_common[4*pos[6]+2]!=1)
+                                                                        if((d_info[pos[6]*3+2]&1)!=1)
                                                                                 continue;
-                                                                        if(d_common[4*pos[3]+1]+d_primer[4*turn[3]+1]>d_common[4*pos[6]+1])
+                                                                        if(d_info[pos[3]*3+1]+d_primer[turn[3]*10+1]>d_info[pos[6]*3+1])
                                                                                 continue;
-                                                                        if(d_common[4*pos[6]+1]+d_primer[4*LB+1]>d_common[4*pos[4]+1])
+                                                                        if(d_info[pos[6]*3+1]+d_primer[LB*10+1]>d_info[pos[4]*3+1])
                                                                                 continue;
                                                                         dis=1;
                                                                         break;
@@ -2204,7 +2053,7 @@ __device__ int check_common_loop(int *d_primer,int *d_common,int *d_sc,int *d_ec
                                                                 if(dis==0)
                                                                         continue;
                                                         }
-                                                        d_apply[turn[0]*d_int[7]+i]=2;
+                                                        d_apply[turn[0]*common+i]=1;
                                                 }
                                         }
                                 }
@@ -2212,73 +2061,73 @@ __device__ int check_common_loop(int *d_primer,int *d_common,int *d_sc,int *d_ec
                 }
         }
 //minus
-	for(pos[0]=d_sc[turn[0]];pos[0]<d_ec[turn[0]];pos[0]++)
+	for(pos[0]=d_primer[turn[0]*10+3];pos[0]<d_primer[turn[0]*10+4];pos[0]++)
         {
-                if(d_common[4*pos[0]+3]!=1)
+                if((d_info[pos[0]*3+2]&2)!=2)
                         continue;
-                i=d_common[4*pos[0]];
-                if(d_apply[turn[0]*d_int[7]+i]==0||d_apply[turn[0]*d_int[7]+i]==2)
+                i=d_info[pos[0]*3];
+                if(d_apply[turn[0]*common+i]!=0)
                         continue;
-                for(pos[1]=d_sc[turn[1]];pos[1]<d_ec[turn[1]];pos[1]++)
+                for(pos[1]=d_primer[turn[1]*10+3];pos[1]<d_primer[turn[1]*10+4];pos[1]++)
                 {
-                        if(d_common[4*pos[1]]!=i)
+                        if(d_info[pos[1]*3]!=i)
                                 continue;
-                        if(d_common[4*pos[1]+3]!=1)
+                        if((d_info[pos[1]*3+2]&2)!=2)
                                 continue;
-                        for(pos[2]=d_sc[turn[2]];pos[2]<d_ec[turn[2]];pos[2]++)
+                        for(pos[2]=d_primer[turn[2]*10+3];pos[2]<d_primer[turn[2]*10+4];pos[2]++)
                         {
-                                if(d_common[4*pos[2]]!=i)
+                                if(d_info[pos[2]*3]!=i)
                                         continue;
-                                if(d_common[4*pos[2]+2]!=1)
+                                if((d_info[pos[2]*3+2]&1)!=1)
                                         continue;
-                                for(pos[3]=d_sc[turn[3]];pos[3]<d_ec[turn[3]];pos[3]++)
+                                for(pos[3]=d_primer[turn[3]*10+3];pos[3]<d_primer[turn[3]*10+4];pos[3]++)
                                 {
-                                        if(d_common[4*pos[3]]!=i)
+                                        if(d_info[pos[3]*3]!=i)
                                                 continue;
-                                        if(d_common[4*pos[3]+3]!=1)
+                                        if((d_info[pos[3]*3+2]&2)!=2)
                                                 continue;
-                                        for(pos[4]=d_sc[turn[4]];pos[4]<d_ec[turn[4]];pos[4]++)
+                                        for(pos[4]=d_primer[turn[4]*10+3];pos[4]<d_primer[turn[4]*10+4];pos[4]++)
                                         {
-                                                if(d_common[4*pos[4]]!=i)
+                                                if(d_info[pos[4]*3]!=i)
                                                         continue;
-                                                if(d_common[4*pos[4]+2]!=1)
+                                                if((d_info[pos[4]*3+2]&1)!=1)
                                                         continue;
-                                                for(pos[5]=d_sc[turn[5]];pos[5]<d_ec[turn[5]];pos[5]++)
+                                                for(pos[5]=d_primer[turn[5]*10+3];pos[5]<d_primer[turn[5]*10+4];pos[5]++)
                                                 {
-                                                        if(d_common[4*pos[5]]!=i)
+                                                        if(d_info[pos[5]*3]!=i)
                                                                 continue;
-                                                        if(d_common[4*pos[5]+2]!=1)
+                                                        if((d_info[pos[5]*3+2]&1)!=1)
                                                                 continue;
                                                 //F3-F2 
-                                                        dis=d_common[4*pos[0]+1]-(d_common[4*pos[1]+1]+d_primer[4*turn[1]+1]-1)-1;
+                                                        dis=d_info[pos[0]*3+1]-(d_info[pos[1]*3+1]+d_primer[turn[1]*10+1]-1)-1;
                                                         if(dis<0)
                                                                 continue;
                                                         if(dis>20)
                                                                 continue;
                                                 //F2-F1c
-                                                        dis=(d_common[4*pos[1]+1]+d_primer[4*turn[1]+1]-1)-(d_common[4*pos[2]+1]+d_primer[4*turn[2]+1]-1)-1;
+                                                        dis=(d_info[pos[1]*3+1]+d_primer[turn[1]*10+1]-1)-(d_info[pos[2]*3+1]+d_primer[turn[2]*10+1]-1)-1;
                                                         if(dis<40)
                                                                 continue;
                                                         if(dis>60)
                                                                 continue;
                                                 //F1c-B1c
-                                                        dis=d_common[4*pos[2]+1]-(d_common[4*pos[3]+1]+d_primer[4*turn[3]+1]-1)-1;
+                                                        dis=d_info[pos[2]*3+1]-(d_info[pos[3]*3+1]+d_primer[turn[3]*10+1]-1)-1;
                                                         if(dis<0)
                                                                 continue;
                                                 //B1c-B2
-                                                        dis=d_common[4*pos[3]+1]-d_common[4*pos[4]+1]-1;
+                                                        dis=d_info[pos[3]*3+1]-d_info[pos[4]*3+1]-1;
                                                         if(dis<40)
                                                                 continue;
                                                         if(dis>60)
                                                                 continue;
                                                 //F2-B2
-                                                        dis=d_common[4*pos[1]+1]+d_primer[4*turn[1]+1]-1-d_common[4*pos[4]+1]-1;
+                                                        dis=d_info[pos[1]*3+1]+d_primer[turn[1]*10+1]-1-d_info[pos[4]*3+1]-1;
                                                         if(dis<120)
                                                                 continue;
                                                         if(dis>180)
                                                                 continue;
                                                 //B2-B3
-                                                        dis=d_common[4*pos[4]+1]-(d_common[4*pos[5]+1]+d_primer[4*turn[5]+1]-1)-1;
+                                                        dis=d_info[pos[4]*3+1]-(d_info[pos[5]*3+1]+d_primer[turn[5]*10+1]-1)-1;
                                                         if(dis<0)
                                                                 continue;
                                                         if(dis>20)
@@ -2287,15 +2136,15 @@ __device__ int check_common_loop(int *d_primer,int *d_common,int *d_sc,int *d_ec
                                                         if(LF!=-1)
                                                         {
                                                                 dis=0;
-                                                                for(pos[6]=d_sc[LF];pos[6]<d_ec[LF];pos[6]++)
+                                                                for(pos[6]=d_primer[LF*10+3];pos[6]<d_primer[LF*10+4];pos[6]++)
                                                                 {
-                                                                        if(d_common[4*pos[6]]!=i)
+                                                                        if(d_info[pos[6]*3]!=i)
                                                                                 continue;
-                                                                        if(d_common[4*pos[6]+2]!=1)
+                                                                        if((d_info[pos[6]*3+2]&1)!=1)
                                                                                 continue;
-                                                                        if(d_common[4*pos[2]+1]+d_primer[4*turn[2]+1]>d_common[4*pos[6]+1])
+                                                                        if(d_info[pos[2]*3+1]+d_primer[turn[2]*10+1]>d_info[pos[6]*3+1])
                                                                                 continue;
-                                                                        if(d_common[4*pos[6]+1]+d_primer[4*LF+1]>d_common[4*pos[1]+1])
+                                                                        if(d_info[pos[6]*3+1]+d_primer[LF*10+1]>d_info[pos[1]*3+1])
                                                                                 continue;
                                                                         dis=1;
                                                                         break;
@@ -2307,15 +2156,15 @@ __device__ int check_common_loop(int *d_primer,int *d_common,int *d_sc,int *d_ec
                                                         if(LB!=-1)
                                                         {
                                                                 dis=0;
-                                                                for(pos[6]=d_sc[LB];pos[6]=d_ec[LB];pos[6]++)
+                                                                for(pos[6]=d_primer[LB*10+3];pos[6]=d_primer[LB*10+4];pos[6]++)
                                                                 {
-                                                                        if(d_common[4*pos[6]]!=i)
+                                                                        if(d_info[pos[6]*3]!=i)
                                                                                 continue;
-                                                                        if(d_common[4*pos[6]+3]!=1)
+                                                                        if((d_info[pos[6]*3+2]&2)!=2)
                                                                                 continue;
-                                                                        if(d_common[4*pos[4]+1]+d_primer[4*turn[4]+1]>d_common[4*pos[6]+1])
+                                                                        if(d_info[pos[4]*3+1]+d_primer[turn[4]*10+1]>d_info[pos[6]*3+1])
                                                                                 continue;
-                                                                        if(d_common[4*pos[6]+1]+d_primer[4*LB+1]>d_common[4*pos[3]+1])
+                                                                        if(d_info[pos[6]*3+1]+d_primer[LB*10+1]>d_info[pos[3]*3+1])
                                                                                 continue;
                                                                         dis=1;
                                                                         break;
@@ -2323,19 +2172,19 @@ __device__ int check_common_loop(int *d_primer,int *d_common,int *d_sc,int *d_ec
                                                                 if(dis==0)
                                                                         continue;
                                                         }
-							d_apply[turn[0]*d_int[7]+i]=2;
+							d_apply[turn[0]*common+i]=1;
                                                 }
                                         }
                                 }
                         }
                 }
         }
-        for(i=0;i<d_int[7];i++)
+	dis=0;
+        for(i=0;i<common;i++)
         {
-                if(d_apply[turn[0]*d_int[7]+i]==1)
-                        return 0;
+                dis=dis+d_apply[common*turn[0]+i];
         }
-        return 1;
+        return dis;
 }
 
 __device__ int check_structure_loop(char *d_seq,int *d_primer,int turn[],int *d_int,int LF,int LB,double *parameter,double *d_DPT,int id,int *d_ps,char *d_numSeq)
@@ -2448,13 +2297,13 @@ __device__ int check_structure_loop(char *d_seq,int *d_primer,int turn[],int *d_
         return 1;
 }
 
-__device__ int design_loop(int *d_primer,int *d_SLp,int *d_LLp,int *d_LpLp,char *d_seq,int *d_common,int *d_sc,int *d_ec,int turn[],int *d_int,int *d_apply,int *d_par,double *parameter,double *d_DPT,int id,int *d_ps,char *d_numSeq)
+__device__ int design_loop(int *d_primer,char *d_seq,int *d_info,int turn[],int *d_int,int *d_apply,int *d_par,double *parameter,double *d_DPT,int id,int *d_ps,char *d_numSeq)
 {
         int success,LF,LB;
 
 //LF and LB 
         success=0;
-	LF=d_SLp[turn[1]];
+	LF=d_primer[turn[1]*10+9];
         while(LF<d_int[2]+d_int[0]+d_int[1])
         {
 		if(LF==-1)
@@ -2466,7 +2315,7 @@ __device__ int design_loop(int *d_primer,int *d_SLp,int *d_LLp,int *d_LpLp,char 
 		}
                 if(d_primer[4*LF]+18>d_primer[4*turn[2]])
                         break;
-                LB=d_LLp[turn[3]-d_int[0]];
+                LB=d_primer[turn[3]*10+9];
 		if(LB==-1||d_primer[4*LB]+18>d_primer[4*turn[4]])
 			break;
                 while(LB<d_int[2]+d_int[0]+d_int[1])
@@ -2481,7 +2330,7 @@ __device__ int design_loop(int *d_primer,int *d_SLp,int *d_LLp,int *d_LpLp,char 
                 //check_common
                         if(d_int[3])
                         {
-                                success=check_common_loop(d_primer,d_common,d_sc,d_ec,turn,LF,LB,d_int,d_apply);
+                                success=check_common(d_primer,d_info,turn,LF,LB,d_int[7],d_apply);
                                 if(success==0)
                                 {
                                         LB++;
@@ -2513,7 +2362,7 @@ __device__ int design_loop(int *d_primer,int *d_SLp,int *d_LLp,int *d_LpLp,char 
         if(success==1)
                 return success;
 //only LF
-        LF=d_SLp[turn[1]];
+        LF=d_primer[turn[1]*10+9];
         while(LF<d_int[2]+d_int[1]+d_int[0])
         {
 		if(LF==-1)
@@ -2528,7 +2377,7 @@ __device__ int design_loop(int *d_primer,int *d_SLp,int *d_LLp,int *d_LpLp,char 
         //check_common
                 if(d_int[3])
                 {
-                        success=check_common_loop(d_primer,d_common,d_sc,d_ec,turn,LF,-1,d_int,d_apply);
+                        success=check_common(d_primer,d_info,turn,LF,-1,d_int[7],d_apply);
                         if(success==0)
                         {
                                 LF++;
@@ -2555,7 +2404,7 @@ __device__ int design_loop(int *d_primer,int *d_SLp,int *d_LLp,int *d_LpLp,char 
         if(success==1)
                 return success;
 //only LB
-        LB=d_LLp[turn[3]-d_int[0]];
+        LB=d_primer[turn[3]*10+9];
         while(LB<d_int[2]+d_int[0]+d_int[1])
         {
 		if(LB==-1)
@@ -2570,7 +2419,7 @@ __device__ int design_loop(int *d_primer,int *d_SLp,int *d_LLp,int *d_LpLp,char 
         //check_common
                 if(d_int[3])
                 {
-                        success=check_common_loop(d_primer,d_common,d_sc,d_ec,turn,-1,LB,d_int,d_apply);
+                        success=check_common(d_primer,d_info,turn,-1,LB,d_int[7],d_apply);
                         if(success==0)
                         {
                                 LB++;
@@ -2598,7 +2447,7 @@ __device__ int design_loop(int *d_primer,int *d_SLp,int *d_LLp,int *d_LpLp,char 
 }
 
 //caculate
-__global__ void LAMP(char *d_seq,int *d_primer,int *d_common,int *d_special,int *d_sc,int *d_ec,int *d_ss,int *d_es,int *d_SS,int *d_SL,int *d_SLp,int *d_LL,int *d_LS,int *d_LLp,int *d_LpLp,int *d_int,int *d_par,int *d_apply,double *parameter,int *d_pos,double *d_TH,double *d_DPT,int *d_ps,char *d_numSeq)
+__global__ void LAMP(char *d_seq,int *d_primer,int *d_info,int *d_int,int *d_par,int *d_apply,double *parameter,int *d_pos,double *d_TH,double *d_DPT,int *d_ps,char *d_numSeq)
 //d_int: 0:numS,1:numL,2:numLp,3:common_flag,4:special_flag,5:loop_flag,6:secondary_flag,7:common_num,8:this turn common_num,9:high_GC_flag; 10:expect
 {
 	int id=blockDim.x*blockIdx.x+threadIdx.x;
@@ -2613,7 +2462,7 @@ __global__ void LAMP(char *d_seq,int *d_primer,int *d_common,int *d_special,int 
 		{
 			if(d_pos[turn[1]]==-1)
 				break;
-			if(d_primer[4*id]-d_pos[turn[1]]<300&&d_primer[4*id]-d_pos[turn[1]]>-300)
+			if(d_primer[id*10]-d_pos[turn[1]]<300&&d_primer[id*10]-d_pos[turn[1]]>-300)
 			{
 				turn[0]++;
 				break;
@@ -2624,7 +2473,7 @@ __global__ void LAMP(char *d_seq,int *d_primer,int *d_common,int *d_special,int 
 			id=id+blockDim.x*gridDim.x;
 			continue;
 		}
-		if(d_primer[4*id+2]!=1)
+		if((d_primer[id*10+2]&1)!=1)
 		{
 			id=id+blockDim.x*gridDim.x;	
 			continue;
@@ -2632,130 +2481,106 @@ __global__ void LAMP(char *d_seq,int *d_primer,int *d_common,int *d_special,int 
 	//combine
 		turn[0]=id; //one thread, one F3
 		flag=0;
-		for(turn[1]=d_SS[turn[0]];turn[1]<d_int[0];turn[1]++) //F2
+		for(turn[1]=d_primer[id*10+7];turn[1]<d_int[0];turn[1]++) //F2
 		{
 			if(turn[1]==-1)
 				break;
 			if(flag!=0)
 				break; //have find one LAMP primer
-			if(d_primer[4*turn[1]+2]!=1)
+			if((d_primer[turn[1]*10+2]&1)!=1)
 				continue;
-			if(d_primer[4*turn[1]]-(d_primer[4*turn[0]]+d_primer[4*turn[0]+1])>20)
+			if(d_primer[turn[1]*10]-(d_primer[turn[0]*10]+d_primer[turn[0]*10+1])>20)
 				break;
-		//	d_par[16*id]=1;
-		//	d_par[16*id+1]=1;
-		//	flag=1;
-		//	break;
-			for(turn[2]=d_SL[turn[1]];turn[2]<d_int[1]+d_int[0];turn[2]++) //F1c
+			for(turn[2]=d_primer[turn[1]*10+8];turn[2]<d_int[1]+d_int[0];turn[2]++) //F1c
 			{
 				if(turn[2]==-1)
 					break;
 				if(flag!=0)
 					break;
-				if(d_primer[4*turn[2]+3]!=1)
+				if((d_primer[turn[2]*10+2]&2)!=2)
 					continue;
-				if(d_primer[4*turn[2]]-d_primer[4*turn[1]]-1<40)
+				if(d_primer[turn[2]*10]-d_primer[turn[1]*10]-1<40)
 					continue;
-                                if(d_primer[4*turn[2]]-d_primer[4*turn[1]]-1>60)
+                                if(d_primer[turn[2]*10]-d_primer[turn[1]*10]-1>60)
                                 	break;
-		//	d_par[16*id]=2;
-                  //      d_par[16*id+1]=1;
-                    //    flag=1;
-                      //  break;
-                                for(turn[3]=d_LL[turn[2]-d_int[0]];turn[3]<d_int[1]+d_int[0];turn[3]++)   //B1c
+                                for(turn[3]=d_primer[turn[2]*10+7];turn[3]<d_int[1]+d_int[0];turn[3]++)   //B1c
                                 {
                                         if(turn[3]==-1)
                                         	break;
 					if(flag!=0)
 						break;
-					if(d_primer[4*turn[3]+2]!=1)
+					if((d_primer[turn[3]*10+2]&1)!=1)
 						continue;
-                                        if(d_primer[4*turn[3]]-d_primer[4*turn[2]]>85)
+                                        if(d_primer[turn[3]*10]-d_primer[turn[2]*10]>85)
                                         	break;
-	//		d_par[16*id]=3;
-          //              d_par[16*id+1]=1;
-            //            flag=1;
-              //          break;
-                                        for(turn[4]=d_LS[turn[3]-d_int[0]];turn[4]<d_int[0];turn[4]++)   //B2
+                                        for(turn[4]=d_primer[turn[3]*10+8];turn[4]<d_int[0];turn[4]++)   //B2
                                         {
                                                 if(turn[4]==-1)
                                                 	break;
 						if(flag!=0)
 							break;
-						if(d_primer[4*turn[4]+3]!=1)
+						if((d_primer[turn[4]*10+2]&2)!=2)
 							continue;
-                                                if((d_primer[4*turn[4]]+d_primer[4*turn[4]+1]-1)-(d_primer[4*turn[3]]+d_primer[4*turn[3]+1])<40)
+                                                if((d_primer[turn[4]*10]+d_primer[turn[4]*10+1]-1)-(d_primer[turn[3]*10]+d_primer[turn[3]*10+1])<40)
                                                 	continue;
-                                                if((d_primer[4*turn[4]]+d_primer[4*turn[4]+1]-1)-(d_primer[4*turn[3]]+d_primer[4*turn[3]+1])>60)
+                                                if((d_primer[turn[4]*10]+d_primer[turn[4]*10+1]-1)-(d_primer[turn[3]*10]+d_primer[turn[3]*10+1])>60)
                                                 	break;
-                                                if(d_primer[4*turn[4]]+d_primer[4*turn[4]+1]-1-d_primer[turn[1]*4]-1<120)
+                                                if(d_primer[turn[4]*10]+d_primer[turn[4]*10+1]-1-d_primer[turn[1]*10]-1<120)
                                                 	continue;
-                                                if(d_primer[4*turn[4]]+d_primer[4*turn[4]+1]-1-d_primer[turn[1]*4]-1>180)
+                                                if(d_primer[turn[4]*10]+d_primer[turn[4]*10+1]-1-d_primer[turn[1]*10]-1>180)
                                                 	break;
-						if(d_int[5]&&(d_SLp[turn[1]]==-1||(d_primer[4*d_SLp[turn[1]]]+18>d_primer[4*turn[2]]))&&(d_LLp[turn[3]-d_int[0]]==-1||(d_primer[4*d_LLp[turn[3]-d_int[0]]]+18>d_primer[4*turn[4]])))
+						if(d_int[5]&&(d_primer[turn[1]*10+9]==-1||(d_primer[d_primer[turn[1]*10+9]*10]+18>d_primer[turn[2]*10]))&&(d_primer[turn[3]*10+9]==-1||(d_primer[d_primer[turn[3]*10+9]*10]+18>d_primer[turn[4]*10])))
 							continue;
-			//		d_par[16*id]=4;
-			//		d_par[16*id+1]=id;
-			//		flag=1;
-			//		break;
-                                                for(turn[5]=d_SS[turn[4]];turn[5]<d_int[0];turn[5]++)  //B3
+                                                for(turn[5]=d_primer[turn[4]*10+7];turn[5]<d_int[0];turn[5]++)  //B3
                                                 {
                                                         if(turn[5]==-1)
                                                         	break;
-							if(d_primer[4*turn[5]+3]!=1)
+							if((d_primer[turn[5]*10+2]&2)!=2)
 								continue;
-                                                        if(d_primer[turn[5]*4]-(d_primer[4*turn[4]]+d_primer[4*turn[4]+1])>20)
+                                                        if(d_primer[turn[5]*10]-(d_primer[turn[4]*10]+d_primer[turn[4]*10+1])>20)
                                                         	break;
-							flag=check_gc(d_seq,d_primer[4*turn[0]],(d_primer[4*turn[5]]+d_primer[4*turn[5]+1]),d_int[9]);
+							flag=check_gc(d_seq,d_primer[turn[0]*10],(d_primer[turn[5]*10]+d_primer[turn[5]*10+1]),d_int[9]);
 							if(flag==0)
 								continue;
-
 							if(d_int[4]!=0)
 							{
-								flag=check_uniq(d_primer,d_special,d_ss,d_es,turn);
+								flag=check_uniq(d_primer,d_info,turn);
 								if(flag==0)
 									continue;
 							}
-
-				//	d_par[16*id]=5;
-                                  //      d_par[16*id+1]=id;
-                                    //    flag=1;
-                                      //  break;
 							if(d_int[3])
 							{
-								flag=check_common(d_primer,d_common,d_sc,d_ec,turn,d_int[7],d_apply);
+								flag=check_common(d_primer,d_info,turn,-1,-1,d_int[7],d_apply);
 								if(flag<d_int[8])
 								{
 									flag=0;
 									continue;
 								}
 							}
-
 							if(d_int[6])
 							{
 								flag=check_structure(d_seq,d_primer,turn,d_int,parameter,d_TH,id,d_DPT,d_ps,d_numSeq);
 								if(flag==0)
 									continue;
 							}
-	
 							if(d_int[5])
 							{
-								flag=design_loop(d_primer,d_SLp,d_LLp,d_LpLp,d_seq,d_common,d_sc,d_ec,turn,d_int,d_apply,d_par,parameter,d_DPT,id,d_ps,d_numSeq);
+								flag=design_loop(d_primer,d_seq,d_info,turn,d_int,d_apply,d_par,parameter,d_DPT,id,d_ps,d_numSeq);
 								if(flag==0)
 									continue;
 							}
-							d_par[id*16]=d_primer[4*turn[0]];
-							d_par[id*16+1]=d_primer[4*turn[0]+1];
-							d_par[id*16+2]=d_primer[4*turn[1]];
-							d_par[id*16+3]=d_primer[4*turn[1]+1];
-							d_par[id*16+4]=d_primer[4*turn[2]];
-							d_par[id*16+5]=d_primer[4*turn[2]+1];
-							d_par[id*16+6]=d_primer[4*turn[3]];
-							d_par[id*16+7]=d_primer[4*turn[3]+1];
-							d_par[id*16+8]=d_primer[4*turn[4]];
-							d_par[id*16+9]=d_primer[4*turn[4]+1];
-							d_par[id*16+10]=d_primer[4*turn[5]];
-							d_par[id*16+11]=d_primer[4*turn[5]+1];
+							d_par[id*16]=d_primer[turn[0]*10];
+							d_par[id*16+1]=d_primer[turn[0]*10+1];
+							d_par[id*16+2]=d_primer[turn[1]*10];
+							d_par[id*16+3]=d_primer[turn[1]*10+1];
+							d_par[id*16+4]=d_primer[turn[2]*10];
+							d_par[id*16+5]=d_primer[turn[2]*10+1];
+							d_par[id*16+6]=d_primer[turn[3]*10];
+							d_par[id*16+7]=d_primer[turn[3]*10+1];
+							d_par[id*16+8]=d_primer[turn[4]*10];
+							d_par[id*16+9]=d_primer[turn[4]*10+1];
+							d_par[id*16+10]=d_primer[turn[5]*10];
+							d_par[id*16+11]=d_primer[turn[5]*10+1];
 							break;
 						}
 					}
@@ -2850,8 +2675,8 @@ main(int argc,char **argv)
 	double *H_parameter,*parameter;	
 	long int memory;
 	cudaDeviceProp prop;
-	int *d_primer,*d_common,*d_special,*d_sc,*d_ec,*d_ss,*d_es,*d_SS,*d_SL,*d_SLp,*d_LL,*d_LS,*d_LLp,*d_LpLp,*d_apply,*d_par,*d_int,*d_pos;
-	int *h_primer,*h_common,*h_special,*h_sc,*h_ec,*h_ss,*h_es,*h_apply,*h_par,h_int[17],*h_pos,*d_ps;
+	int *d_primer,*d_info,*d_apply,*d_par,*d_int,*d_pos;
+	int *h_primer,*h_info,*h_apply,*h_par,h_int[17],*h_pos,*d_ps;
 	double *h_TH,*d_TH,*d_DPT;
 	
 	expect=10; //default output max 10 LAMP primers
@@ -3310,14 +3135,14 @@ main(int argc,char **argv)
 					if(flag[5])
 					{
 						num[3]=num[3]+tempL->total_common;
-						memory=memory+2+4*tempL->total_common; //2 is common_start and common_end
+						memory=memory+3*tempL->total_common; 
 					}
 					if(flag[6])
 					{
 						num[4]=num[4]+tempL->total_special;
-						memory=memory+2+4*tempL->total_special;
+						memory=memory+3*tempL->total_special;
 					}
-					memory=memory+6+flag[10]; //6=4(primers)+2(next_to),flag[10]: next_to_loop
+					memory=memory+10; //one primer, 10 int
 					tempL=tempL->next;
 				}
 				
@@ -3332,9 +3157,9 @@ main(int argc,char **argv)
                                         if(flag[5])
                                         {
                                                 num[8]=num[8]+tempLoop->total_common;
-                                                memory=memory+2+4*tempLoop->total_common; //2 is common_start and common_end
+                                                memory=memory+3*tempLoop->total_common; 
                                         }
-                                        memory=memory+5; //5=4(primers)+1(next_to_self)
+                                        memory=memory+10;
                                         tempLoop=tempLoop->next;
                                 }
 
@@ -3342,14 +3167,14 @@ main(int argc,char **argv)
 				if(flag[5])
 				{
 					num[5]=num[5]+tempS->total_common;
-					memory=memory+2+4*tempS->total_common;
+					memory=memory+3*tempS->total_common;
 				}
 				if(flag[6])
 				{
 					num[6]=num[6]+tempS->total_special;
-					memory=memory+2+4*tempS->total_special;
+					memory=memory+3*tempS->total_special;
 				}
-				memory=memory+22+flag[10]+common_num[0];//14=4(primers)+16(result_par,include loop)+2(next_to)
+				memory=memory+18+common_num[0];//18=10(primers)+8(result_turn)
 				if(flag[7])
 					memory=memory+5000+50+27+12+13*4; //one double=4 int, DPT; 50: ps1+ps2; 27: numSeq1+numSeq2, char
 				tempS=tempS->next;
@@ -3364,34 +3189,16 @@ main(int argc,char **argv)
 
 			printf("memory is %ld\n",2*memory);
 		//malloc
-			h_primer=(int *)malloc(4*(num[2]+num[1]+num[7])*sizeof(int));
-			cudaMalloc((void **)&d_primer,4*(num[2]+num[1]+num[7])*sizeof(int));
-			if(flag[5])
+			h_primer=(int *)malloc(10*(num[2]+num[1]+num[7])*sizeof(int));
+			cudaMalloc((void **)&d_primer,10*(num[2]+num[1]+num[7])*sizeof(int));
+			if(flag[5]||flag[6])
 			{
-				h_common=(int *)malloc(4*(num[5]+num[3]+num[8])*sizeof(int));
-				cudaMalloc((void **)&d_common,4*(num[5]+num[3]+num[8])*sizeof(int));
-				h_sc=(int *)malloc((num[2]+num[1]+num[7])*sizeof(int));
-				cudaMalloc((void **)&d_sc,(num[2]+num[1]+num[7])*sizeof(int));
-	                        h_ec=(int *)malloc((num[2]+num[1]+num[7])*sizeof(int));
-	                        cudaMalloc((void **)&d_ec,(num[2]+num[1]+num[7])*sizeof(int));
+				h_info=(int *)malloc(3*(num[5]+num[3]+num[8]+num[6]+num[4])*sizeof(int));
+				cudaMalloc((void **)&d_info,3*(num[5]+num[3]+num[8]+num[6]+num[4])*sizeof(int));
 			}
-			if(flag[6])
-			{
-				h_special=(int *)malloc(4*(num[6]+num[4])*sizeof(int));
-				cudaMalloc((void **)&d_special,4*(num[6]+num[4])*sizeof(int));
-				h_ss=(int *)malloc((num[2]+num[1])*sizeof(int));
-	                        cudaMalloc((void **)&d_ss,(num[2]+num[1])*sizeof(int));
-	                        h_es=(int *)malloc((num[2]+num[1])*sizeof(int));
-	                        cudaMalloc((void **)&d_es,(num[2]+num[1])*sizeof(int));
-			}
-		//small
-			cudaMalloc((void **)&d_SS,num[2]*sizeof(int));
-			cudaMalloc((void **)&d_SL,num[2]*sizeof(int));
-			if(flag[10])
-				cudaMalloc((void **)&d_SLp,num[2]*sizeof(int));
 		
 			tempS=storeS;
-			for(i=0;i<3;i++)
+			for(i=0;i<2;i++)
 				count[i]=0;
 			while(count[0]<num[2])
 			{
@@ -3401,50 +3208,47 @@ main(int argc,char **argv)
 					continue;
 				}
 		//primer info
-				h_primer[4*count[0]]=tempS->pos;
-				h_primer[4*count[0]+1]=tempS->len;
-				h_primer[4*count[0]+2]=tempS->plus;
-				h_primer[4*count[0]+3]=tempS->minus;
-			//common
+				h_primer[10*count[0]]=tempS->pos;
+				h_primer[10*count[0]+1]=tempS->len;
+				h_primer[10*count[0]+2]=tempS->strand;
+		//common
 				if(flag[5])
 				{
-					h_sc[count[0]]=count[1];
+					h_primer[10*count[0]+3]=count[1];
 					if(tempS->total_common==0)
-						h_ec[count[0]]=-1;
+						h_primer[10*count[0]+4]=-1;
 					else
 					{
 						p_node=tempS->common;
 						while(p_node)
 						{
-							h_common[4*count[1]]=p_node->gi;
-							h_common[4*count[1]+1]=p_node->pos;
-							h_common[4*count[1]+2]=p_node->plus; 
-                                		        h_common[4*count[1]+3]=p_node->minus;
+							h_info[3*count[1]]=p_node->gi;
+							h_info[3*count[1]+1]=p_node->pos;
+							h_info[3*count[1]+2]=p_node->strand; 
 							count[1]++;
 							p_node=p_node->next;
 						}
-						h_ec[count[0]]=count[1];
+						h_primer[10*count[0]+4]=count[1];
 					}
 				}
 			//special
 				if(flag[6])
 				{
-					h_ss[count[0]]=count[2];
+					h_primer[10*count[0]+5]=count[1];
                 	        	if(tempS->total_special==0)
-                	        	        h_es[count[0]]=-1;
+                	        	        h_primer[10*count[0]+6]=-1;
                 	        	else
                 	        	{
                 	        	        p_node=tempS->special;
                 	        	        while(p_node)
                 	        	        {
-                	        	                h_special[4*count[2]]=p_node->gi;
-                	        	                h_special[4*count[2]+1]=p_node->pos;
-                	        	                h_special[4*count[2]+2]=p_node->plus;
-                	        	                h_special[4*count[2]+3]=p_node->minus;
-                	        	                count[2]++;
+                	        	                h_info[3*count[1]]=p_node->gi;
+                	        	                h_info[3*count[1]+1]=p_node->pos;
+                	        	                h_info[3*count[1]+2]=p_node->strand;
+                	        	                count[1]++;
                 	        	                p_node=p_node->next;
                 	        	        }
-                	        	        h_es[count[0]]=count[2];
+                	        	        h_primer[10*count[0]+6]=count[1];
                 	        	}
 				}
 				count[0]++;
@@ -3453,15 +3257,8 @@ main(int argc,char **argv)
 			h_int[0]=num[2];
 
 		//large primer
-        	        cudaMalloc((void **)&d_LL,num[1]*sizeof(int));
-        	        cudaMalloc((void **)&d_LS,num[1]*sizeof(int));
-			if(flag[10])
-				cudaMalloc((void **)&d_LLp,num[1]*sizeof(int));
-
         	        tempL=storeL;
-        	        for(i=0;i<3;i++)
-        	                count[i]=0;
-        	        while(count[0]<num[1])
+        	        while(count[0]<num[1]+num[2])
         	        {
 				if(tempL->total<circle)
 				{
@@ -3469,50 +3266,47 @@ main(int argc,char **argv)
 					continue;
 				}
                 	//primer info
-                	        h_primer[4*num[2]+4*count[0]]=tempL->pos;
-                	        h_primer[4*num[2]+4*count[0]+1]=tempL->len;
-                	        h_primer[4*num[2]+4*count[0]+2]=tempL->plus;
-                	        h_primer[4*num[2]+4*count[0]+3]=tempL->minus;
+                	        h_primer[10*count[0]]=tempL->pos;
+                	        h_primer[10*count[0]+1]=tempL->len;
+                	        h_primer[10*count[0]+2]=tempL->strand;
                 	//common
 				if(flag[5])
 				{
-                	        	h_sc[num[2]+count[0]]=count[1];
+                	        	h_primer[10*count[0]+3]=count[1];
                 	        	if(tempL->total_common==0)
-                	        	        h_ec[num[2]+count[0]]=-1;
+                	        	        h_primer[10*count[0]+4]=-1;
                 	        	else
                 	        	{
                 	        	        p_node=tempL->common;
                 	        	        while(p_node)
                 	        	        {
-                	        	                h_common[4*num[5]+4*count[1]]=p_node->gi;
-                	        	                h_common[4*num[5]+4*count[1]+1]=p_node->pos;
-                	        	                h_common[4*num[5]+4*count[1]+2]=p_node->plus; 
-                        		                h_common[4*num[5]+4*count[1]+3]=p_node->minus;
+                	        	                h_info[3*count[1]]=p_node->gi;
+                	        	                h_info[3*count[1]+1]=p_node->pos;
+                	        	                h_info[3*count[1]+2]=p_node->strand; 
                         		                count[1]++;
                         		                p_node=p_node->next;
                         		        }
-                        		        h_ec[num[2]+count[0]]=count[1];
+                        		        h_primer[10*count[0]+4]=count[1];
 					}
                         	}
                 	//special
 				if(flag[6])
 				{
-                        		h_ss[num[2]+count[0]]=count[2];
+                        		h_primer[10*count[0]+5]=count[1];
                         		if(tempL->total_special==0)
-                        		        h_es[num[2]+count[0]]=-1;
+                        		        h_primer[10*count[0]+6]=-1;
                         		else
                         		{
                         		        p_node=tempL->special;
                         		        while(p_node)
                         		        {
-                        		                h_special[4*num[6]+4*count[2]]=p_node->gi;
-                        		                h_special[4*num[6]+4*count[2]+1]=p_node->pos;
-                        		                h_special[4*num[6]+4*count[2]+2]=p_node->plus;
-                        		                h_special[4*num[6]+4*count[2]+3]=p_node->minus;
-                        		                count[2]++;
+                        		                h_info[3*count[1]]=p_node->gi;
+                        		                h_info[3*count[1]+1]=p_node->pos;
+                        		                h_info[3*count[1]+2]=p_node->strand;
+                        		                count[1]++;
                         		                p_node=p_node->next;
                         		        }
-                        		        h_es[num[2]+count[0]]=count[2];
+                        		        h_primer[10*count[0]+6]=count[1];
                         		}
 				}
                         	count[0]++;
@@ -3523,12 +3317,8 @@ main(int argc,char **argv)
                 //loop primer
 			if(flag[10])
 			{
-	                        cudaMalloc((void **)&d_LpLp,num[7]*sizeof(int));
-
 	                        tempLoop=storeLoop;
-                        	for(i=0;i<2;i++)
-                        	        count[i]=0;
-	                        while(count[0]<num[7])
+	                        while(count[0]<num[7]+num[1]+num[2])
                         	{
                                 	if(tempLoop->total<circle)
                                 	{
@@ -3536,29 +3326,27 @@ main(int argc,char **argv)
                                         	continue;
                                 	}
                         	//primer info
-                                	h_primer[4*(num[1]+num[2])+4*count[0]]=tempLoop->pos;
-                                	h_primer[4*(num[1]+num[2])+4*count[0]+1]=tempLoop->len;
-                                	h_primer[4*(num[1]+num[2])+4*count[0]+2]=tempLoop->plus;
-                                	h_primer[4*(num[1]+num[2])+4*count[0]+3]=tempLoop->minus;
+                                	h_primer[10*count[0]]=tempLoop->pos;
+                                	h_primer[10*count[0]+1]=tempLoop->len;
+                                	h_primer[10*count[0]+2]=tempLoop->strand;
                         	//common
                                 	if(flag[5])
                                 	{
-                                	        h_sc[num[1]+num[2]+count[0]]=count[1];
+                                	        h_primer[10*count[0]+3]=count[1];
                                 	        if(tempLoop->total_common==0)
-                                	                h_ec[num[1]+num[2]+count[0]]=-1;
+                                	                h_primer[10*count[0]+4]=-1;
                                 	        else
                                 	        {
                                 	                p_node=tempLoop->common;
                                 	                while(p_node)
                                 	                {
-                                	                        h_common[4*(num[5]+num[3])+4*count[1]]=p_node->gi;
-                                	                        h_common[4*(num[5]+num[3])+4*count[1]+1]=p_node->pos;
-                                	                        h_common[4*(num[5]+num[3])+4*count[1]+2]=p_node->plus; 
-                                	                        h_common[4*(num[5]+num[3])+4*count[1]+3]=p_node->minus;
+                                	                        h_info[3*count[1]]=p_node->gi;
+                                	                        h_info[3*count[1]+1]=p_node->pos;
+                                	                        h_info[3*count[1]+2]=p_node->strand; 
                                 	                        count[1]++;
                                 	                        p_node=p_node->next;
                                 	                }
-                                	                h_ec[num[1]+num[2]+count[0]]=count[1];
+                                	                h_primer[10*count[0]+4]=count[1];
                                 	        }
                                 	}
 	                                count[0]++;
@@ -3575,37 +3363,24 @@ main(int argc,char **argv)
 			if(block>prop.maxGridSize[0]/2)
 				block=prop.maxGridSize[0]/2;
 
-			cudaMemcpy(d_primer,h_primer,4*(num[1]+num[2]+num[7])*sizeof(int),cudaMemcpyHostToDevice);
+			cudaMemcpy(d_primer,h_primer,10*count[0]*sizeof(int),cudaMemcpyHostToDevice);
 			free(h_primer);
-			if(flag[5])
+			if(flag[5]||flag[6])
 			{
-				cudaMemcpy(d_common,h_common,4*(num[3]+num[5]+num[8])*sizeof(int),cudaMemcpyHostToDevice);
-				free(h_common);
-				cudaMemcpy(d_sc,h_sc,(num[1]+num[2]+num[7])*sizeof(int),cudaMemcpyHostToDevice);
-				free(h_sc);
-				cudaMemcpy(d_ec,h_ec,(num[1]+num[2]+num[7])*sizeof(int),cudaMemcpyHostToDevice);
-				free(h_ec);
-			}
-			if(flag[6])
-			{
-				cudaMemcpy(d_special,h_special,4*(num[4]+num[6])*sizeof(int),cudaMemcpyHostToDevice);
-				free(h_special);
-				cudaMemcpy(d_ss,h_ss,(num[1]+num[2])*sizeof(int),cudaMemcpyHostToDevice);
-				free(h_ss);
-				cudaMemcpy(d_es,h_es,(num[1]+num[2])*sizeof(int),cudaMemcpyHostToDevice);
-				free(h_es);
+				cudaMemcpy(d_info,h_info,3*count[1]*sizeof(int),cudaMemcpyHostToDevice);
+				free(h_info);
 			}
 		//next primer
 		printf("block is %d,thread is %d\n",block,thread);
-			next_one<<<block,thread>>>(d_primer,d_SS,0,num[2],0,num[2]);
-			next_one<<<block,thread>>>(d_primer,d_LL,num[2],(num[1]+num[2]),num[2],(num[1]+num[2]));
-			next_one<<<block,thread>>>(d_primer,d_SL,0,num[2],num[2],(num[1]+num[2]));
-        	        next_one<<<block,thread>>>(d_primer,d_LS,num[2],(num[1]+num[2]),0,num[2]);
+			next_one<<<block,thread>>>(d_primer,0,num[2],0,num[2],7);//outer-self
+			next_one<<<block,thread>>>(d_primer,num[2],(num[1]+num[2]),num[2],(num[1]+num[2]),7);//inner-self
+			next_one<<<block,thread>>>(d_primer,0,num[2],num[2],(num[1]+num[2]),8);//outer_to_inner
+        	        next_one<<<block,thread>>>(d_primer,num[2],(num[1]+num[2]),0,num[2],8);//inner_to_outer
 			if(flag[10])
 			{
-				next_one<<<block,thread>>>(d_primer,d_LpLp,(num[1]+num[2]),(num[1]+num[2]+num[7]),(num[1]+num[2]),(num[1]+num[2]+num[7]));
-                        	next_one<<<block,thread>>>(d_primer,d_SLp,0,num[2],(num[1]+num[2]),(num[1]+num[2]+num[7]));
-                        	next_one<<<block,thread>>>(d_primer,d_LLp,num[2],(num[1]+num[2]),(num[1]+num[2]),(num[1]+num[2]+num[7]));
+				next_one<<<block,thread>>>(d_primer,(num[1]+num[2]),(num[1]+num[2]+num[7]),(num[1]+num[2]),(num[1]+num[2]+num[7]),7);//loop-self
+                        	next_one<<<block,thread>>>(d_primer,0,num[2],(num[1]+num[2]),(num[1]+num[2]+num[7]),9);//outer_to_loop
+                        	next_one<<<block,thread>>>(d_primer,num[2],(num[1]+num[2]),(num[1]+num[2]),(num[1]+num[2]+num[7]),9);//inner_to_loop
 			}
 		//calculate
 			if(flag[5])
@@ -3620,7 +3395,7 @@ main(int argc,char **argv)
 			cudaMalloc((void **)&d_DPT,num[2]*1263*sizeof(double));
 			cudaMalloc((void **)&d_ps,num[2]*62*sizeof(int));
 			cudaMalloc((void **)&d_numSeq,num[2]*54*sizeof(char));
-			LAMP<<<block,thread>>>(d_seq,d_primer,d_common,d_special,d_sc,d_ec,d_ss,d_es,d_SS,d_SL,d_SLp,d_LL,d_LS,d_LLp,d_LpLp,d_int,d_par,d_apply,parameter,d_pos,d_TH,d_DPT,d_ps,d_numSeq);
+			LAMP<<<block,thread>>>(d_seq,d_primer,d_info,d_int,d_par,d_apply,parameter,d_pos,d_TH,d_DPT,d_ps,d_numSeq);
 			cudaFree(d_DPT);
 			cudaFree(d_ps);
 			cudaFree(d_numSeq);
@@ -3640,28 +3415,8 @@ main(int argc,char **argv)
 			}
 	//free
 			cudaFree(d_primer);
-			cudaFree(d_SS);
-			cudaFree(d_LL);
-			cudaFree(d_SL);
-			cudaFree(d_LS);
-			if(flag[10])
-			{
-				cudaFree(d_LpLp);
-				cudaFree(d_SLp);
-				cudaFree(d_LLp);
-			}
-			if(flag[5])
-			{
-				cudaFree(d_common);
-				cudaFree(d_sc);
-				cudaFree(d_ec);
-			}
-			if(flag[6])
-			{
-                                cudaFree(d_special);
-                                cudaFree(d_ss);
-                                cudaFree(d_es);
-                        }
+			if(flag[5]||flag[6])
+				cudaFree(d_info);
 		//LAMP primers, output
 			for(i=0;i<num[2];i++)
 			{
