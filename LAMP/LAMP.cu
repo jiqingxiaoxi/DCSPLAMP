@@ -8,7 +8,7 @@
 #include<cuda.h>
 #include<cuda_runtime.h>
 
-__constant__ int const_int[17];
+__constant__ int const_int[19];
 __constant__ double parameter[5730];
 
 char str2int_CPU(char c)
@@ -1462,36 +1462,40 @@ void generate_primer(char *seq,char primer[],int start,int length,int flag)
 	primer[length]='\0';
 }
 
-__device__ int check_structure(char *d_seq,int *d_primer,int turn[],double *d_TH,int id,double *d_DPT,int *d_ps,char *d_numSeq)
+__device__ int check_structure(char *d_seq,int *d_primer,int turn[],int ID_thread,double *d_TH,int id,double *d_DPT,int *d_ps,char *d_numSeq)
 {
 	double TH;
 	int i,j;
 
-	for(i=0;i<5;i++)
+	for(i=0;i<7;i++)
 	{
-		for(j=i+1;j<6;j++)
+		for(j=i+1;j<8;j++)
 		{
-		if(i!=2||j!=3)
+			if((i==2||i==5||j==2||j==5)&&(turn[ID_thread*8+2]==-1&&turn[ID_thread*8+5]==-1))
+				continue;  //without-loop
+			if(turn[ID_thread*8+i]==-1||turn[ID_thread*8+j]==-1)
+				continue; //when loop, don't have loop
+		if(i!=3||j!=4)
 			continue;
-			TH=thal(d_seq,d_primer,turn[i],turn[j],const_int[11+i],const_int[11+j],1,d_DPT,id,d_ps,d_numSeq);
+			TH=thal(d_seq,d_primer,turn[ID_thread*8+i],turn[ID_thread*8+j],const_int[11+i],const_int[11+j],1,d_DPT,id,d_ps,d_numSeq);
 			if(TH>44+5*const_int[9])
                                 return 0;
 		d_TH[id*2]=TH;
-			TH=thal(d_seq,d_primer,turn[i],turn[j],const_int[11+i],const_int[11+j],2,d_DPT,id,d_ps,d_numSeq);
+			TH=thal(d_seq,d_primer,turn[ID_thread*8+i],turn[ID_thread*8+j],const_int[11+i],const_int[11+j],2,d_DPT,id,d_ps,d_numSeq);
                         if(TH>44+5*const_int[9])
                                 return 0;
 		d_TH[id*2+1]=TH;
-			TH=thal(d_seq,d_primer,turn[i],turn[j],const_int[11+i],const_int[11+j],3,d_DPT,id,d_ps,d_numSeq);
+			TH=thal(d_seq,d_primer,turn[ID_thread*8+i],turn[ID_thread*8+j],const_int[11+i],const_int[11+j],3,d_DPT,id,d_ps,d_numSeq);
                         if(TH>44+5*const_int[9])
                                 return 0;
 		if(TH>d_TH[id*2+1])
 			d_TH[id*2+1]=TH;
-			TH=thal(d_seq,d_primer,turn[j],turn[i],(1-const_int[11+j]),(1-const_int[11+i]),2,d_DPT,id,d_ps,d_numSeq);
+			TH=thal(d_seq,d_primer,turn[ID_thread*8+j],turn[ID_thread*8+i],(1-const_int[11+j]),(1-const_int[11+i]),2,d_DPT,id,d_ps,d_numSeq);
                         if(TH>44+5*const_int[9])
                                 return 0;
 		if(TH>d_TH[id*2+1])
                         d_TH[id*2+1]=TH;
-                        TH=thal(d_seq,d_primer,turn[j],turn[i],(1-const_int[11+j]),(1-const_int[11+i]),3,d_DPT,id,d_ps,d_numSeq);
+                        TH=thal(d_seq,d_primer,turn[ID_thread*8+j],turn[ID_thread*8+i],(1-const_int[11+j]),(1-const_int[11+i]),3,d_DPT,id,d_ps,d_numSeq);
                         if(TH>44+5*const_int[9])
                                 return 0;
 		if(TH>d_TH[id*2+1])
@@ -1753,41 +1757,41 @@ struct Primer *read_par(char *path,int common_flag,int special_flag)
 
 //check this LAMP primers are uniq or not
 //return=0: stop and return=1: go on
-__device__ int check_uniq(int *d_primer,int *d_info,int turn[])
+__device__ int check_uniq(int *d_primer,int *d_info,int turn[],int ID_thread)
 {
         int pos[6],gi;
 
 //plus
-        for(pos[0]=d_primer[turn[0]*10+5];pos[0]<d_primer[turn[0]*10+6];pos[0]++)
+        for(pos[0]=d_primer[turn[ID_thread*8]*10+5];pos[0]<d_primer[turn[ID_thread*8]*10+6];pos[0]++)
         {
                 if((d_info[pos[0]*3+2]&1)!=1)
                         continue;
 		gi=d_info[pos[0]*3];
-                for(pos[1]=d_primer[turn[1]*10+5];pos[1]<d_primer[turn[1]*10+6];pos[1]++)
+                for(pos[1]=d_primer[turn[ID_thread*8+1]*10+5];pos[1]<d_primer[turn[ID_thread*8+1]*10+6];pos[1]++)
                 {
 			if(d_info[pos[1]*3]!=gi)
                                 continue;
                         if((d_info[pos[1]*3+2]&1)!=1)
 				continue;
-                        for(pos[2]=d_primer[turn[2]*10+5];pos[2]<d_primer[turn[2]*10+6];pos[2]++) //F1c
+                        for(pos[2]=d_primer[turn[ID_thread*8+3]*10+5];pos[2]<d_primer[turn[ID_thread*8+3]*10+6];pos[2]++) //F1c
                         {
                                 if(d_info[pos[2]*3]!=gi)
                                         continue;
                                 if((d_info[pos[2]*3+2]&2)!=2)
                                         continue;
-                                for(pos[3]=d_primer[turn[3]*10+5];pos[3]<d_primer[turn[3]*10+6];pos[3]++) //B1c
+                                for(pos[3]=d_primer[turn[ID_thread*8+3]*10+5];pos[3]<d_primer[turn[ID_thread*8+3]*10+6];pos[3]++) //B1c
                                 {
                                         if(d_info[pos[3]*3]!=gi)
                                                 continue;
                                         if((d_info[pos[3]*3+2]&1)!=1)
                                                 continue;
-                                        for(pos[4]=d_primer[turn[4]*10+5];pos[4]<d_primer[turn[4]*10+6];pos[4]++) //B2
+                                        for(pos[4]=d_primer[turn[ID_thread*8+6]*10+5];pos[4]<d_primer[turn[ID_thread*8+6]*10+6];pos[4]++) //B2
                                         {
                                                 if(d_info[pos[4]*3]!=gi)
                                                         continue;
                                                 if((d_info[pos[4]*3+2]&2)!=2)
                                                         continue;
-                                                for(pos[5]=d_primer[turn[5]*10+5];pos[5]<d_primer[turn[5]*10+6];pos[5]++)
+                                                for(pos[5]=d_primer[turn[ID_thread*8+7]*10+5];pos[5]<d_primer[turn[ID_thread*8+7]*10+6];pos[5]++)
                                                 {
                                                         if(d_info[pos[5]*3]!=gi)
                                                                 continue;
@@ -1797,13 +1801,13 @@ __device__ int check_uniq(int *d_primer,int *d_info,int turn[])
                                                         if(d_info[pos[1]*3+1]<d_info[pos[0]*3+1])
                                                                 continue;
                                                 //F2-F1c
-                                                        if(d_info[pos[2]*3+1]<d_info[pos[1]*3+1]+d_primer[turn[1]*10+1])
+                                                        if(d_info[pos[2]*3+1]<d_info[pos[1]*3+1]+d_primer[turn[ID_thread*8+1]*10+1])
                                                                 continue;
                                                 //F1c-B1c
-                                                        if(d_info[pos[3]*3+1]<d_info[pos[2]*3+1]+d_primer[turn[2]*10+1])
+                                                        if(d_info[pos[3]*3+1]<d_info[pos[2]*3+1]+d_primer[turn[ID_thread*8+3]*10+1])
                                                                 continue;
                                                 //B1c-B2
-                                                        if(d_info[pos[4]*3+1]<d_info[pos[3]*3+1]+d_primer[turn[3]*10+1])
+                                                        if(d_info[pos[4]*3+1]<d_info[pos[3]*3+1]+d_primer[turn[ID_thread*8+3]*10+1])
                                                                 continue;
                                                 //B2-B3
                                                         if(d_info[pos[5]*3+1]<d_info[pos[4]*3+1])
@@ -1820,36 +1824,36 @@ __device__ int check_uniq(int *d_primer,int *d_info,int turn[])
         }
 
 //minus
-        for(pos[0]=d_primer[turn[0]*10+5];pos[0]<d_primer[turn[0]*10+6];pos[0]++)
+        for(pos[0]=d_primer[turn[ID_thread*8]*10+5];pos[0]<d_primer[turn[ID_thread*8]*10+6];pos[0]++)
         {
                 if((d_info[pos[0]*3+2]&2)!=2)
                         continue;
 		gi=d_info[pos[0]*3];
-                for(pos[1]=d_primer[turn[1]*10+5];pos[1]<d_primer[turn[1]*10+6];pos[1]++)
+                for(pos[1]=d_primer[turn[ID_thread*8+1]*10+5];pos[1]<d_primer[turn[ID_thread*8+1]*10+6];pos[1]++)
                 {
                         if(d_info[pos[1]*3]!=gi)
                                 continue;
                         if((d_info[pos[1]*3+2]&2)!=2)
                                 continue;
-                        for(pos[2]=d_primer[turn[2]*10+5];pos[2]<d_primer[turn[2]*10+6];pos[2]++)
+                        for(pos[2]=d_primer[turn[ID_thread*8+3]*10+5];pos[2]<d_primer[turn[ID_thread*8+3]*10+6];pos[2]++)
                         {
                                 if(d_info[pos[2]*3]!=gi)
                                         continue;
                                 if((d_info[pos[2]*3+2]&1)!=1)
                                         continue;
-                                for(pos[3]=d_primer[turn[3]*10+5];pos[3]<d_primer[turn[3]*10+6];pos[3]++)
+                                for(pos[3]=d_primer[turn[ID_thread*8+3]*10+5];pos[3]<d_primer[turn[ID_thread*8+3]*10+6];pos[3]++)
                                 {
                                         if(d_info[pos[3]*3]!=gi)
                                                 continue;
                                         if((d_info[pos[3]*3+2]&2)!=2)
                                                 continue;
-                                        for(pos[4]=d_primer[turn[4]*10];pos[4]<d_primer[turn[4]*10];pos[4]++)
+                                        for(pos[4]=d_primer[turn[ID_thread*8+6]*10];pos[4]<d_primer[turn[ID_thread*8+6]*10];pos[4]++)
                                         {
                                                 if(d_info[pos[4]*3]!=gi)
                                                         continue;
                                                 if((d_info[pos[4]*3+2]&1)!=1)
                                                         continue;
-                                                for(pos[5]=d_primer[turn[5]*10+5];pos[5]<d_primer[turn[5]*10+6];pos[5]++)
+                                                for(pos[5]=d_primer[turn[ID_thread*8+7]*10+5];pos[5]<d_primer[turn[ID_thread*8+7]*10+6];pos[5]++)
                                                 {
                                                         if(d_info[pos[5]*3]!=gi)
                                                                 continue;
@@ -1859,13 +1863,13 @@ __device__ int check_uniq(int *d_primer,int *d_info,int turn[])
                                                         if(d_info[pos[0]*3+1]<d_info[pos[1]*3+1])
                                                                 continue;
                                                 //F2-F1c
-                                                        if(d_info[pos[1]*3+1]<d_info[pos[2]*3+1]+d_primer[turn[2]*10+1])
+                                                        if(d_info[pos[1]*3+1]<d_info[pos[2]*3+1]+d_primer[turn[ID_thread*8+3]*10+1])
                                                                 continue;
                                                 //F1c-B1c
-                                                        if(d_info[pos[2]*3+1]<d_info[pos[3]*3+1]+d_primer[turn[3]*10+1])
+                                                        if(d_info[pos[2]*3+1]<d_info[pos[3]*3+1]+d_primer[turn[ID_thread*8+3]*10+1])
                                                                 continue;
                                                 //B1c-B2
-                                                        if(d_info[pos[3]*3+1]<d_info[pos[4]*3+1]+d_primer[turn[4]*10+1])
+                                                        if(d_info[pos[3]*3+1]<d_info[pos[4]*3+1]+d_primer[turn[ID_thread*8+6]*10+1])
                                                                 continue;
                                                 //B2-B3
                                                         if(d_info[pos[4]*3+1]<d_info[pos[5]*3+1])
@@ -1936,54 +1940,54 @@ __device__ int check_gc(char *d_seq,int start,int end,int flag)
         return 0;
 }
 
-__device__ int check_common(int *d_primer,int *d_info,int turn[],int LF,int LB,int *d_apply)
+__device__ int check_common(int *d_primer,int *d_info,int turn[],int ID_thread,int *d_result)
 {
         int dis,i,pos[7];
 
 	for(i=0;i<const_int[7];i++)
         {
-                d_apply[const_int[7]*turn[0]+i]=0;             
+                d_result[(8+const_int[7])*turn[ID_thread*8]+8+i]=0;
         }
 //plus
-        for(pos[0]=d_primer[turn[0]*10+3];pos[0]<d_primer[turn[0]*10+4];pos[0]++)
+        for(pos[0]=d_primer[turn[ID_thread*8]*10+3];pos[0]<d_primer[turn[ID_thread*8]*10+4];pos[0]++)
         {
                 if((d_info[pos[0]*3+2]&1)!=1)
                         continue;
 		i=d_info[pos[0]*3];
-                if(d_apply[turn[0]*const_int[7]+i]!=0)
+                if(d_result[(8+const_int[7])*turn[ID_thread*8]+8+i]!=0)
                         continue;
-                for(pos[1]=d_primer[turn[1]*10+3];pos[1]<d_primer[turn[1]*10+4];pos[1]++)
+                for(pos[1]=d_primer[turn[ID_thread*8+1]*10+3];pos[1]<d_primer[turn[ID_thread*8+1]*10+4];pos[1]++)
                 {
                         if(d_info[pos[1]*3]!=i)
                                 continue;
                         if((d_info[pos[1]*3+2]&1)!=1)
                                 continue;
-                        for(pos[2]=d_primer[turn[2]*10+3];pos[2]<d_primer[turn[2]*10+4];pos[2]++)
+                        for(pos[2]=d_primer[turn[ID_thread*8+3]*10+3];pos[2]<d_primer[turn[ID_thread*8+3]*10+4];pos[2]++)
                         {
                                 if(d_info[pos[2]*3]!=i)
                                         continue;
                                 if((d_info[pos[2]*3+2]&2)!=2)
                                         continue;
-                                for(pos[3]=d_primer[turn[3]*10+3];pos[3]<d_primer[turn[3]*10+4];pos[3]++)
+                                for(pos[3]=d_primer[turn[ID_thread*8+4]*10+3];pos[3]<d_primer[turn[ID_thread*8+4]*10+4];pos[3]++)
                                 {
                                         if(d_info[pos[3]*3]!=i)
                                                 continue;
                                         if((d_info[pos[3]*3+2]&1)!=1)
                                                 continue;
-                                        for(pos[4]=d_primer[turn[4]*10+3];pos[4]<d_primer[turn[4]*10+4];pos[4]++)
+                                        for(pos[4]=d_primer[turn[ID_thread*8+6]*10+3];pos[4]<d_primer[turn[ID_thread*8+6]*10+4];pos[4]++)
                                         {
                                                 if(d_info[pos[4]*3]!=i)
                                                         continue;
                                                 if((d_info[pos[4]*3+2]&2)!=2)
                                                         continue;
-                                                for(pos[5]=d_primer[turn[5]*10+3];pos[5]<d_primer[turn[5]*10+4];pos[5]++)
+                                                for(pos[5]=d_primer[turn[ID_thread*8+7]*10+3];pos[5]<d_primer[turn[ID_thread*8+7]*10+4];pos[5]++)
                                                 {
                                                         if(d_info[pos[5]*3]!=i)
                                                                 continue;
                                                         if((d_info[pos[5]*3+2]&2)!=2)
                                                                 continue;
                                                 //F3-F2 
-                                                        dis=d_info[pos[1]*3+1]-(d_info[pos[0]*3+1]+d_primer[turn[0]*10+1]);
+                                                        dis=d_info[pos[1]*3+1]-(d_info[pos[0]*3+1]+d_primer[turn[ID_thread*8]*10+1]);
                                                         if(dis<0)
                                                                 continue;
                                                         if(dis>20)
@@ -1995,40 +1999,40 @@ __device__ int check_common(int *d_primer,int *d_info,int turn[],int LF,int LB,i
                                                         if(dis>60)
                                                                 continue;
                                                 //F1c-B1c
-                                                        dis=d_info[pos[3]*3+1]-(d_info[pos[2]*3+1]+d_primer[turn[2]*10+1]-1)-1;
+                                                        dis=d_info[pos[3]*3+1]-(d_info[pos[2]*3+1]+d_primer[turn[ID_thread*8+3]*10+1]-1)-1;
                                                         if(dis<0)
                                                                 continue;
                                                 //B1c-B2
-                                                        dis=(d_info[pos[4]*3+1]+d_primer[turn[4]*10+1]-1)-(d_info[pos[3]*3+1]+d_primer[turn[3]*10+1]-1)-1;
+                                                        dis=(d_info[pos[4]*3+1]+d_primer[turn[ID_thread*8+6]*10+1]-1)-(d_info[pos[3]*3+1]+d_primer[turn[ID_thread*8+4]*10+1]-1)-1;
                                                         if(dis<40)
                                                                 continue;
                                                         if(dis>60)
                                                                 continue;
                                                 //F2-B2
-                                                        dis=d_info[pos[4]*3+1]+d_primer[turn[4]*10+1]-1-d_info[pos[1]*3+1]-1;
+                                                        dis=d_info[pos[4]*3+1]+d_primer[turn[ID_thread*8+6]*10+1]-1-d_info[pos[1]*3+1]-1;
                                                         if(dis<120)
                                                                 continue;
                                                         if(dis>180)
                                                                 continue;
                                                 //B2-B3
-                                                        dis=d_info[pos[5]*3+1]-(d_info[pos[4]*3+1]+d_primer[turn[4]*10+1]-1)-1;
+                                                        dis=d_info[pos[5]*3+1]-(d_info[pos[4]*3+1]+d_primer[turn[ID_thread*8+6]*10+1]-1)-1;
                                                         if(dis<0)
                                                                 continue;
                                                         if(dis>20)
                                                                 continue;
                                                 //LF
-                                                        if(LF!=-1)
+                                                        if(turn[ID_thread*8+2]!=-1)
                                                         {
                                                                 dis=0;
-                                                                for(pos[6]=d_primer[LF*10+3];pos[6]<d_primer[LF*10+4];pos[6]++)
+                                                                for(pos[6]=d_primer[turn[ID_thread*8+2]*10+3];pos[6]<d_primer[turn[ID_thread*8+2]*10+4];pos[6]++)
                                                                 {
                                                                         if(d_info[pos[6]*3]!=i)
                                                                                 continue;
                                                                         if((d_info[pos[6]*3+2]&2)!=2)
                                                                                 continue;
-                                                                        if(d_info[pos[1]*3+1]+d_primer[turn[1]*10+1]>d_info[pos[6]*3+1])
+                                                                        if(d_info[pos[1]*3+1]+d_primer[turn[ID_thread*8+1]*10+1]>d_info[pos[6]*3+1])
                                                                                 continue;
-                                                                        if(d_info[pos[6]*3+1]+d_primer[LF*10+1]>d_info[pos[2]*3+1])
+                                                                        if(d_info[pos[6]*3+1]+d_primer[turn[ID_thread*8+2]*10+1]>d_info[pos[2]*3+1])
                                                                                 continue;
                                                                         dis=1;
                                                                         break;
@@ -2037,18 +2041,18 @@ __device__ int check_common(int *d_primer,int *d_info,int turn[],int LF,int LB,i
                                                                         continue;
                                                         }
                                                 //LB
-                                                        if(LB!=-1)
+                                                        if(turn[ID_thread*8+5]!=-1)
                                                         {
                                                                 dis=0;
-                                                                for(pos[6]=d_primer[LB*10+3];pos[6]=d_primer[LB*10+4];pos[6]++)
+                                                                for(pos[6]=d_primer[turn[ID_thread*8+5]*10+3];pos[6]=d_primer[turn[ID_thread*8+5]*10+4];pos[6]++)
                                                                 {
                                                                         if(d_info[pos[6]*3]!=i)
                                                                                 continue;
                                                                         if((d_info[pos[6]*3+2]&1)!=1)
                                                                                 continue;
-                                                                        if(d_info[pos[3]*3+1]+d_primer[turn[3]*10+1]>d_info[pos[6]*3+1])
+                                                                        if(d_info[pos[3]*3+1]+d_primer[turn[ID_thread*8+4]*10+1]>d_info[pos[6]*3+1])
                                                                                 continue;
-                                                                        if(d_info[pos[6]*3+1]+d_primer[LB*10+1]>d_info[pos[4]*3+1])
+                                                                        if(d_info[pos[6]*3+1]+d_primer[turn[ID_thread*8+5]*10+1]>d_info[pos[4]*3+1])
                                                                                 continue;
                                                                         dis=1;
                                                                         break;
@@ -2056,7 +2060,7 @@ __device__ int check_common(int *d_primer,int *d_info,int turn[],int LF,int LB,i
                                                                 if(dis==0)
                                                                         continue;
                                                         }
-                                                        d_apply[turn[0]*const_int[7]+i]=1;
+                                                        d_result[(8+const_int[7])*turn[ID_thread*8]+8+i]=1;
                                                 }
                                         }
                                 }
@@ -2064,57 +2068,57 @@ __device__ int check_common(int *d_primer,int *d_info,int turn[],int LF,int LB,i
                 }
         }
 //minus
-	for(pos[0]=d_primer[turn[0]*10+3];pos[0]<d_primer[turn[0]*10+4];pos[0]++)
+	for(pos[0]=d_primer[turn[ID_thread*8]*10+3];pos[0]<d_primer[turn[ID_thread*8]*10+4];pos[0]++)
         {
                 if((d_info[pos[0]*3+2]&2)!=2)
                         continue;
                 i=d_info[pos[0]*3];
-                if(d_apply[turn[0]*const_int[7]+i]!=0)
+                if(d_result[(8+const_int[7])*turn[ID_thread*8]+8+i]!=0)
                         continue;
-                for(pos[1]=d_primer[turn[1]*10+3];pos[1]<d_primer[turn[1]*10+4];pos[1]++)
+                for(pos[1]=d_primer[turn[ID_thread*8+1]*10+3];pos[1]<d_primer[turn[ID_thread*8+1]*10+4];pos[1]++)
                 {
                         if(d_info[pos[1]*3]!=i)
                                 continue;
                         if((d_info[pos[1]*3+2]&2)!=2)
                                 continue;
-                        for(pos[2]=d_primer[turn[2]*10+3];pos[2]<d_primer[turn[2]*10+4];pos[2]++)
+                        for(pos[2]=d_primer[turn[ID_thread*8+3]*10+3];pos[2]<d_primer[turn[ID_thread*8+3]*10+4];pos[2]++)
                         {
                                 if(d_info[pos[2]*3]!=i)
                                         continue;
                                 if((d_info[pos[2]*3+2]&1)!=1)
                                         continue;
-                                for(pos[3]=d_primer[turn[3]*10+3];pos[3]<d_primer[turn[3]*10+4];pos[3]++)
+                                for(pos[3]=d_primer[turn[ID_thread*8+4]*10+3];pos[3]<d_primer[turn[ID_thread*8+4]*10+4];pos[3]++)
                                 {
                                         if(d_info[pos[3]*3]!=i)
                                                 continue;
                                         if((d_info[pos[3]*3+2]&2)!=2)
                                                 continue;
-                                        for(pos[4]=d_primer[turn[4]*10+3];pos[4]<d_primer[turn[4]*10+4];pos[4]++)
+                                        for(pos[4]=d_primer[turn[ID_thread*8+6]*10+3];pos[4]<d_primer[turn[ID_thread*8+6]*10+4];pos[4]++)
                                         {
                                                 if(d_info[pos[4]*3]!=i)
                                                         continue;
                                                 if((d_info[pos[4]*3+2]&1)!=1)
                                                         continue;
-                                                for(pos[5]=d_primer[turn[5]*10+3];pos[5]<d_primer[turn[5]*10+4];pos[5]++)
+                                                for(pos[5]=d_primer[turn[ID_thread*8+7]*10+3];pos[5]<d_primer[turn[ID_thread*8+7]*10+4];pos[5]++)
                                                 {
                                                         if(d_info[pos[5]*3]!=i)
                                                                 continue;
                                                         if((d_info[pos[5]*3+2]&1)!=1)
                                                                 continue;
                                                 //F3-F2 
-                                                        dis=d_info[pos[0]*3+1]-(d_info[pos[1]*3+1]+d_primer[turn[1]*10+1]-1)-1;
+                                                        dis=d_info[pos[0]*3+1]-(d_info[pos[1]*3+1]+d_primer[turn[ID_thread*8+1]*10+1]-1)-1;
                                                         if(dis<0)
                                                                 continue;
                                                         if(dis>20)
                                                                 continue;
                                                 //F2-F1c
-                                                        dis=(d_info[pos[1]*3+1]+d_primer[turn[1]*10+1]-1)-(d_info[pos[2]*3+1]+d_primer[turn[2]*10+1]-1)-1;
+                                                        dis=(d_info[pos[1]*3+1]+d_primer[turn[ID_thread*8+1]*10+1]-1)-(d_info[pos[2]*3+1]+d_primer[turn[ID_thread*8+3]*10+1]-1)-1;
                                                         if(dis<40)
                                                                 continue;
                                                         if(dis>60)
                                                                 continue;
                                                 //F1c-B1c
-                                                        dis=d_info[pos[2]*3+1]-(d_info[pos[3]*3+1]+d_primer[turn[3]*10+1]-1)-1;
+                                                        dis=d_info[pos[2]*3+1]-(d_info[pos[3]*3+1]+d_primer[turn[ID_thread*8+4]*10+1]-1)-1;
                                                         if(dis<0)
                                                                 continue;
                                                 //B1c-B2
@@ -2124,30 +2128,30 @@ __device__ int check_common(int *d_primer,int *d_info,int turn[],int LF,int LB,i
                                                         if(dis>60)
                                                                 continue;
                                                 //F2-B2
-                                                        dis=d_info[pos[1]*3+1]+d_primer[turn[1]*10+1]-1-d_info[pos[4]*3+1]-1;
+                                                        dis=d_info[pos[1]*3+1]+d_primer[turn[ID_thread*8+1]*10+1]-1-d_info[pos[4]*3+1]-1;
                                                         if(dis<120)
                                                                 continue;
                                                         if(dis>180)
                                                                 continue;
                                                 //B2-B3
-                                                        dis=d_info[pos[4]*3+1]-(d_info[pos[5]*3+1]+d_primer[turn[5]*10+1]-1)-1;
+                                                        dis=d_info[pos[4]*3+1]-(d_info[pos[5]*3+1]+d_primer[turn[ID_thread*8+7]*10+1]-1)-1;
                                                         if(dis<0)
                                                                 continue;
                                                         if(dis>20)
                                                                 continue;
                                                 //LF
-                                                        if(LF!=-1)
+                                                        if(turn[ID_thread*8+2]!=-1)
                                                         {
                                                                 dis=0;
-                                                                for(pos[6]=d_primer[LF*10+3];pos[6]<d_primer[LF*10+4];pos[6]++)
+                                                                for(pos[6]=d_primer[turn[ID_thread*8+2]*10+3];pos[6]<d_primer[turn[ID_thread*8+2]*10+4];pos[6]++)
                                                                 {
                                                                         if(d_info[pos[6]*3]!=i)
                                                                                 continue;
                                                                         if((d_info[pos[6]*3+2]&1)!=1)
                                                                                 continue;
-                                                                        if(d_info[pos[2]*3+1]+d_primer[turn[2]*10+1]>d_info[pos[6]*3+1])
+                                                                        if(d_info[pos[2]*3+1]+d_primer[turn[ID_thread*8+3]*10+1]>d_info[pos[6]*3+1])
                                                                                 continue;
-                                                                        if(d_info[pos[6]*3+1]+d_primer[LF*10+1]>d_info[pos[1]*3+1])
+                                                                        if(d_info[pos[6]*3+1]+d_primer[turn[ID_thread*8+2]*10+1]>d_info[pos[1]*3+1])
                                                                                 continue;
                                                                         dis=1;
                                                                         break;
@@ -2156,18 +2160,18 @@ __device__ int check_common(int *d_primer,int *d_info,int turn[],int LF,int LB,i
                                                                         continue;
                                                         }
                                                 //LB
-                                                        if(LB!=-1)
+                                                        if(turn[ID_thread*8+5]!=-1)
                                                         {
                                                                 dis=0;
-                                                                for(pos[6]=d_primer[LB*10+3];pos[6]=d_primer[LB*10+4];pos[6]++)
+                                                                for(pos[6]=d_primer[turn[ID_thread*8+5]*10+3];pos[6]=d_primer[turn[ID_thread*8+5]*10+4];pos[6]++)
                                                                 {
                                                                         if(d_info[pos[6]*3]!=i)
                                                                                 continue;
                                                                         if((d_info[pos[6]*3+2]&2)!=2)
                                                                                 continue;
-                                                                        if(d_info[pos[4]*3+1]+d_primer[turn[4]*10+1]>d_info[pos[6]*3+1])
+                                                                        if(d_info[pos[4]*3+1]+d_primer[turn[ID_thread*8+6]*10+1]>d_info[pos[6]*3+1])
                                                                                 continue;
-                                                                        if(d_info[pos[6]*3+1]+d_primer[LB*10+1]>d_info[pos[3]*3+1])
+                                                                        if(d_info[pos[6]*3+1]+d_primer[turn[ID_thread*8+5]*10+1]>d_info[pos[3]*3+1])
                                                                                 continue;
                                                                         dis=1;
                                                                         break;
@@ -2175,7 +2179,7 @@ __device__ int check_common(int *d_primer,int *d_info,int turn[],int LF,int LB,i
                                                                 if(dis==0)
                                                                         continue;
                                                         }
-							d_apply[turn[0]*const_int[7]+i]=1;
+							d_result[(8+const_int[7])*turn[ID_thread*8]+8+i]=1;
                                                 }
                                         }
                                 }
@@ -2185,264 +2189,144 @@ __device__ int check_common(int *d_primer,int *d_info,int turn[],int LF,int LB,i
 	dis=0;
         for(i=0;i<const_int[7];i++)
         {
-                dis=dis+d_apply[const_int[7]*turn[0]+i];
+                dis=dis+d_result[(8+const_int[7])*turn[ID_thread*8]+8+i];
         }
         return dis;
 }
 
-__device__ int check_structure_loop(char *d_seq,int *d_primer,int turn[],int LF,int LB,double *d_DPT,int id,int *d_ps,char *d_numSeq)
+__device__ int design_loop(int *d_primer,char *d_seq,int *d_info,int turn[],int ID_thread,int *d_result,double *d_DPT,int id,int *d_ps,char *d_numSeq,double *d_TH)
 {
-        int i;
-        double TH;
-
-        if(LF!=-1)
-        {
-                for(i=0;i<=1;i++)
-                {
-                        TH=thal(d_seq,d_primer,turn[i],LF,const_int[11+i],1,1,d_DPT,id,d_ps,d_numSeq);
-                        if(TH>44+5*const_int[9])
-                                return 0;
-                        TH=thal(d_seq,d_primer,turn[i],LF,const_int[11+i],1,2,d_DPT,id,d_ps,d_numSeq);
-                        if(TH>44+5*const_int[9])
-                                return 0;
-                        TH=thal(d_seq,d_primer,turn[i],LF,const_int[11+i],1,3,d_DPT,id,d_ps,d_numSeq);
-                        if(TH>44+5*const_int[9])
-                                return 0;
-
-                        TH=thal(d_seq,d_primer,LF,turn[i],0,(1-const_int[11+i]),2,d_DPT,id,d_ps,d_numSeq);
-                        if(TH>44+5*const_int[9])
-                                return 0;
-                        TH=thal(d_seq,d_primer,LF,turn[i],0,(1-const_int[11+i]),3,d_DPT,id,d_ps,d_numSeq);
-                        if(TH>44+5*const_int[9])
-                                return 0;
-                }
-
-                for(i=2;i<6;i++)
-                {
-                        TH=thal(d_seq,d_primer,LF,turn[i],1,const_int[11+i],1,d_DPT,id,d_ps,d_numSeq);
-                        if(TH>44+5*const_int[9])
-                                return 0;
-                        TH=thal(d_seq,d_primer,LF,turn[i],1,const_int[11+i],2,d_DPT,id,d_ps,d_numSeq);
-                        if(TH>44+5*const_int[9])
-                                return 0;
-                        TH=thal(d_seq,d_primer,LF,turn[i],1,const_int[11+i],3,d_DPT,id,d_ps,d_numSeq);
-                        if(TH>44+5*const_int[9])
-                                return 0;
-
-                        TH=thal(d_seq,d_primer,turn[i],LF,(1-const_int[11+i]),0,2,d_DPT,id,d_ps,d_numSeq);
-                        if(TH>44+5*const_int[9]) 
-                                return 0;
-                        TH=thal(d_seq,d_primer,turn[i],LF,(1-const_int[11+i]),0,3,d_DPT,id,d_ps,d_numSeq);
-                        if(TH>44+5*const_int[9])
-                                return 0;
-                }
-        }
-        if(LB!=-1)
-        {
-                for(i=0;i<4;i++)
-                {
-                        TH=thal(d_seq,d_primer,turn[i],LB,const_int[11+i],0,1,d_DPT,id,d_ps,d_numSeq);
-                        if(TH>44+5*const_int[9])
-                                return 0;
-                        TH=thal(d_seq,d_primer,turn[i],LB,const_int[11+i],0,2,d_DPT,id,d_ps,d_numSeq);
-                        if(TH>44+5*const_int[9])
-                                return 0;
-                        TH=thal(d_seq,d_primer,turn[i],LB,const_int[11+i],0,3,d_DPT,id,d_ps,d_numSeq);
-                        if(TH>44+5*const_int[9])
-                                return 0;
-
-                        TH=thal(d_seq,d_primer,LB,turn[i],1,(1-const_int[11+i]),2,d_DPT,id,d_ps,d_numSeq);
-                        if(TH>44+5*const_int[9])
-                                return 0;
-                        TH=thal(d_seq,d_primer,LB,turn[i],1,(1-const_int[11+i]),3,d_DPT,id,d_ps,d_numSeq);
-                        if(TH>44+5*const_int[9])
-                                return 0;
-                }
-                for(i=4;i<6;i++)
-                {
-                        TH=thal(d_seq,d_primer,LB,turn[i],0,const_int[11+i],1,d_DPT,id,d_ps,d_numSeq);
-                        if(TH>44+5*const_int[9])
-                                return 0;
-                        TH=thal(d_seq,d_primer,LB,turn[i],0,const_int[11+i],2,d_DPT,id,d_ps,d_numSeq);
-                        if(TH>44+5*const_int[9])
-                                return 0;
-                        TH=thal(d_seq,d_primer,LB,turn[i],0,const_int[11+i],3,d_DPT,id,d_ps,d_numSeq);
-                        if(TH>44+5*const_int[9])
-                                return 0;
-
-                        TH=thal(d_seq,d_primer,turn[i],LB,(1-const_int[11+i]),1,2,d_DPT,id,d_ps,d_numSeq);
-                        if(TH>44+5*const_int[9])
-                                return 0;
-                        TH=thal(d_seq,d_primer,turn[i],LB,(1-const_int[11+i]),1,3,d_DPT,id,d_ps,d_numSeq);
-                        if(TH>44+5*const_int[9])
-                                return 0;
-                }
-        }
-        if(LF!=-1&&LB!=-1)
-        {
-                TH=thal(d_seq,d_primer,LF,LB,1,0,1,d_DPT,id,d_ps,d_numSeq);
-                if(TH>44+5*const_int[9])
-                        return 0;
-                TH=thal(d_seq,d_primer,LF,LB,1,0,2,d_DPT,id,d_ps,d_numSeq);
-                if(TH>44+5*const_int[9])
-                        return 0;
-                TH=thal(d_seq,d_primer,LF,LB,1,0,3,d_DPT,id,d_ps,d_numSeq);
-                if(TH>44+5*const_int[9])
-                        return 0;
-
-                TH=thal(d_seq,d_primer,LB,LF,1,0,2,d_DPT,id,d_ps,d_numSeq);
-                if(TH>44+5*const_int[9])
-                        return 0;
-                TH=thal(d_seq,d_primer,LB,LF,1,0,3,d_DPT,id,d_ps,d_numSeq);
-                if(TH>44+5*const_int[9])
-                        return 0;
-        }
-        return 1;
-}
-
-__device__ int design_loop(int *d_primer,char *d_seq,int *d_info,int turn[],int *d_apply,int *d_par,double *d_DPT,int id,int *d_ps,char *d_numSeq)
-{
-        int success,LF,LB;
+        int success;
 
 //LF and LB 
         success=0;
-	LF=d_primer[turn[1]*10+9];
-        while(LF<const_int[2]+const_int[0]+const_int[1])
+	turn[ID_thread*8+2]=d_primer[turn[ID_thread*8+1]*10+9];
+        while(turn[ID_thread*8+2]<const_int[2]+const_int[0]+const_int[1])
         {
-		if(LF==-1)
+		if(turn[ID_thread*8+2]==-1)
 			break;
-		if(d_primer[4*LF+3]!=1)
+		if((d_primer[turn[ID_thread*8+2]*10+2]&2)!=2)
 		{
-			LF++;
+			turn[ID_thread*8+2]++;
 			continue;
 		}
-                if(d_primer[4*LF]+18>d_primer[4*turn[2]])
+                if(d_primer[turn[ID_thread*8+2]*10]+18>d_primer[turn[ID_thread*8+3]*10])
                         break;
-                LB=d_primer[turn[3]*10+9];
-		if(LB==-1||d_primer[4*LB]+18>d_primer[4*turn[4]])
+                turn[ID_thread*8+5]=d_primer[turn[ID_thread*8+3]*10+9];
+		if(turn[ID_thread*8+5]==-1||d_primer[turn[ID_thread*8+5]*10]+18>d_primer[turn[ID_thread*8+6]*10])
 			break;
-                while(LB<const_int[2]+const_int[0]+const_int[1])
+                while(turn[ID_thread*8+5]<const_int[2]+const_int[0]+const_int[1])
                 {
-			if(d_primer[4*LB+2]!=1)
+			if((d_primer[turn[ID_thread*8+5]*10+2]&1)!=1)
 			{
-				LB++;
+				turn[ID_thread*8+5]++;
 				continue;
 			}
-                        if(d_primer[4*LB]+18>d_primer[4*turn[4]])
+                        if(d_primer[turn[ID_thread*8+5]*10]+18>d_primer[turn[ID_thread*8+6]*10])
                                 break;
                 //check_common
                         if(const_int[3])
                         {
-                                success=check_common(d_primer,d_info,turn,LF,LB,d_apply);
+                                success=check_common(d_primer,d_info,turn,ID_thread,d_result);
                                 if(success==0)
                                 {
-                                        LB++;
+                                        turn[ID_thread*8+5]++;
                                         continue;
                                 }
                         }
                 //check_structure
                         if(const_int[6])
                         {
-                                success=check_structure_loop(d_seq,d_primer,turn,LF,LB,d_DPT,id,d_ps,d_numSeq);
+                                success=check_structure(d_seq,d_primer,turn,ID_thread,d_TH,id,d_DPT,d_ps,d_numSeq);
                                 if(success==0)
                                 {
-                                        LB++;
+                                        turn[ID_thread*8+5]++;
                                         continue;
                                 }
                         }
-                        d_par[16*turn[0]+12]=d_primer[4*LF];
-			d_par[16*turn[0]+13]=d_primer[4*LF+1];
-			d_par[16*turn[0]+14]=d_primer[4*LB];
-			d_par[16*turn[0]+15]=d_primer[4*LB+1];
                         success=1;
                         break;
                 }
                 if(success==1)
                         break;
                 else
-                        LF++;
+                        turn[ID_thread*8+2]++;
         }
         if(success==1)
                 return success;
 //only LF
-        LF=d_primer[turn[1]*10+9];
-        while(LF<const_int[2]+const_int[1]+const_int[0])
+        turn[ID_thread*8+2]=d_primer[turn[ID_thread*8+1]*10+9];
+	turn[ID_thread*8+5]=-1;
+        while(turn[ID_thread*8+2]<const_int[2]+const_int[1]+const_int[0])
         {
-		if(LF==-1)
+		if(turn[ID_thread*8+2]==-1)
 			break;
-                if(d_primer[4*LF]+18>d_primer[4*turn[2]])
+                if(d_primer[turn[ID_thread*8+2]*10]+18>d_primer[turn[ID_thread*8+3]*10])
                         break;
-		if(d_primer[4*LF+3]!=1)
+		if((d_primer[4*turn[ID_thread*8+2]+2]&2)!=2)
 		{
-			LF++;
+			turn[ID_thread*8+2]++;
 			continue;
 		}
         //check_common
                 if(const_int[3])
                 {
-                        success=check_common(d_primer,d_info,turn,LF,-1,d_apply);
+                        success=check_common(d_primer,d_info,turn,ID_thread,d_result);
                         if(success==0)
                         {
-                                LF++;
+                                turn[ID_thread*8+2]++;
                                 continue;
                         }
                 }
         //check_structure
                 if(const_int[6])
                 {
-                        success=check_structure_loop(d_seq,d_primer,turn,LF,-1,d_DPT,id,d_ps,d_numSeq);
+                        success=check_structure(d_seq,d_primer,turn,ID_thread,d_TH,id,d_DPT,d_ps,d_numSeq);
                         if(success==0)
                         {
-                                LF++;
+                                turn[ID_thread*8+2]++;
                                 continue;
                         }
                 }
-		d_par[16*turn[0]+12]=d_primer[4*LF];
-		d_par[16*turn[0]+13]=d_primer[4*LF+1];
-		d_par[16*turn[0]+14]=0;
-		d_par[16*turn[0]+15]=0;
                 success=1;
                 break;
         }
         if(success==1)
                 return success;
 //only LB
-        LB=d_primer[turn[3]*10+9];
-        while(LB<const_int[2]+const_int[0]+const_int[1])
+        turn[ID_thread*8+5]=d_primer[turn[ID_thread*8+3]*10+9];
+	turn[ID_thread*8+2]=-1;
+        while(turn[ID_thread*8+5]<const_int[2]+const_int[0]+const_int[1])
         {
-		if(LB==-1)
+		if(turn[ID_thread*8+5]==-1)
 			break;
-                if(d_primer[LB*4]+18>d_primer[4*turn[4]])
+                if(d_primer[turn[ID_thread*8+5]*10]+18>d_primer[turn[ID_thread*8+6]*10])
                         break;
-		if(d_primer[LB*4+2]!=1)
+		if((d_primer[turn[ID_thread*8+5]*4+2]&1)!=1)
 		{
-			LB++;
+			turn[ID_thread*8+5]++;
 			continue;
 		}
         //check_common
                 if(const_int[3])
                 {
-                        success=check_common(d_primer,d_info,turn,-1,LB,d_apply);
+                        success=check_common(d_primer,d_info,turn,ID_thread,d_result);
                         if(success==0)
                         {
-                                LB++;
+                                turn[ID_thread*8+5]++;
                                 continue;
                         }
                 }
         //check_structure
                 if(const_int[6])
                 {
-                        success=check_structure_loop(d_seq,d_primer,turn,-1,LB,d_DPT,id,d_ps,d_numSeq);
+                        success=check_structure(d_seq,d_primer,turn,ID_thread,d_TH,id,d_DPT,d_ps,d_numSeq);
                         if(success==0)
                         {
-                                LB++;
+                                turn[ID_thread*8+5]++;
                                 continue;
                         }
                 }
-		d_par[16*turn[0]+12]=0;
-		d_par[16*turn[0]+13]=0;
-		d_par[16*turn[0]+14]=d_primer[4*LB];
-		d_par[16*turn[0]+15]=d_primer[4*LB+1];
                 success=1;
                 break;
         }
@@ -2450,15 +2334,16 @@ __device__ int design_loop(int *d_primer,char *d_seq,int *d_info,int turn[],int 
 }
 
 //caculate
-__global__ void LAMP(char *d_seq,int *d_primer,int *d_info,int *d_par,int *d_apply,double *d_TH,double *d_DPT,int *d_ps,char *d_numSeq)
+__global__ void LAMP(char *d_seq,int *d_primer,int *d_info,int *d_result,double *d_TH,double *d_DPT,int *d_ps,char *d_numSeq)
 //const_int: 0:numS,1:numL,2:numLp,3:common_flag,4:special_flag,5:loop_flag,6:secondary_flag,7:common_num,8:this turn common_num,9:high_GC_flag; 10:expect
 {
 	int id=blockDim.x*blockIdx.x+threadIdx.x;
-	int turn[6],flag;
+	int flag;
+	__shared__ int turn[8192];
 
 	while(id<const_int[0])
 	{
-		d_par[16*id+1]=0;//not LAMP, as a flag
+		d_result[id*(8+const_int[7])]=-1;//not LAMP, as a flag
 //check add by F3'pos
 		if((d_primer[id*10+2]&1)!=1)
 		{
@@ -2466,78 +2351,81 @@ __global__ void LAMP(char *d_seq,int *d_primer,int *d_info,int *d_par,int *d_app
 			continue;
 		}
 	//combine
-		turn[0]=id; //one thread, one F3
+		turn[threadIdx.x*8]=id; //one thread, one F3
 		flag=0;
-		for(turn[1]=d_primer[id*10+7];turn[1]<const_int[0];turn[1]++) //F2
+		for(turn[threadIdx.x*8+1]=d_primer[id*10+7];turn[threadIdx.x*8+1]<const_int[0];turn[threadIdx.x*8+1]++) //F2
 		{
-			if(turn[1]==-1)
+			if(turn[threadIdx.x*8+1]==-1)
 				break;
 			if(flag!=0)
 				break; //have find one LAMP primer
-			if((d_primer[turn[1]*10+2]&1)!=1)
+			if((d_primer[turn[threadIdx.x*8+1]*10+2]&1)!=1)
 				continue;
-			if(d_primer[turn[1]*10]-(d_primer[turn[0]*10]+d_primer[turn[0]*10+1])>20)
+			if(d_primer[turn[threadIdx.x*8+1]*10]-(d_primer[turn[threadIdx.x*8]*10]+d_primer[turn[threadIdx.x*8]*10+1])>20)
 				break;
-			for(turn[2]=d_primer[turn[1]*10+8];turn[2]<const_int[1]+const_int[0];turn[2]++) //F1c
+			for(turn[threadIdx.x*8+3]=d_primer[turn[threadIdx.x*8+1]*10+8];turn[threadIdx.x*8+3]<const_int[1]+const_int[0];turn[threadIdx.x*8+3]++) //F1c
 			{
-				if(turn[2]==-1)
+				if(turn[threadIdx.x*8+3]==-1)
 					break;
 				if(flag!=0)
 					break;
-				if((d_primer[turn[2]*10+2]&2)!=2)
+				if((d_primer[turn[threadIdx.x*8+3]*10+2]&2)!=2)
 					continue;
-				if(d_primer[turn[2]*10]-d_primer[turn[1]*10]-1<40)
+				if(d_primer[turn[threadIdx.x*8+3]*10]-d_primer[turn[threadIdx.x*8+1]*10]-1<40)
 					continue;
-                                if(d_primer[turn[2]*10]-d_primer[turn[1]*10]-1>60)
+                                if(d_primer[turn[threadIdx.x*8+3]*10]-d_primer[turn[threadIdx.x*8+1]*10]-1>60)
                                 	break;
-                                for(turn[3]=d_primer[turn[2]*10+7];turn[3]<const_int[1]+const_int[0];turn[3]++)   //B1c
+                                for(turn[threadIdx.x*8+4]=d_primer[turn[threadIdx.x*8+3]*10+7];turn[threadIdx.x*8+4]<const_int[1]+const_int[0];turn[threadIdx.x*8+4]++)   //B1c
                                 {
-                                        if(turn[3]==-1)
+                                        if(turn[threadIdx.x*8+4]==-1)
                                         	break;
 					if(flag!=0)
 						break;
-					if((d_primer[turn[3]*10+2]&1)!=1)
+					if((d_primer[turn[threadIdx.x*8+4]*10+2]&1)!=1)
 						continue;
-                                        if(d_primer[turn[3]*10]-d_primer[turn[2]*10]>85)
+                                        if(d_primer[turn[threadIdx.x*8+4]*10]-d_primer[turn[threadIdx.x*8+3]*10]>85)
                                         	break;
-                                        for(turn[4]=d_primer[turn[3]*10+8];turn[4]<const_int[0];turn[4]++)   //B2
+                                        for(turn[threadIdx.x*8+6]=d_primer[turn[threadIdx.x*8+4]*10+8];turn[threadIdx.x*8+6]<const_int[0];turn[threadIdx.x*8+6]++)   //B2
                                         {
-                                                if(turn[4]==-1)
+                                                if(turn[threadIdx.x*8+6]==-1)
                                                 	break;
 						if(flag!=0)
 							break;
-						if((d_primer[turn[4]*10+2]&2)!=2)
+						if((d_primer[turn[threadIdx.x*8+6]*10+2]&2)!=2)
 							continue;
-                                                if((d_primer[turn[4]*10]+d_primer[turn[4]*10+1]-1)-(d_primer[turn[3]*10]+d_primer[turn[3]*10+1])<40)
+                                                if((d_primer[turn[threadIdx.x*8+6]*10]+d_primer[turn[threadIdx.x*8+6]*10+1]-1)-(d_primer[turn[threadIdx.x*8+4]*10]+d_primer[turn[threadIdx.x*8+4]*10+1])<40)
                                                 	continue;
-                                                if((d_primer[turn[4]*10]+d_primer[turn[4]*10+1]-1)-(d_primer[turn[3]*10]+d_primer[turn[3]*10+1])>60)
+                                                if((d_primer[turn[threadIdx.x*8+6]*10]+d_primer[turn[threadIdx.x*8+6]*10+1]-1)-(d_primer[turn[threadIdx.x*8+4]*10]+d_primer[turn[threadIdx.x*8+4]*10+1])>60)
                                                 	break;
-                                                if(d_primer[turn[4]*10]+d_primer[turn[4]*10+1]-1-d_primer[turn[1]*10]-1<120)
+                                                if(d_primer[turn[threadIdx.x*8+6]*10]+d_primer[turn[threadIdx.x*8+6]*10+1]-1-d_primer[turn[threadIdx.x*8+1]*10]-1<120)
                                                 	continue;
-                                                if(d_primer[turn[4]*10]+d_primer[turn[4]*10+1]-1-d_primer[turn[1]*10]-1>180)
+                                                if(d_primer[turn[threadIdx.x*8+6]*10]+d_primer[turn[threadIdx.x*8+6]*10+1]-1-d_primer[turn[threadIdx.x*8+1]*10]-1>180)
                                                 	break;
-						if(const_int[5]&&(d_primer[turn[1]*10+9]==-1||(d_primer[d_primer[turn[1]*10+9]*10]+18>d_primer[turn[2]*10]))&&(d_primer[turn[3]*10+9]==-1||(d_primer[d_primer[turn[3]*10+9]*10]+18>d_primer[turn[4]*10])))
+						if(const_int[5]&&(d_primer[turn[threadIdx.x*8+1]*10+9]==-1||(d_primer[d_primer[turn[threadIdx.x*8+1]*10+9]*10]+18>d_primer[turn[threadIdx.x*8+3]*10]))&&(d_primer[turn[threadIdx.x*8+4]*10+9]==-1||(d_primer[d_primer[turn[threadIdx.x*8+4]*10+9]*10]+18>d_primer[turn[threadIdx.x*8+6]*10])))
 							continue;
-                                                for(turn[5]=d_primer[turn[4]*10+7];turn[5]<const_int[0];turn[5]++)  //B3
+                                                for(turn[threadIdx.x*8+7]=d_primer[turn[threadIdx.x*8+6]*10+7];turn[threadIdx.x*8+7]<const_int[0];turn[threadIdx.x*8+7]++)  //B3
                                                 {
-                                                        if(turn[5]==-1)
+                                                        if(turn[threadIdx.x*8+7]==-1)
                                                         	break;
-							if((d_primer[turn[5]*10+2]&2)!=2)
+							if((d_primer[turn[threadIdx.x*8+7]*10+2]&2)!=2)
 								continue;
-                                                        if(d_primer[turn[5]*10]-(d_primer[turn[4]*10]+d_primer[turn[4]*10+1])>20)
+                                                        if(d_primer[turn[threadIdx.x*8+7]*10]-(d_primer[turn[threadIdx.x*8+6]*10]+d_primer[turn[threadIdx.x*8+6]*10+1])>20)
                                                         	break;
-							flag=check_gc(d_seq,d_primer[turn[0]*10],(d_primer[turn[5]*10]+d_primer[turn[5]*10+1]),const_int[9]);
+							flag=check_gc(d_seq,d_primer[turn[threadIdx.x*8]*10],(d_primer[turn[threadIdx.x*8+7]*10]+d_primer[turn[threadIdx.x*8+7]*10+1]),const_int[9]);
 							if(flag==0)
 								continue;
 							if(const_int[4]!=0)
 							{
-								flag=check_uniq(d_primer,d_info,turn);
+								flag=check_uniq(d_primer,d_info,turn,threadIdx.x);
 								if(flag==0)
 									continue;
 							}
+
+							turn[threadIdx.x*8+2]=-1;
+							turn[threadIdx.x*8+5]=-1; //loop
 							if(const_int[3])
 							{
-								flag=check_common(d_primer,d_info,turn,-1,-1,d_apply);
+								flag=check_common(d_primer,d_info,turn,threadIdx.x,d_result);
 								if(flag<const_int[8])
 								{
 									flag=0;
@@ -2546,28 +2434,24 @@ __global__ void LAMP(char *d_seq,int *d_primer,int *d_info,int *d_par,int *d_app
 							}
 							if(const_int[6])
 							{
-								flag=check_structure(d_seq,d_primer,turn,d_TH,id,d_DPT,d_ps,d_numSeq);
+								flag=check_structure(d_seq,d_primer,turn,threadIdx.x,d_TH,id,d_DPT,d_ps,d_numSeq);
 								if(flag==0)
 									continue;
 							}
 							if(const_int[5])
 							{
-								flag=design_loop(d_primer,d_seq,d_info,turn,d_apply,d_par,d_DPT,id,d_ps,d_numSeq);
+								flag=design_loop(d_primer,d_seq,d_info,turn,threadIdx.x,d_result,d_DPT,id,d_ps,d_numSeq,d_TH);
 								if(flag==0)
 									continue;
 							}
-							d_par[id*16]=d_primer[turn[0]*10];
-							d_par[id*16+1]=d_primer[turn[0]*10+1];
-							d_par[id*16+2]=d_primer[turn[1]*10];
-							d_par[id*16+3]=d_primer[turn[1]*10+1];
-							d_par[id*16+4]=d_primer[turn[2]*10];
-							d_par[id*16+5]=d_primer[turn[2]*10+1];
-							d_par[id*16+6]=d_primer[turn[3]*10];
-							d_par[id*16+7]=d_primer[turn[3]*10+1];
-							d_par[id*16+8]=d_primer[turn[4]*10];
-							d_par[id*16+9]=d_primer[turn[4]*10+1];
-							d_par[id*16+10]=d_primer[turn[5]*10];
-							d_par[id*16+11]=d_primer[turn[5]*10+1];
+							d_result[id*(8+const_int[7])]=turn[threadIdx.x*8];
+							d_result[id*(8+const_int[7])+1]=turn[threadIdx.x*8+1];
+							d_result[id*(8+const_int[7])+2]=turn[threadIdx.x*8+2];
+							d_result[id*(8+const_int[7])+3]=turn[threadIdx.x*8+3];
+							d_result[id*(8+const_int[7])+4]=turn[threadIdx.x*8+4];
+							d_result[id*(8+const_int[7])+5]=turn[threadIdx.x*8+5];
+							d_result[id*(8+const_int[7])+6]=turn[threadIdx.x*8+6];
+							d_result[id*(8+const_int[7])+7]=turn[threadIdx.x*8+7];
 							break;
 						}
 					}
@@ -2662,8 +2546,8 @@ main(int argc,char **argv)
 	double *H_parameter;	
 	long int memory;
 	cudaDeviceProp prop;
-	int *d_primer,*d_info,*d_apply,*d_par;
-	int *h_primer,*h_info,*h_apply,*h_par,h_int[17],*h_pos,*d_ps;
+	int *d_primer,*d_info,*d_result;
+	int *h_primer,*h_info,*h_result,h_int[19],*h_pos,*d_ps;
 	double *h_TH,*d_TH,*d_DPT;
 	
 	expect=10; //default output max 10 LAMP primers
@@ -2915,10 +2799,12 @@ main(int argc,char **argv)
 
 		h_int[11]=0; //F3,plus
 		h_int[12]=0;
-		h_int[13]=1; //F1c,minus
-		h_int[14]=0;
-		h_int[15]=1;
-		h_int[16]=1;
+		h_int[13]=1; //LF,minus
+		h_int[14]=1;//F1c
+		h_int[15]=0;//B1c
+		h_int[16]=0;
+		h_int[17]=1;
+		h_int[18]=1;
         }
 //F3's pos 
 	h_pos=(int *)malloc(expect*sizeof(int));
@@ -3052,7 +2938,7 @@ main(int argc,char **argv)
         }
 
 	cudaGetDeviceProperties(&prop,0); //read parameters
-	thread=1;
+	thread=200;
 	fp=fopen(output,"w");
         if(fp==NULL)
         {
@@ -3347,7 +3233,6 @@ main(int argc,char **argv)
 				block=prop.maxGridSize[0]/2;
 
 			cudaMemcpy(d_primer,h_primer,10*count[0]*sizeof(int),cudaMemcpyHostToDevice);
-			free(h_primer);
 			if(flag[5]||flag[6])
 			{
 				cudaMemcpy(d_info,h_info,3*count[1]*sizeof(int),cudaMemcpyHostToDevice);
@@ -3366,17 +3251,15 @@ main(int argc,char **argv)
                         	next_one<<<block,thread>>>(d_primer,num[2],(num[1]+num[2]),(num[1]+num[2]),(num[1]+num[2]+num[7]),9);//inner_to_loop
 			}
 		//calculate
-			if(flag[5])
-				cudaMalloc((void **)&d_apply,common_num[0]*num[2]*sizeof(int));
 			h_int[8]=circle;
-			cudaMemcpyToSymbol(const_int,h_int,17*sizeof(int));
-			cudaMalloc((void **)&d_par,num[2]*16*sizeof(int));
+			cudaMemcpyToSymbol(const_int,h_int,19*sizeof(int));
+			cudaMalloc((void **)&d_result,num[2]*(8+common_num[0])*sizeof(int));
 		cudaMalloc((void **)&d_TH,2*num[2]*sizeof(double));
 		h_TH=(double *)malloc(2*num[2]*sizeof(double));
 			cudaMalloc((void **)&d_DPT,num[2]*1263*sizeof(double));
 			cudaMalloc((void **)&d_ps,num[2]*62*sizeof(int));
 			cudaMalloc((void **)&d_numSeq,num[2]*54*sizeof(char));
-			LAMP<<<block,thread>>>(d_seq,d_primer,d_info,d_par,d_apply,d_TH,d_DPT,d_ps,d_numSeq);
+			LAMP<<<block,thread>>>(d_seq,d_primer,d_info,d_result,d_TH,d_DPT,d_ps,d_numSeq);
 			cudaFree(d_DPT);
 			cudaFree(d_ps);
 			cudaFree(d_numSeq);
@@ -3384,16 +3267,10 @@ main(int argc,char **argv)
 		cudaFree(d_TH);
 		printf("%lf\t%lf\n",h_TH[0],h_TH[1]);
 		free(h_TH);
-			h_par=(int *)malloc(16*num[2]*sizeof(int));
-			memset(h_par,'\0',16*num[2]*sizeof(int));
-			cudaMemcpy(h_par,d_par,16*num[2]*sizeof(int),cudaMemcpyDeviceToHost);
-			cudaFree(d_par);
-			if(flag[5])
-			{
-				h_apply=(int *)malloc(common_num[0]*num[2]*sizeof(int));
-				cudaMemcpy(h_apply,d_apply,common_num[0]*num[2]*sizeof(int),cudaMemcpyDeviceToHost);
-				cudaFree(d_apply);
-			}
+			h_result=(int *)malloc((8+common_num[0])*num[2]*sizeof(int));
+			memset(h_result,'\0',(8+common_num[0])*num[2]*sizeof(int));
+			cudaMemcpy(h_result,d_result,(8+common_num[0])*num[2]*sizeof(int),cudaMemcpyDeviceToHost);
+			cudaFree(d_result);
 	//free
 			cudaFree(d_primer);
 			if(flag[5]||flag[6])
@@ -3403,38 +3280,47 @@ main(int argc,char **argv)
 			{
 				if(have>expect)
 					break;
-				if(h_par[i*16+1]==0)
+				j=h_result[i*(8+common_num[0])];
+				if(j==-1)
 					continue;
-				if(check_add(h_par[i*16],h_pos,have)==0)
+				if(check_add(h_primer[j*10],h_pos,have)==0)
 					continue;
 				fprintf(fp,"The %d LAMP primers:\n",have);
-		                generate_primer(seq,primer,h_par[i*16],h_par[i*16+1],0);
-		                fprintf(fp,"  F3: pos:%d,length:%d bp, primer(5'-3'):%s\n",h_par[i*16],h_par[i*16+1],primer);
-		                generate_primer(seq,primer,h_par[i*16+2],h_par[i*16+3],0);
-		                fprintf(fp,"  F2: pos:%d,length:%d bp, primer(5'-3'):%s\n",h_par[i*16+2],h_par[i*16+3],primer);
-		                generate_primer(seq,primer,h_par[i*16+4],h_par[i*16+5],1);
-		                fprintf(fp,"  F1c: pos:%d,length:%d bp, primer(5'-3'):%s\n",h_par[i*16+4],h_par[i*16+5],primer);
-		                generate_primer(seq,primer,h_par[i*16+6],h_par[i*16+7],0);
-		                fprintf(fp,"  B1c: pos:%d,length:%d bp, primer(5'-3'):%s\n",h_par[i*16+6],h_par[i*16+7],primer);
-		                generate_primer(seq,primer,h_par[i*16+8],h_par[i*16+9],1);
-		                fprintf(fp,"  B2: pos:%d,length:%d bp, primer(5'-3'):%s\n",h_par[i*16+8],h_par[i*16+9],primer);
-		                generate_primer(seq,primer,h_par[i*16+10],h_par[i*16+11],1);
-		                fprintf(fp,"  B3: pos:%d,length:%d bp, primer(5'-3'):%s\n",h_par[i*16+10],h_par[i*16+11],primer);
+		                generate_primer(seq,primer,h_primer[10*j],h_primer[j*10+1],0);
+		                fprintf(fp,"  F3: pos:%d,length:%d bp, primer(5'-3'):%s\n",h_primer[10*j],h_primer[j*10+1],primer);
+				j=h_result[i*(8+common_num[0])+1];
+		                generate_primer(seq,primer,h_primer[j*10],h_primer[j*10+1],0);
+		                fprintf(fp,"  F2: pos:%d,length:%d bp, primer(5'-3'):%s\n",h_primer[10*j],h_primer[j*10+1],primer);
+				j=h_result[i*(8+common_num[0])+3];
+		                generate_primer(seq,primer,h_primer[j*10],h_primer[j*10+1],1);
+		                fprintf(fp,"  F1c: pos:%d,length:%d bp, primer(5'-3'):%s\n",h_primer[j*10],h_primer[j*10+1],primer);
+				j=h_result[i*(8+common_num[0])+4];
+		                generate_primer(seq,primer,h_primer[j*10],h_primer[j*10+1],0);
+		                fprintf(fp,"  B1c: pos:%d,length:%d bp, primer(5'-3'):%s\n",h_primer[j*10],h_primer[j*10+1],primer);
+				j=h_result[i*(8+common_num[0])+6];
+		                generate_primer(seq,primer,h_primer[j*10],h_primer[j*10+1],1);
+		                fprintf(fp,"  B2: pos:%d,length:%d bp, primer(5'-3'):%s\n",h_primer[j*10],h_primer[j*10+1],primer);
+				j=h_result[i*(8+common_num[0])+7];
+		                generate_primer(seq,primer,h_primer[j*10],h_primer[j*10+1],1);
+		                fprintf(fp,"  B3: pos:%d,length:%d bp, primer(5'-3'):%s\n",h_primer[j*10],h_primer[j*10+1],primer);
                 		if(flag[10])
                 		{
-                        		if(h_par[i*16+13]==0)
+					j=h_result[i*(8+common_num[0])+2];
+                        		if(j==-1)
                         		        fprintf(fp,"  LF: NULL\n");
                         		else
                         		{
-                        		        generate_primer(seq,primer,h_par[i*16+12],h_par[i*16+13],1);
-                        		        fprintf(fp,"  LF: pos:%d,length:%d bp, primer(5'-3'):%s\n",h_par[i*16+12],h_par[i*16+13],primer);
+                        		        generate_primer(seq,primer,h_primer[j*10],h_primer[j*10+1],1);
+                        		        fprintf(fp,"  LF: pos:%d,length:%d bp, primer(5'-3'):%s\n",h_primer[j*10],h_primer[j*10+1],primer);
                         		}
-		                        if(h_par[i*16+15]==0)
+
+					j=h_result[i*(8+common_num[0])+5];
+		                        if(j==-1)
 		                                fprintf(fp,"  LB: NULL\n");
 		                        else
 		                        {
-		                                generate_primer(seq,primer,h_par[i*16+14],h_par[i*16+15],0);
-		                                fprintf(fp,"  LB: pos:%d,length:%d bp, primer(5'-3'):%s\n",h_par[i*16+14],h_par[i*16+15],primer);
+		                                generate_primer(seq,primer,h_primer[j*10],h_primer[j*10+1],0);
+		                                fprintf(fp,"  LB: pos:%d,length:%d bp, primer(5'-3'):%s\n",h_primer[j*10],h_primer[j*10+1],primer);
 		                        }
 		                }
 		                if(flag[5])
@@ -3444,7 +3330,7 @@ main(int argc,char **argv)
 		                        p_list=headList;
                         		for(j=0;j<common_num[0];j++)
                         		{
-                                		if(h_apply[i*common_num[0]+j]==0)
+                                		if(h_result[i*(8+common_num[0])+8+j]==0)
                                 		        continue;
                                 		while(p_list)
                                 		{
@@ -3461,12 +3347,11 @@ main(int argc,char **argv)
 	       	                 	}
 		                        fprintf(fp,"\n");
 				}
-				h_pos[have-1]=h_par[i*16];
+				h_pos[have-1]=h_primer[h_result[i*(8+common_num[0])]*10];
 				have++;
 			}
-			if(flag[5])
-				free(h_apply);
-			free(h_par);
+			free(h_result);
+			free(h_primer);
 			if(have>expect)
 				break;
 		//new primer start
