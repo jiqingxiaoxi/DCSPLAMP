@@ -1527,41 +1527,54 @@ void generate_primer(char *seq,char primer[],int start,int length,int flag)
 	primer[length]='\0';
 }
 
-__device__ int check_structure(char *d_seq,int *d_primer,int turn[],int ID_thread,int id,double *d_DPT,int *d_ps,char *d_numSeq,double *d_out)
+__device__ void check_structure(char *d_seq,int *d_primer,int turn[],int ID_thread,int id,double *d_DPT,int *d_ps,char *d_numSeq,double *d_out,int sub[])
 {
-	int i,j;
-
-	for(i=0;i<7;i++)
+	for(sub[ID_thread*10]=0;sub[ID_thread*10]<7;sub[ID_thread*10]++)
 	{
-		for(j=i+1;j<8;j++)
+		for(sub[ID_thread*10+1]=sub[ID_thread*10]+1;sub[ID_thread*10+1]<8;sub[ID_thread*10+1]++)
 		{
-			if((i==2||i==5||j==2||j==5)&&(turn[ID_thread*8+2]==-1&&turn[ID_thread*8+5]==-1))
+			if((sub[ID_thread*10]==2||sub[ID_thread*10]==5||sub[ID_thread*10+1]==2||sub[ID_thread*10+1]==5)&&(turn[ID_thread*8+2]==-1&&turn[ID_thread*8+5]==-1))
 				continue;  //without-loop
-			if(turn[ID_thread*8+i]==-1||turn[ID_thread*8+j]==-1)
+			if(turn[ID_thread*8+sub[ID_thread*10]]==-1||turn[ID_thread*8+sub[ID_thread*10+1]]==-1)
 				continue; //when loop, don't have loop
-		if(i!=3||j!=4)
+		if(sub[ID_thread*10]!=3||sub[ID_thread*10+1]!=4)
 			continue;
-			thal(d_seq,d_primer,turn[ID_thread*8+i],turn[ID_thread*8+j],const_int[11+i],const_int[11+j],1,d_DPT,id,d_ps,d_numSeq);
+			thal(d_seq,d_primer,turn[ID_thread*8+sub[ID_thread*10]],turn[ID_thread*8+sub[ID_thread*10+1]],const_int[11+sub[ID_thread*10]],const_int[11+sub[ID_thread*10+1]],1,d_DPT,id,d_ps,d_numSeq);
 			if(d_DPT[id*1264+1263]>44+5*const_int[9])
-                                return 0;
+			{
+				sub[ID_thread*10+2]=0;
+                                return;
+			}
 		d_out[2*id]=d_DPT[id*1264+1263];
-			thal(d_seq,d_primer,turn[ID_thread*8+i],turn[ID_thread*8+j],const_int[11+i],const_int[11+j],2,d_DPT,id,d_ps,d_numSeq);
+			thal(d_seq,d_primer,turn[ID_thread*8+sub[ID_thread*10]],turn[ID_thread*8+sub[ID_thread*10+1]],const_int[11+sub[ID_thread*10]],const_int[11+sub[ID_thread*10+1]],2,d_DPT,id,d_ps,d_numSeq);
                         if(d_DPT[id*1264+1263]>44+5*const_int[9])
-                                return 0;
+			{
+				sub[ID_thread*10+2]=0;
+                                return;
+			}
 		d_out[2*id+1]=d_DPT[id*1264+1263];
-			thal(d_seq,d_primer,turn[ID_thread*8+i],turn[ID_thread*8+j],const_int[11+i],const_int[11+j],3,d_DPT,id,d_ps,d_numSeq);
+			thal(d_seq,d_primer,turn[ID_thread*8+sub[ID_thread*10]],turn[ID_thread*8+sub[ID_thread*10+1]],const_int[11+sub[ID_thread*10]],const_int[11+sub[ID_thread*10+1]],3,d_DPT,id,d_ps,d_numSeq);
                         if(d_DPT[id*1264+1263]>44+5*const_int[9])
-                                return 0;
+			{
+				sub[ID_thread*10+2]=0;
+                                return;
+			}
 
-			thal(d_seq,d_primer,turn[ID_thread*8+j],turn[ID_thread*8+i],(1-const_int[11+j]),(1-const_int[11+i]),2,d_DPT,id,d_ps,d_numSeq);
+			thal(d_seq,d_primer,turn[ID_thread*8+sub[ID_thread*10+1]],turn[ID_thread*8+sub[ID_thread*10]],(1-const_int[11+sub[ID_thread*10+1]]),(1-const_int[11+sub[ID_thread*10]]),2,d_DPT,id,d_ps,d_numSeq);
                         if(d_DPT[id*1264+1263]>44+5*const_int[9])
-                                return 0;
-                        thal(d_seq,d_primer,turn[ID_thread*8+j],turn[ID_thread*8+i],(1-const_int[11+j]),(1-const_int[11+i]),3,d_DPT,id,d_ps,d_numSeq);
+			{
+				sub[ID_thread*10+2]=0;
+                                return;
+			}
+                        thal(d_seq,d_primer,turn[ID_thread*8+sub[ID_thread*10+1]],turn[ID_thread*8+sub[ID_thread*10]],(1-const_int[11+sub[ID_thread*10+1]]),(1-const_int[11+sub[ID_thread*10]]),3,d_DPT,id,d_ps,d_numSeq);
                         if(d_DPT[id*1264+1263]>44+5*const_int[9])
-                                return 0;
+			{
+				sub[ID_thread*10+2]=0;
+                                return;
+			}
 		}
 	}
-	return 1;
+	sub[ID_thread*10+2]=1;
 }
 
 void how_many(struct Primer *head,int common)
@@ -1816,65 +1829,64 @@ struct Primer *read_par(char *path,int common_flag,int special_flag)
 
 //check this LAMP primers are uniq or not
 //return=0: stop and return=1: go on
-__device__ int check_uniq(int *d_primer,int *d_info,int turn[],int ID_thread)
+__device__ void check_uniq(int *d_primer,int *d_info,int turn[],int ID_thread,int sub[])
 {
-        int pos[6],gi;
-
 //plus
-        for(pos[0]=d_primer[turn[ID_thread*8]*10+5];pos[0]<d_primer[turn[ID_thread*8]*10+6];pos[0]++)
+        for(sub[ID_thread*10]=d_primer[turn[ID_thread*8]*10+5];sub[ID_thread*10]<d_primer[turn[ID_thread*8]*10+6];sub[ID_thread*10]++)
         {
-                if((d_info[pos[0]*3+2]&1)!=1)
+                if((d_info[sub[ID_thread*10]*3+2]&1)!=1)
                         continue;
-		gi=d_info[pos[0]*3];
-                for(pos[1]=d_primer[turn[ID_thread*8+1]*10+5];pos[1]<d_primer[turn[ID_thread*8+1]*10+6];pos[1]++)
+		sub[ID_thread*10+6]=d_info[sub[ID_thread*10]*3];
+                for(sub[ID_thread*10+1]=d_primer[turn[ID_thread*8+1]*10+5];sub[ID_thread*10+1]<d_primer[turn[ID_thread*8+1]*10+6];sub[ID_thread*10+1]++)
                 {
-			if(d_info[pos[1]*3]!=gi)
+			if(d_info[sub[ID_thread*10+1]*3]!=sub[ID_thread*10+6])
                                 continue;
-                        if((d_info[pos[1]*3+2]&1)!=1)
+                        if((d_info[sub[ID_thread*10+1]*3+2]&1)!=1)
 				continue;
-                        for(pos[2]=d_primer[turn[ID_thread*8+3]*10+5];pos[2]<d_primer[turn[ID_thread*8+3]*10+6];pos[2]++) //F1c
+                        for(sub[ID_thread*10+2]=d_primer[turn[ID_thread*8+3]*10+5];sub[ID_thread*10+2]<d_primer[turn[ID_thread*8+3]*10+6];sub[ID_thread*10+2]++) //F1c
                         {
-                                if(d_info[pos[2]*3]!=gi)
+                                if(d_info[sub[ID_thread*10+2]*3]!=sub[ID_thread*10+6])
                                         continue;
-                                if((d_info[pos[2]*3+2]&2)!=2)
+                                if((d_info[sub[ID_thread*10+2]*3+2]&2)!=2)
                                         continue;
-                                for(pos[3]=d_primer[turn[ID_thread*8+3]*10+5];pos[3]<d_primer[turn[ID_thread*8+3]*10+6];pos[3]++) //B1c
+                                for(sub[ID_thread*10+3]=d_primer[turn[ID_thread*8+3]*10+5];sub[ID_thread*10+3]<d_primer[turn[ID_thread*8+3]*10+6];sub[ID_thread*10+3]++) //B1c
                                 {
-                                        if(d_info[pos[3]*3]!=gi)
+                                        if(d_info[sub[ID_thread*10+3]*3]!=sub[ID_thread*10+6])
                                                 continue;
-                                        if((d_info[pos[3]*3+2]&1)!=1)
+                                        if((d_info[sub[ID_thread*10+3]*3+2]&1)!=1)
                                                 continue;
-                                        for(pos[4]=d_primer[turn[ID_thread*8+6]*10+5];pos[4]<d_primer[turn[ID_thread*8+6]*10+6];pos[4]++) //B2
+                                        for(sub[ID_thread*10+4]=d_primer[turn[ID_thread*8+6]*10+5];sub[ID_thread*10+4]<d_primer[turn[ID_thread*8+6]*10+6];sub[ID_thread*10+4]++) //B2
                                         {
-                                                if(d_info[pos[4]*3]!=gi)
+                                                if(d_info[sub[ID_thread*10+4]*3]!=sub[ID_thread*10+6])
                                                         continue;
-                                                if((d_info[pos[4]*3+2]&2)!=2)
+                                                if((d_info[sub[ID_thread*10+4]*3+2]&2)!=2)
                                                         continue;
-                                                for(pos[5]=d_primer[turn[ID_thread*8+7]*10+5];pos[5]<d_primer[turn[ID_thread*8+7]*10+6];pos[5]++)
+                                                for(sub[ID_thread*10+5]=d_primer[turn[ID_thread*8+7]*10+5];sub[ID_thread*10+5]<d_primer[turn[ID_thread*8+7]*10+6];sub[ID_thread*10+5]++)
                                                 {
-                                                        if(d_info[pos[5]*3]!=gi)
+                                                        if(d_info[sub[ID_thread*10+5]*3]!=sub[ID_thread*10+6])
                                                                 continue;
-                                                        if((d_info[pos[5]*3+2]&2)!=2)
+                                                        if((d_info[sub[ID_thread*10+5]*3+2]&2)!=2)
                                                                 continue;
                                                 //F3-F2 
-                                                        if(d_info[pos[1]*3+1]<d_info[pos[0]*3+1])
+                                                        if(d_info[sub[ID_thread*10+1]*3+1]<d_info[sub[ID_thread*10]*3+1])
                                                                 continue;
                                                 //F2-F1c
-                                                        if(d_info[pos[2]*3+1]<d_info[pos[1]*3+1]+d_primer[turn[ID_thread*8+1]*10+1])
+                                                        if(d_info[sub[ID_thread*10+2]*3+1]<d_info[sub[ID_thread*10+1]*3+1]+d_primer[turn[ID_thread*8+1]*10+1])
                                                                 continue;
                                                 //F1c-B1c
-                                                        if(d_info[pos[3]*3+1]<d_info[pos[2]*3+1]+d_primer[turn[ID_thread*8+3]*10+1])
+                                                        if(d_info[sub[ID_thread*10+3]*3+1]<d_info[sub[ID_thread*10+2]*3+1]+d_primer[turn[ID_thread*8+3]*10+1])
                                                                 continue;
                                                 //B1c-B2
-                                                        if(d_info[pos[4]*3+1]<d_info[pos[3]*3+1]+d_primer[turn[ID_thread*8+3]*10+1])
+                                                        if(d_info[sub[ID_thread*10+4]*3+1]<d_info[sub[ID_thread*10+3]*3+1]+d_primer[turn[ID_thread*8+3]*10+1])
                                                                 continue;
                                                 //B2-B3
-                                                        if(d_info[pos[5]*3+1]<d_info[pos[4]*3+1])
+                                                        if(d_info[sub[ID_thread*10+5]*3+1]<d_info[sub[ID_thread*10+4]*3+1])
                                                                 continue;
                                                 //whole
-                                                        if(d_info[pos[5]*3+1]-d_info[pos[0]*3+1]>1000)
+                                                        if(d_info[sub[ID_thread*10+5]*3+1]-d_info[sub[ID_thread*10]*3+1]>1000)
                                                                 continue;
-                                                        return 0;
+                                                        sub[ID_thread*10+7]=0;
+							return;
                                                 }//B3
                                         }
                                 }//B1c
@@ -1883,67 +1895,68 @@ __device__ int check_uniq(int *d_primer,int *d_info,int turn[],int ID_thread)
         }
 
 //minus
-        for(pos[0]=d_primer[turn[ID_thread*8]*10+5];pos[0]<d_primer[turn[ID_thread*8]*10+6];pos[0]++)
+        for(sub[ID_thread*10]=d_primer[turn[ID_thread*8]*10+5];sub[ID_thread*10]<d_primer[turn[ID_thread*8]*10+6];sub[ID_thread*10]++)
         {
-                if((d_info[pos[0]*3+2]&2)!=2)
+                if((d_info[sub[ID_thread*10]*3+2]&2)!=2)
                         continue;
-		gi=d_info[pos[0]*3];
-                for(pos[1]=d_primer[turn[ID_thread*8+1]*10+5];pos[1]<d_primer[turn[ID_thread*8+1]*10+6];pos[1]++)
+		sub[ID_thread*10+6]=d_info[sub[ID_thread*10]*3];
+                for(sub[ID_thread*10+1]=d_primer[turn[ID_thread*8+1]*10+5];sub[ID_thread*10+1]<d_primer[turn[ID_thread*8+1]*10+6];sub[ID_thread*10+1]++)
                 {
-                        if(d_info[pos[1]*3]!=gi)
+                        if(d_info[sub[ID_thread*10+1]*3]!=sub[ID_thread*10+6])
                                 continue;
-                        if((d_info[pos[1]*3+2]&2)!=2)
+                        if((d_info[sub[ID_thread*10+1]*3+2]&2)!=2)
                                 continue;
-                        for(pos[2]=d_primer[turn[ID_thread*8+3]*10+5];pos[2]<d_primer[turn[ID_thread*8+3]*10+6];pos[2]++)
+                        for(sub[ID_thread*10+2]=d_primer[turn[ID_thread*8+3]*10+5];sub[ID_thread*10+2]<d_primer[turn[ID_thread*8+3]*10+6];sub[ID_thread*10+2]++)
                         {
-                                if(d_info[pos[2]*3]!=gi)
+                                if(d_info[sub[ID_thread*10+2]*3]!=sub[ID_thread*10+6])
                                         continue;
-                                if((d_info[pos[2]*3+2]&1)!=1)
+                                if((d_info[sub[ID_thread*10+2]*3+2]&1)!=1)
                                         continue;
-                                for(pos[3]=d_primer[turn[ID_thread*8+3]*10+5];pos[3]<d_primer[turn[ID_thread*8+3]*10+6];pos[3]++)
+                                for(sub[ID_thread*10+3]=d_primer[turn[ID_thread*8+3]*10+5];sub[ID_thread*10+3]<d_primer[turn[ID_thread*8+3]*10+6];sub[ID_thread*10+3]++)
                                 {
-                                        if(d_info[pos[3]*3]!=gi)
+                                        if(d_info[sub[ID_thread*10+3]*3]!=sub[ID_thread*10+6])
                                                 continue;
-                                        if((d_info[pos[3]*3+2]&2)!=2)
+                                        if((d_info[sub[ID_thread*10+3]*3+2]&2)!=2)
                                                 continue;
-                                        for(pos[4]=d_primer[turn[ID_thread*8+6]*10];pos[4]<d_primer[turn[ID_thread*8+6]*10];pos[4]++)
+                                        for(sub[ID_thread*10+4]=d_primer[turn[ID_thread*8+6]*10];sub[ID_thread*10+4]<d_primer[turn[ID_thread*8+6]*10];sub[ID_thread*10+4]++)
                                         {
-                                                if(d_info[pos[4]*3]!=gi)
+                                                if(d_info[sub[ID_thread*10+4]*3]!=sub[ID_thread*10+6])
                                                         continue;
-                                                if((d_info[pos[4]*3+2]&1)!=1)
+                                                if((d_info[sub[ID_thread*10+4]*3+2]&1)!=1)
                                                         continue;
-                                                for(pos[5]=d_primer[turn[ID_thread*8+7]*10+5];pos[5]<d_primer[turn[ID_thread*8+7]*10+6];pos[5]++)
+                                                for(sub[ID_thread*10+5]=d_primer[turn[ID_thread*8+7]*10+5];sub[ID_thread*10+5]<d_primer[turn[ID_thread*8+7]*10+6];sub[ID_thread*10+5]++)
                                                 {
-                                                        if(d_info[pos[5]*3]!=gi)
+                                                        if(d_info[sub[ID_thread*10+5]*3]!=sub[ID_thread*10+6])
                                                                 continue;
-                                                        if((d_info[pos[5]*3+2]&1)!=1)
+                                                        if((d_info[sub[ID_thread*10+5]*3+2]&1)!=1)
                                                                 continue;
                                                 //F3-F2 
-                                                        if(d_info[pos[0]*3+1]<d_info[pos[1]*3+1])
+                                                        if(d_info[sub[ID_thread*10]*3+1]<d_info[sub[ID_thread*10+1]*3+1])
                                                                 continue;
                                                 //F2-F1c
-                                                        if(d_info[pos[1]*3+1]<d_info[pos[2]*3+1]+d_primer[turn[ID_thread*8+3]*10+1])
+                                                        if(d_info[sub[ID_thread*10+1]*3+1]<d_info[sub[ID_thread*10+2]*3+1]+d_primer[turn[ID_thread*8+3]*10+1])
                                                                 continue;
                                                 //F1c-B1c
-                                                        if(d_info[pos[2]*3+1]<d_info[pos[3]*3+1]+d_primer[turn[ID_thread*8+3]*10+1])
+                                                        if(d_info[sub[ID_thread*10+2]*3+1]<d_info[sub[ID_thread*10+3]*3+1]+d_primer[turn[ID_thread*8+3]*10+1])
                                                                 continue;
                                                 //B1c-B2
-                                                        if(d_info[pos[3]*3+1]<d_info[pos[4]*3+1]+d_primer[turn[ID_thread*8+6]*10+1])
+                                                        if(d_info[sub[ID_thread*10+3]*3+1]<d_info[sub[ID_thread*10+4]*3+1]+d_primer[turn[ID_thread*8+6]*10+1])
                                                                 continue;
                                                 //B2-B3
-                                                        if(d_info[pos[4]*3+1]<d_info[pos[5]*3+1])
+                                                        if(d_info[sub[ID_thread*10+4]*3+1]<d_info[sub[ID_thread*10+5]*3+1])
                                                                 continue;
                                                 //whole
-                                                        if(d_info[pos[0]*3+1]-d_info[pos[5]*3+1]>1000)
+                                                        if(d_info[sub[ID_thread*10]*3+1]-d_info[sub[ID_thread*10+5]*3+1]>1000)
                                                                 continue;
-                                                        return 0;
+                                                        sub[ID_thread*10+7]=0;
+							return;
                                                 }
                                         }
                                 }
                         }
                 }
         }
-        return 1;
+        sub[ID_thread*10+7]=1;
 }
 
 //from first to second
@@ -1981,145 +1994,146 @@ __global__ void next_one(int *d_primer,int one_start,int one_end,int two_start,i
 	__syncthreads();
 }
 
-__device__ int check_gc(char *d_seq,int start,int end,int flag)
+__device__ void check_gc(char *d_seq,int start,int end,int flag,int sub[],int id)
 {
-        int i,total=0;
-        float gc;
-
-        for(i=start;i<end;i++)
+	sub[id*10+1]=0;
+        for(sub[id*10]=start;sub[id*10]<end;sub[id*10]++)
         {
-                if(d_seq[i]=='C'||d_seq[i]=='G')
-                        total++;
+                if(d_seq[sub[id*10]]=='C'||d_seq[sub[id*10]]=='G')
+                        sub[id*10+1]++;
         }
-        gc=total*100.0/(end-start);
-        if(flag==1&&gc>=45)
-                return 1;
-        if(flag==0&&gc<=45)
-                return 1;
-        return 0;
+        if(flag==1&&(sub[id*10+1]*100.0/(end-start))>=45)
+	{
+                sub[id*10+2]=1;
+		return;
+	}
+        if(flag==0&&(sub[id*10+1]*100.0/(end-start))<=45)
+	{
+                sub[id*10+2]=1;
+		return;
+	}
+        sub[id*10+2]=0;
 }
 
-__device__ int check_common(int *d_primer,int *d_info,int turn[],int ID_thread,int *d_result)
+__device__ void check_common(int *d_primer,int *d_info,int turn[],int ID_thread,int *d_result,int sub[])
 {
-        int dis,i,pos[7];
-
-	for(i=0;i<const_int[7];i++)
+	for(sub[ID_thread*10+8]=0;sub[ID_thread*10+8]<const_int[7];sub[ID_thread*10+8]++)
         {
-                d_result[(8+const_int[7])*turn[ID_thread*8]+8+i]=0;
+                d_result[(8+const_int[7])*turn[ID_thread*8]+8+sub[ID_thread*10+8]]=0;
         }
 //plus
-        for(pos[0]=d_primer[turn[ID_thread*8]*10+3];pos[0]<d_primer[turn[ID_thread*8]*10+4];pos[0]++)
+        for(sub[ID_thread*10+0]=d_primer[turn[ID_thread*8]*10+3];sub[ID_thread*10+0]<d_primer[turn[ID_thread*8]*10+4];sub[ID_thread*10+0]++)
         {
-                if((d_info[pos[0]*3+2]&1)!=1)
+                if((d_info[sub[ID_thread*10+0]*3+2]&1)!=1)
                         continue;
-		i=d_info[pos[0]*3];
-                if(d_result[(8+const_int[7])*turn[ID_thread*8]+8+i]!=0)
+		sub[ID_thread*10+8]=d_info[sub[ID_thread*10+0]*3];
+                if(d_result[(8+const_int[7])*turn[ID_thread*8]+8+sub[ID_thread*10+8]]!=0)
                         continue;
-                for(pos[1]=d_primer[turn[ID_thread*8+1]*10+3];pos[1]<d_primer[turn[ID_thread*8+1]*10+4];pos[1]++)
+                for(sub[ID_thread*10+1]=d_primer[turn[ID_thread*8+1]*10+3];sub[ID_thread*10+1]<d_primer[turn[ID_thread*8+1]*10+4];sub[ID_thread*10+1]++)
                 {
-                        if(d_info[pos[1]*3]!=i)
+                        if(d_info[sub[ID_thread*10+1]*3]!=sub[ID_thread*10+8])
                                 continue;
-                        if((d_info[pos[1]*3+2]&1)!=1)
+                        if((d_info[sub[ID_thread*10+1]*3+2]&1)!=1)
                                 continue;
-                        for(pos[2]=d_primer[turn[ID_thread*8+3]*10+3];pos[2]<d_primer[turn[ID_thread*8+3]*10+4];pos[2]++)
+                        for(sub[ID_thread*10+2]=d_primer[turn[ID_thread*8+3]*10+3];sub[ID_thread*10+2]<d_primer[turn[ID_thread*8+3]*10+4];sub[ID_thread*10+2]++)
                         {
-                                if(d_info[pos[2]*3]!=i)
+                                if(d_info[sub[ID_thread*10+2]*3]!=sub[ID_thread*10+8])
                                         continue;
-                                if((d_info[pos[2]*3+2]&2)!=2)
+                                if((d_info[sub[ID_thread*10+2]*3+2]&2)!=2)
                                         continue;
-                                for(pos[3]=d_primer[turn[ID_thread*8+4]*10+3];pos[3]<d_primer[turn[ID_thread*8+4]*10+4];pos[3]++)
+                                for(sub[ID_thread*10+3]=d_primer[turn[ID_thread*8+4]*10+3];sub[ID_thread*10+3]<d_primer[turn[ID_thread*8+4]*10+4];sub[ID_thread*10+3]++)
                                 {
-                                        if(d_info[pos[3]*3]!=i)
+                                        if(d_info[sub[ID_thread*10+3]*3]!=sub[ID_thread*10+8])
                                                 continue;
-                                        if((d_info[pos[3]*3+2]&1)!=1)
+                                        if((d_info[sub[ID_thread*10+3]*3+2]&1)!=1)
                                                 continue;
-                                        for(pos[4]=d_primer[turn[ID_thread*8+6]*10+3];pos[4]<d_primer[turn[ID_thread*8+6]*10+4];pos[4]++)
+                                        for(sub[ID_thread*10+4]=d_primer[turn[ID_thread*8+6]*10+3];sub[ID_thread*10+4]<d_primer[turn[ID_thread*8+6]*10+4];sub[ID_thread*10+4]++)
                                         {
-                                                if(d_info[pos[4]*3]!=i)
+                                                if(d_info[sub[ID_thread*10+4]*3]!=sub[ID_thread*10+8])
                                                         continue;
-                                                if((d_info[pos[4]*3+2]&2)!=2)
+                                                if((d_info[sub[ID_thread*10+4]*3+2]&2)!=2)
                                                         continue;
-                                                for(pos[5]=d_primer[turn[ID_thread*8+7]*10+3];pos[5]<d_primer[turn[ID_thread*8+7]*10+4];pos[5]++)
+                                                for(sub[ID_thread*10+5]=d_primer[turn[ID_thread*8+7]*10+3];sub[ID_thread*10+5]<d_primer[turn[ID_thread*8+7]*10+4];sub[ID_thread*10+5]++)
                                                 {
-                                                        if(d_info[pos[5]*3]!=i)
+                                                        if(d_info[sub[ID_thread*10+5]*3]!=sub[ID_thread*10+8])
                                                                 continue;
-                                                        if((d_info[pos[5]*3+2]&2)!=2)
+                                                        if((d_info[sub[ID_thread*10+5]*3+2]&2)!=2)
                                                                 continue;
                                                 //F3-F2 
-                                                        dis=d_info[pos[1]*3+1]-(d_info[pos[0]*3+1]+d_primer[turn[ID_thread*8]*10+1]);
-                                                        if(dis<0)
+                                                        sub[ID_thread*10+7]=d_info[sub[ID_thread*10+1]*3+1]-(d_info[sub[ID_thread*10+0]*3+1]+d_primer[turn[ID_thread*8]*10+1]);
+                                                        if(sub[ID_thread*10+7]<0)
                                                                 continue;
-                                                        if(dis>20)
+                                                        if(sub[ID_thread*10+7]>20)
                                                                 continue;
                                                 //F2-F1c
-                                                        dis=d_info[pos[2]*3+1]-d_info[pos[1]*3+1]-1;
-                                                        if(dis<40)
+                                                        sub[ID_thread*10+7]=d_info[sub[ID_thread*10+2]*3+1]-d_info[sub[ID_thread*10+1]*3+1]-1;
+                                                        if(sub[ID_thread*10+7]<40)
                                                                 continue;
-                                                        if(dis>60)
+                                                        if(sub[ID_thread*10+7]>60)
                                                                 continue;
                                                 //F1c-B1c
-                                                        dis=d_info[pos[3]*3+1]-(d_info[pos[2]*3+1]+d_primer[turn[ID_thread*8+3]*10+1]-1)-1;
-                                                        if(dis<0)
+                                                        sub[ID_thread*10+7]=d_info[sub[ID_thread*10+3]*3+1]-(d_info[sub[ID_thread*10+2]*3+1]+d_primer[turn[ID_thread*8+3]*10+1]-1)-1;
+                                                        if(sub[ID_thread*10+7]<0)
                                                                 continue;
                                                 //B1c-B2
-                                                        dis=(d_info[pos[4]*3+1]+d_primer[turn[ID_thread*8+6]*10+1]-1)-(d_info[pos[3]*3+1]+d_primer[turn[ID_thread*8+4]*10+1]-1)-1;
-                                                        if(dis<40)
+                                                        sub[ID_thread*10+7]=(d_info[sub[ID_thread*10+4]*3+1]+d_primer[turn[ID_thread*8+6]*10+1]-1)-(d_info[sub[ID_thread*10+3]*3+1]+d_primer[turn[ID_thread*8+4]*10+1]-1)-1;
+                                                        if(sub[ID_thread*10+7]<40)
                                                                 continue;
-                                                        if(dis>60)
+                                                        if(sub[ID_thread*10+7]>60)
                                                                 continue;
                                                 //F2-B2
-                                                        dis=d_info[pos[4]*3+1]+d_primer[turn[ID_thread*8+6]*10+1]-1-d_info[pos[1]*3+1]-1;
-                                                        if(dis<120)
+                                                        sub[ID_thread*10+7]=d_info[sub[ID_thread*10+4]*3+1]+d_primer[turn[ID_thread*8+6]*10+1]-1-d_info[sub[ID_thread*10+1]*3+1]-1;
+                                                        if(sub[ID_thread*10+7]<120)
                                                                 continue;
-                                                        if(dis>180)
+                                                        if(sub[ID_thread*10+7]>180)
                                                                 continue;
                                                 //B2-B3
-                                                        dis=d_info[pos[5]*3+1]-(d_info[pos[4]*3+1]+d_primer[turn[ID_thread*8+6]*10+1]-1)-1;
-                                                        if(dis<0)
+                                                        sub[ID_thread*10+7]=d_info[sub[ID_thread*10+5]*3+1]-(d_info[sub[ID_thread*10+4]*3+1]+d_primer[turn[ID_thread*8+6]*10+1]-1)-1;
+                                                        if(sub[ID_thread*10+7]<0)
                                                                 continue;
-                                                        if(dis>20)
+                                                        if(sub[ID_thread*10+7]>20)
                                                                 continue;
                                                 //LF
                                                         if(turn[ID_thread*8+2]!=-1)
                                                         {
-                                                                dis=0;
-                                                                for(pos[6]=d_primer[turn[ID_thread*8+2]*10+3];pos[6]<d_primer[turn[ID_thread*8+2]*10+4];pos[6]++)
+                                                                sub[ID_thread*10+7]=0;
+                                                                for(sub[ID_thread*10+6]=d_primer[turn[ID_thread*8+2]*10+3];sub[ID_thread*10+6]<d_primer[turn[ID_thread*8+2]*10+4];sub[ID_thread*10+6]++)
                                                                 {
-                                                                        if(d_info[pos[6]*3]!=i)
+                                                                        if(d_info[sub[ID_thread*10+6]*3]!=sub[ID_thread*10+8])
                                                                                 continue;
-                                                                        if((d_info[pos[6]*3+2]&2)!=2)
+                                                                        if((d_info[sub[ID_thread*10+6]*3+2]&2)!=2)
                                                                                 continue;
-                                                                        if(d_info[pos[1]*3+1]+d_primer[turn[ID_thread*8+1]*10+1]>d_info[pos[6]*3+1])
+                                                                        if(d_info[sub[ID_thread*10+1]*3+1]+d_primer[turn[ID_thread*8+1]*10+1]>d_info[sub[ID_thread*10+6]*3+1])
                                                                                 continue;
-                                                                        if(d_info[pos[6]*3+1]+d_primer[turn[ID_thread*8+2]*10+1]>d_info[pos[2]*3+1])
+                                                                        if(d_info[sub[ID_thread*10+6]*3+1]+d_primer[turn[ID_thread*8+2]*10+1]>d_info[sub[ID_thread*10+2]*3+1])
                                                                                 continue;
-                                                                        dis=1;
+                                                                        sub[ID_thread*10+7]=1;
                                                                         break;
                                                                 }
-                                                                if(dis==0)
+                                                                if(sub[ID_thread*10+7]==0)
                                                                         continue;
                                                         }
                                                 //LB
                                                         if(turn[ID_thread*8+5]!=-1)
                                                         {
-                                                                dis=0;
-                                                                for(pos[6]=d_primer[turn[ID_thread*8+5]*10+3];pos[6]=d_primer[turn[ID_thread*8+5]*10+4];pos[6]++)
+                                                                sub[ID_thread*10+7]=0;
+                                                                for(sub[ID_thread*10+6]=d_primer[turn[ID_thread*8+5]*10+3];sub[ID_thread*10+6]=d_primer[turn[ID_thread*8+5]*10+4];sub[ID_thread*10+6]++)
                                                                 {
-                                                                        if(d_info[pos[6]*3]!=i)
+                                                                        if(d_info[sub[ID_thread*10+6]*3]!=sub[ID_thread*10+8])
                                                                                 continue;
-                                                                        if((d_info[pos[6]*3+2]&1)!=1)
+                                                                        if((d_info[sub[ID_thread*10+6]*3+2]&1)!=1)
                                                                                 continue;
-                                                                        if(d_info[pos[3]*3+1]+d_primer[turn[ID_thread*8+4]*10+1]>d_info[pos[6]*3+1])
+                                                                        if(d_info[sub[ID_thread*10+3]*3+1]+d_primer[turn[ID_thread*8+4]*10+1]>d_info[sub[ID_thread*10+6]*3+1])
                                                                                 continue;
-                                                                        if(d_info[pos[6]*3+1]+d_primer[turn[ID_thread*8+5]*10+1]>d_info[pos[4]*3+1])
+                                                                        if(d_info[sub[ID_thread*10+6]*3+1]+d_primer[turn[ID_thread*8+5]*10+1]>d_info[sub[ID_thread*10+4]*3+1])
                                                                                 continue;
-                                                                        dis=1;
+                                                                        sub[ID_thread*10+7]=1;
                                                                         break;
                                                                 }
-                                                                if(dis==0)
+                                                                if(sub[ID_thread*10+7]==0)
                                                                         continue;
                                                         }
-                                                        d_result[(8+const_int[7])*turn[ID_thread*8]+8+i]=1;
+                                                        d_result[(8+const_int[7])*turn[ID_thread*8]+8+sub[ID_thread*10+8]]=1;
                                                 }
                                         }
                                 }
@@ -2127,138 +2141,135 @@ __device__ int check_common(int *d_primer,int *d_info,int turn[],int ID_thread,i
                 }
         }
 //minus
-	for(pos[0]=d_primer[turn[ID_thread*8]*10+3];pos[0]<d_primer[turn[ID_thread*8]*10+4];pos[0]++)
+	for(sub[ID_thread*10+0]=d_primer[turn[ID_thread*8]*10+3];sub[ID_thread*10+0]<d_primer[turn[ID_thread*8]*10+4];sub[ID_thread*10+0]++)
         {
-                if((d_info[pos[0]*3+2]&2)!=2)
+                if((d_info[sub[ID_thread*10+0]*3+2]&2)!=2)
                         continue;
-                i=d_info[pos[0]*3];
-                if(d_result[(8+const_int[7])*turn[ID_thread*8]+8+i]!=0)
+                sub[ID_thread*10+8]=d_info[sub[ID_thread*10+0]*3];
+                if(d_result[(8+const_int[7])*turn[ID_thread*8]+8+sub[ID_thread*10+8]]!=0)
                         continue;
-                for(pos[1]=d_primer[turn[ID_thread*8+1]*10+3];pos[1]<d_primer[turn[ID_thread*8+1]*10+4];pos[1]++)
+                for(sub[ID_thread*10+1]=d_primer[turn[ID_thread*8+1]*10+3];sub[ID_thread*10+1]<d_primer[turn[ID_thread*8+1]*10+4];sub[ID_thread*10+1]++)
                 {
-                        if(d_info[pos[1]*3]!=i)
+                        if(d_info[sub[ID_thread*10+1]*3]!=sub[ID_thread*10+8])
                                 continue;
-                        if((d_info[pos[1]*3+2]&2)!=2)
+                        if((d_info[sub[ID_thread*10+1]*3+2]&2)!=2)
                                 continue;
-                        for(pos[2]=d_primer[turn[ID_thread*8+3]*10+3];pos[2]<d_primer[turn[ID_thread*8+3]*10+4];pos[2]++)
+                        for(sub[ID_thread*10+2]=d_primer[turn[ID_thread*8+3]*10+3];sub[ID_thread*10+2]<d_primer[turn[ID_thread*8+3]*10+4];sub[ID_thread*10+2]++)
                         {
-                                if(d_info[pos[2]*3]!=i)
+                                if(d_info[sub[ID_thread*10+2]*3]!=sub[ID_thread*10+8])
                                         continue;
-                                if((d_info[pos[2]*3+2]&1)!=1)
+                                if((d_info[sub[ID_thread*10+2]*3+2]&1)!=1)
                                         continue;
-                                for(pos[3]=d_primer[turn[ID_thread*8+4]*10+3];pos[3]<d_primer[turn[ID_thread*8+4]*10+4];pos[3]++)
+                                for(sub[ID_thread*10+3]=d_primer[turn[ID_thread*8+4]*10+3];sub[ID_thread*10+3]<d_primer[turn[ID_thread*8+4]*10+4];sub[ID_thread*10+3]++)
                                 {
-                                        if(d_info[pos[3]*3]!=i)
+                                        if(d_info[sub[ID_thread*10+3]*3]!=sub[ID_thread*10+8])
                                                 continue;
-                                        if((d_info[pos[3]*3+2]&2)!=2)
+                                        if((d_info[sub[ID_thread*10+3]*3+2]&2)!=2)
                                                 continue;
-                                        for(pos[4]=d_primer[turn[ID_thread*8+6]*10+3];pos[4]<d_primer[turn[ID_thread*8+6]*10+4];pos[4]++)
+                                        for(sub[ID_thread*10+4]=d_primer[turn[ID_thread*8+6]*10+3];sub[ID_thread*10+4]<d_primer[turn[ID_thread*8+6]*10+4];sub[ID_thread*10+4]++)
                                         {
-                                                if(d_info[pos[4]*3]!=i)
+                                                if(d_info[sub[ID_thread*10+4]*3]!=sub[ID_thread*10+8])
                                                         continue;
-                                                if((d_info[pos[4]*3+2]&1)!=1)
+                                                if((d_info[sub[ID_thread*10+4]*3+2]&1)!=1)
                                                         continue;
-                                                for(pos[5]=d_primer[turn[ID_thread*8+7]*10+3];pos[5]<d_primer[turn[ID_thread*8+7]*10+4];pos[5]++)
+                                                for(sub[ID_thread*10+5]=d_primer[turn[ID_thread*8+7]*10+3];sub[ID_thread*10+5]<d_primer[turn[ID_thread*8+7]*10+4];sub[ID_thread*10+5]++)
                                                 {
-                                                        if(d_info[pos[5]*3]!=i)
+                                                        if(d_info[sub[ID_thread*10+5]*3]!=sub[ID_thread*10+8])
                                                                 continue;
-                                                        if((d_info[pos[5]*3+2]&1)!=1)
+                                                        if((d_info[sub[ID_thread*10+5]*3+2]&1)!=1)
                                                                 continue;
                                                 //F3-F2 
-                                                        dis=d_info[pos[0]*3+1]-(d_info[pos[1]*3+1]+d_primer[turn[ID_thread*8+1]*10+1]-1)-1;
-                                                        if(dis<0)
+                                                        sub[ID_thread*10+7]=d_info[sub[ID_thread*10+0]*3+1]-(d_info[sub[ID_thread*10+1]*3+1]+d_primer[turn[ID_thread*8+1]*10+1]-1)-1;
+                                                        if(sub[ID_thread*10+7]<0)
                                                                 continue;
-                                                        if(dis>20)
+                                                        if(sub[ID_thread*10+7]>20)
                                                                 continue;
                                                 //F2-F1c
-                                                        dis=(d_info[pos[1]*3+1]+d_primer[turn[ID_thread*8+1]*10+1]-1)-(d_info[pos[2]*3+1]+d_primer[turn[ID_thread*8+3]*10+1]-1)-1;
-                                                        if(dis<40)
+                                                        sub[ID_thread*10+7]=(d_info[sub[ID_thread*10+1]*3+1]+d_primer[turn[ID_thread*8+1]*10+1]-1)-(d_info[sub[ID_thread*10+2]*3+1]+d_primer[turn[ID_thread*8+3]*10+1]-1)-1;
+                                                        if(sub[ID_thread*10+7]<40)
                                                                 continue;
-                                                        if(dis>60)
+                                                        if(sub[ID_thread*10+7]>60)
                                                                 continue;
                                                 //F1c-B1c
-                                                        dis=d_info[pos[2]*3+1]-(d_info[pos[3]*3+1]+d_primer[turn[ID_thread*8+4]*10+1]-1)-1;
-                                                        if(dis<0)
+                                                        sub[ID_thread*10+7]=d_info[sub[ID_thread*10+2]*3+1]-(d_info[sub[ID_thread*10+3]*3+1]+d_primer[turn[ID_thread*8+4]*10+1]-1)-1;
+                                                        if(sub[ID_thread*10+7]<0)
                                                                 continue;
                                                 //B1c-B2
-                                                        dis=d_info[pos[3]*3+1]-d_info[pos[4]*3+1]-1;
-                                                        if(dis<40)
+                                                        sub[ID_thread*10+7]=d_info[sub[ID_thread*10+3]*3+1]-d_info[sub[ID_thread*10+4]*3+1]-1;
+                                                        if(sub[ID_thread*10+7]<40)
                                                                 continue;
-                                                        if(dis>60)
+                                                        if(sub[ID_thread*10+7]>60)
                                                                 continue;
                                                 //F2-B2
-                                                        dis=d_info[pos[1]*3+1]+d_primer[turn[ID_thread*8+1]*10+1]-1-d_info[pos[4]*3+1]-1;
-                                                        if(dis<120)
+                                                        sub[ID_thread*10+7]=d_info[sub[ID_thread*10+1]*3+1]+d_primer[turn[ID_thread*8+1]*10+1]-1-d_info[sub[ID_thread*10+4]*3+1]-1;
+                                                        if(sub[ID_thread*10+7]<120)
                                                                 continue;
-                                                        if(dis>180)
+                                                        if(sub[ID_thread*10+7]>180)
                                                                 continue;
                                                 //B2-B3
-                                                        dis=d_info[pos[4]*3+1]-(d_info[pos[5]*3+1]+d_primer[turn[ID_thread*8+7]*10+1]-1)-1;
-                                                        if(dis<0)
+                                                        sub[ID_thread*10+7]=d_info[sub[ID_thread*10+4]*3+1]-(d_info[sub[ID_thread*10+5]*3+1]+d_primer[turn[ID_thread*8+7]*10+1]-1)-1;
+                                                        if(sub[ID_thread*10+7]<0)
                                                                 continue;
-                                                        if(dis>20)
+                                                        if(sub[ID_thread*10+7]>20)
                                                                 continue;
                                                 //LF
                                                         if(turn[ID_thread*8+2]!=-1)
                                                         {
-                                                                dis=0;
-                                                                for(pos[6]=d_primer[turn[ID_thread*8+2]*10+3];pos[6]<d_primer[turn[ID_thread*8+2]*10+4];pos[6]++)
+                                                                sub[ID_thread*10+7]=0;
+                                                                for(sub[ID_thread*10+6]=d_primer[turn[ID_thread*8+2]*10+3];sub[ID_thread*10+6]<d_primer[turn[ID_thread*8+2]*10+4];sub[ID_thread*10+6]++)
                                                                 {
-                                                                        if(d_info[pos[6]*3]!=i)
+                                                                        if(d_info[sub[ID_thread*10+6]*3]!=sub[ID_thread*10+8])
                                                                                 continue;
-                                                                        if((d_info[pos[6]*3+2]&1)!=1)
+                                                                        if((d_info[sub[ID_thread*10+6]*3+2]&1)!=1)
                                                                                 continue;
-                                                                        if(d_info[pos[2]*3+1]+d_primer[turn[ID_thread*8+3]*10+1]>d_info[pos[6]*3+1])
+                                                                        if(d_info[sub[ID_thread*10+2]*3+1]+d_primer[turn[ID_thread*8+3]*10+1]>d_info[sub[ID_thread*10+6]*3+1])
                                                                                 continue;
-                                                                        if(d_info[pos[6]*3+1]+d_primer[turn[ID_thread*8+2]*10+1]>d_info[pos[1]*3+1])
+                                                                        if(d_info[sub[ID_thread*10+6]*3+1]+d_primer[turn[ID_thread*8+2]*10+1]>d_info[sub[ID_thread*10+1]*3+1])
                                                                                 continue;
-                                                                        dis=1;
+                                                                        sub[ID_thread*10+7]=1;
                                                                         break;
                                                                 }
-                                                                if(dis==0)
+                                                                if(sub[ID_thread*10+7]==0)
                                                                         continue;
                                                         }
                                                 //LB
                                                         if(turn[ID_thread*8+5]!=-1)
                                                         {
-                                                                dis=0;
-                                                                for(pos[6]=d_primer[turn[ID_thread*8+5]*10+3];pos[6]=d_primer[turn[ID_thread*8+5]*10+4];pos[6]++)
+                                                                sub[ID_thread*10+7]=0;
+                                                                for(sub[ID_thread*10+6]=d_primer[turn[ID_thread*8+5]*10+3];sub[ID_thread*10+6]=d_primer[turn[ID_thread*8+5]*10+4];sub[ID_thread*10+6]++)
                                                                 {
-                                                                        if(d_info[pos[6]*3]!=i)
+                                                                        if(d_info[sub[ID_thread*10+6]*3]!=sub[ID_thread*10+8])
                                                                                 continue;
-                                                                        if((d_info[pos[6]*3+2]&2)!=2)
+                                                                        if((d_info[sub[ID_thread*10+6]*3+2]&2)!=2)
                                                                                 continue;
-                                                                        if(d_info[pos[4]*3+1]+d_primer[turn[ID_thread*8+6]*10+1]>d_info[pos[6]*3+1])
+                                                                        if(d_info[sub[ID_thread*10+4]*3+1]+d_primer[turn[ID_thread*8+6]*10+1]>d_info[sub[ID_thread*10+6]*3+1])
                                                                                 continue;
-                                                                        if(d_info[pos[6]*3+1]+d_primer[turn[ID_thread*8+5]*10+1]>d_info[pos[3]*3+1])
+                                                                        if(d_info[sub[ID_thread*10+6]*3+1]+d_primer[turn[ID_thread*8+5]*10+1]>d_info[sub[ID_thread*10+3]*3+1])
                                                                                 continue;
-                                                                        dis=1;
+                                                                        sub[ID_thread*10+7]=1;
                                                                         break;
                                                                 }
-                                                                if(dis==0)
+                                                                if(sub[ID_thread*10+7]==0)
                                                                         continue;
                                                         }
-							d_result[(8+const_int[7])*turn[ID_thread*8]+8+i]=1;
+							d_result[(8+const_int[7])*turn[ID_thread*8]+8+sub[ID_thread*10+8]]=1;
                                                 }
                                         }
                                 }
                         }
                 }
         }
-	dis=0;
-        for(i=0;i<const_int[7];i++)
+	sub[ID_thread*10+7]=0;
+        for(sub[ID_thread*10+8]=0;sub[ID_thread*10+8]<const_int[7];sub[ID_thread*10+8]++)
         {
-                dis=dis+d_result[(8+const_int[7])*turn[ID_thread*8]+8+i];
+                sub[ID_thread*10+7]=sub[ID_thread*10+7]+d_result[(8+const_int[7])*turn[ID_thread*8]+8+sub[ID_thread*10+8]];
         }
-        return dis;
 }
 
-__device__ int design_loop(int *d_primer,char *d_seq,int *d_info,int turn[],int ID_thread,int *d_result,double *d_DPT,int id,int *d_ps,char *d_numSeq,double *d_out)
+__device__ void design_loop(int *d_primer,char *d_seq,int *d_info,int turn[],int ID_thread,int *d_result,double *d_DPT,int id,int *d_ps,char *d_numSeq,double *d_out,int sub[])
 {
-        int success;
-
 //LF and LB 
-        success=0;
+        sub[ID_thread*10+9]=0;
 	turn[ID_thread*8+2]=d_primer[turn[ID_thread*8+1]*10+9];
         while(turn[ID_thread*8+2]<const_int[2]+const_int[0]+const_int[1])
         {
@@ -2286,8 +2297,8 @@ __device__ int design_loop(int *d_primer,char *d_seq,int *d_info,int turn[],int 
                 //check_common
                         if(const_int[3])
                         {
-                                success=check_common(d_primer,d_info,turn,ID_thread,d_result);
-                                if(success==0)
+                                check_common(d_primer,d_info,turn,ID_thread,d_result,sub);
+                                if(sub[ID_thread*10+7]<const_int[8])
                                 {
                                         turn[ID_thread*8+5]++;
                                         continue;
@@ -2296,23 +2307,23 @@ __device__ int design_loop(int *d_primer,char *d_seq,int *d_info,int turn[],int 
                 //check_structure
                         if(const_int[6])
                         {
-                                success=check_structure(d_seq,d_primer,turn,ID_thread,id,d_DPT,d_ps,d_numSeq,d_out);
-                                if(success==0)
+                                check_structure(d_seq,d_primer,turn,ID_thread,id,d_DPT,d_ps,d_numSeq,d_out,sub);
+                                if(sub[ID_thread*10+2]==0)
                                 {
                                         turn[ID_thread*8+5]++;
                                         continue;
                                 }
                         }
-                        success=1;
+                        sub[ID_thread*10+9]=1;
                         break;
                 }
-                if(success==1)
+                if(sub[ID_thread*10+9]==1)
                         break;
                 else
                         turn[ID_thread*8+2]++;
         }
-        if(success==1)
-                return success;
+        if(sub[ID_thread*10+9]==1)
+                return;
 //only LF
         turn[ID_thread*8+2]=d_primer[turn[ID_thread*8+1]*10+9];
 	turn[ID_thread*8+5]=-1;
@@ -2330,8 +2341,8 @@ __device__ int design_loop(int *d_primer,char *d_seq,int *d_info,int turn[],int 
         //check_common
                 if(const_int[3])
                 {
-                        success=check_common(d_primer,d_info,turn,ID_thread,d_result);
-                        if(success==0)
+                        check_common(d_primer,d_info,turn,ID_thread,d_result,sub);
+                        if(sub[ID_thread*10+7]<const_int[8])
                         {
                                 turn[ID_thread*8+2]++;
                                 continue;
@@ -2340,18 +2351,18 @@ __device__ int design_loop(int *d_primer,char *d_seq,int *d_info,int turn[],int 
         //check_structure
                 if(const_int[6])
                 {
-                        success=check_structure(d_seq,d_primer,turn,ID_thread,id,d_DPT,d_ps,d_numSeq,d_out);
-                        if(success==0)
+                        check_structure(d_seq,d_primer,turn,ID_thread,id,d_DPT,d_ps,d_numSeq,d_out,sub);
+                        if(sub[ID_thread*10+2]==0)
                         {
                                 turn[ID_thread*8+2]++;
                                 continue;
                         }
                 }
-                success=1;
+                sub[ID_thread*10+9]=1;
                 break;
         }
-        if(success==1)
-                return success;
+        if(sub[ID_thread*10+9]==1)
+                return;
 //only LB
         turn[ID_thread*8+5]=d_primer[turn[ID_thread*8+3]*10+9];
 	turn[ID_thread*8+2]=-1;
@@ -2369,8 +2380,8 @@ __device__ int design_loop(int *d_primer,char *d_seq,int *d_info,int turn[],int 
         //check_common
                 if(const_int[3])
                 {
-                        success=check_common(d_primer,d_info,turn,ID_thread,d_result);
-                        if(success==0)
+                        check_common(d_primer,d_info,turn,ID_thread,d_result,sub);
+                        if(sub[ID_thread*10+7]<const_int[8])
                         {
                                 turn[ID_thread*8+5]++;
                                 continue;
@@ -2379,17 +2390,16 @@ __device__ int design_loop(int *d_primer,char *d_seq,int *d_info,int turn[],int 
         //check_structure
                 if(const_int[6])
                 {
-                        success=check_structure(d_seq,d_primer,turn,ID_thread,id,d_DPT,d_ps,d_numSeq,d_out);
-                        if(success==0)
+                        check_structure(d_seq,d_primer,turn,ID_thread,id,d_DPT,d_ps,d_numSeq,d_out,sub);
+                        if(sub[ID_thread*10+2]==0)
                         {
                                 turn[ID_thread*8+5]++;
                                 continue;
                         }
                 }
-                success=1;
+                sub[ID_thread*10+9]=1;
                 break;
         }
-        return success;
 }
 
 //caculate
@@ -2397,8 +2407,8 @@ __global__ void LAMP(char *d_seq,int *d_primer,int *d_info,int *d_result,double 
 //const_int: 0:numS,1:numL,2:numLp,3:common_flag,4:special_flag,5:loop_flag,6:secondary_flag,7:common_num,8:this turn common_num,9:high_GC_flag; 10:expect
 {
 	int id=blockDim.x*blockIdx.x+threadIdx.x;
-	int flag;
 	__shared__ int turn[4096];
+	__shared__ int sub[5120];
 
 	while(id<const_int[0])
 	{
@@ -2411,12 +2421,12 @@ __global__ void LAMP(char *d_seq,int *d_primer,int *d_info,int *d_result,double 
 		}
 	//combine
 		turn[threadIdx.x*8]=id; //one thread, one F3
-		flag=0;
+		sub[threadIdx.x*10+9]=0;
 		for(turn[threadIdx.x*8+1]=d_primer[id*10+7];turn[threadIdx.x*8+1]<const_int[0];turn[threadIdx.x*8+1]++) //F2
 		{
 			if(turn[threadIdx.x*8+1]==-1)
 				break;
-			if(flag!=0)
+			if(sub[threadIdx.x*10+9]!=0)
 				break; //have find one LAMP primer
 			if((d_primer[turn[threadIdx.x*8+1]*10+2]&1)!=1)
 				continue;
@@ -2426,7 +2436,7 @@ __global__ void LAMP(char *d_seq,int *d_primer,int *d_info,int *d_result,double 
 			{
 				if(turn[threadIdx.x*8+3]==-1)
 					break;
-				if(flag!=0)
+				if(sub[threadIdx.x*10+9]!=0)
 					break;
 				if((d_primer[turn[threadIdx.x*8+3]*10+2]&2)!=2)
 					continue;
@@ -2438,7 +2448,7 @@ __global__ void LAMP(char *d_seq,int *d_primer,int *d_info,int *d_result,double 
                                 {
                                         if(turn[threadIdx.x*8+4]==-1)
                                         	break;
-					if(flag!=0)
+					if(sub[threadIdx.x*10+9]!=0)
 						break;
 					if((d_primer[turn[threadIdx.x*8+4]*10+2]&1)!=1)
 						continue;
@@ -2448,7 +2458,7 @@ __global__ void LAMP(char *d_seq,int *d_primer,int *d_info,int *d_result,double 
                                         {
                                                 if(turn[threadIdx.x*8+6]==-1)
                                                 	break;
-						if(flag!=0)
+						if(sub[threadIdx.x*10+9]!=0)
 							break;
 						if((d_primer[turn[threadIdx.x*8+6]*10+2]&2)!=2)
 							continue;
@@ -2470,13 +2480,13 @@ __global__ void LAMP(char *d_seq,int *d_primer,int *d_info,int *d_result,double 
 								continue;
                                                         if(d_primer[turn[threadIdx.x*8+7]*10]-(d_primer[turn[threadIdx.x*8+6]*10]+d_primer[turn[threadIdx.x*8+6]*10+1])>20)
                                                         	break;
-							flag=check_gc(d_seq,d_primer[turn[threadIdx.x*8]*10],(d_primer[turn[threadIdx.x*8+7]*10]+d_primer[turn[threadIdx.x*8+7]*10+1]),const_int[9]);
-							if(flag==0)
+							check_gc(d_seq,d_primer[turn[threadIdx.x*8]*10],(d_primer[turn[threadIdx.x*8+7]*10]+d_primer[turn[threadIdx.x*8+7]*10+1]),const_int[9],sub,threadIdx.x);
+							if(sub[threadIdx.x*10+2]==0)
 								continue;
 							if(const_int[4]!=0)
 							{
-								flag=check_uniq(d_primer,d_info,turn,threadIdx.x);
-								if(flag==0)
+								check_uniq(d_primer,d_info,turn,threadIdx.x,sub);
+								if(sub[threadIdx.x*10+7]==0)
 									continue;
 							}
 
@@ -2484,23 +2494,20 @@ __global__ void LAMP(char *d_seq,int *d_primer,int *d_info,int *d_result,double 
 							turn[threadIdx.x*8+5]=-1; //loop
 							if(const_int[3])
 							{
-								flag=check_common(d_primer,d_info,turn,threadIdx.x,d_result);
-								if(flag<const_int[8])
-								{
-									flag=0;
+								check_common(d_primer,d_info,turn,threadIdx.x,d_result,sub);
+								if(sub[threadIdx.x*10+7]<const_int[8])
 									continue;
-								}
 							}
 							if(const_int[6])
 							{
-								flag=check_structure(d_seq,d_primer,turn,threadIdx.x,id,d_DPT,d_ps,d_numSeq,d_out);
-								if(flag==0)
+								check_structure(d_seq,d_primer,turn,threadIdx.x,id,d_DPT,d_ps,d_numSeq,d_out,sub);
+								if(sub[threadIdx.x*10+2]==0)
 									continue;
 							}
 							if(const_int[5])
 							{
-								flag=design_loop(d_primer,d_seq,d_info,turn,threadIdx.x,d_result,d_DPT,id,d_ps,d_numSeq,d_out);
-								if(flag==0)
+								design_loop(d_primer,d_seq,d_info,turn,threadIdx.x,d_result,d_DPT,id,d_ps,d_numSeq,d_out,sub);
+								if(sub[threadIdx.x*10+9]==0)
 									continue;
 							}
 							d_result[id*(8+const_int[7])]=turn[threadIdx.x*8];
@@ -2511,6 +2518,7 @@ __global__ void LAMP(char *d_seq,int *d_primer,int *d_info,int *d_result,double 
 							d_result[id*(8+const_int[7])+5]=turn[threadIdx.x*8+5];
 							d_result[id*(8+const_int[7])+6]=turn[threadIdx.x*8+6];
 							d_result[id*(8+const_int[7])+7]=turn[threadIdx.x*8+7];
+							sub[threadIdx.x*10+9]=1;
 							break;
 						}
 					}
