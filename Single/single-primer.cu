@@ -29,28 +29,48 @@ char str2int_CPU(char c)
         return 4;
 }
 
-__device__ char str2int(char c)
+__device__ void str2int(char c,char *d_numSeq,int id)
 {
         switch (c)
         {
                 case 'A':
-                        return 0;
+                        d_numSeq[id]=0;
+                        break;
                 case 'C':
-                        return 1;
+                        d_numSeq[id]=1;
+                        break;
                 case 'G':
-                        return 2;
+                        d_numSeq[id]=2;
+                        break;
                 case 'T':
-                        return 3;
+                        d_numSeq[id]=3;
+                        break;
+                default:
+                        d_numSeq[id]=4;
+                        break;
         }
-        return 4;
 }
 
-__device__ int seq_length(char seq[])
+__device__ void str2int_rev(char c,char *d_numSeq,int id)
 {
-	int i=0;
-	while(seq[i]!='\0')
-		i++;
-	return i;
+        switch (c)
+        {
+                case 'T':
+                        d_numSeq[id]=0;
+                        break;
+                case 'G':
+                        d_numSeq[id]=1;
+                        break;
+                case 'C':
+                        d_numSeq[id]=2;
+                        break;                 
+                case 'A':               
+                        d_numSeq[id]=3;
+                        break;
+                default:
+                        d_numSeq[id]=4;
+                        break;
+        }
 }
 
 void readLoop(FILE *file,double *v1,double *v2,double *v3)
@@ -2287,25 +2307,24 @@ __device__ double drawDimer(int *d_ps,int id,double H,double S,double Initdouble
         }
 }
 
-__device__ int symmetry_thermo(char seq[])
+__device__ int symmetry_thermo(char *d_seq,int start,int length)
 {
 	int i = 0;
-	int seq_len=seq_length(seq);
-	if(seq_len%2==1)
+	if(length%2==1)
 		return 0;
 
-	while(i<seq_len/2)
+	while(i<length/2)
 	{
-		if((seq[i]=='A'&&seq[seq_len-1-i]!='T')||(seq[i]=='T'&&seq[seq_len-1-i]!='A')||(seq[seq_len-1-i]=='A'&&seq[i]!='T')||(seq[seq_len-1-i]=='T'&&seq[i]!='A'))
+		if((d_seq[start+i]=='A'&&d_seq[start+length-1-i]!='T')||(d_seq[start+i]=='T'&&d_seq[start+length-1-i]!='A')||(d_seq[start+length-1-i]=='A'&&d_seq[start+i]!='T')||(d_seq[start+length-1-i]=='T'&&d_seq[start+i]!='A'))
 			return 0;
-		if((seq[i]=='C'&&seq[seq_len-1-i]!='G')||(seq[i]=='G'&&seq[seq_len-1-i]!='C')||(seq[seq_len-1-i]=='C'&&seq[i]!='G')||(seq[seq_len-1-i]=='G'&&seq[i]!='C'))
+		if((d_seq[start+i]=='C'&&d_seq[start+length-1-i]!='G')||(d_seq[start+i]=='G'&&d_seq[start+length-1-i]!='C')||(d_seq[start+length-1-i]=='C'&&d_seq[start+i]!='G')||(d_seq[start+length-1-i]=='G'&&d_seq[start+i]!='C'))
 			return 0;
 		i++;
 	}
 	return 1;
 }
 
-__device__ double thal(char oligo_f[],char oligo_r[],int type,char *d_numSeq,int id,double *d_DPT,int *d_ps)
+__device__ double thal(char *d_seq,int start,int length,int strand_flag,int type,char *d_numSeq,int id,double *d_DPT,int *d_ps)
 {
 	double SH[2],Initdouble[4];//0 is dplx_init_H, 1 is dplx_init_S, 2 is RC, 3 is SHleft
 	int Initint[5]; //0 is len1, 1 is len2, 2 is len3, 3 is bestI, 4 is bestJ
@@ -2324,7 +2343,7 @@ __device__ double thal(char oligo_f[],char oligo_r[],int type,char *d_numSeq,int
 	{
 		Initdouble[0]= 200;
 		Initdouble[1]= -5.7;
-		if(symmetry_thermo(oligo_f) && symmetry_thermo(oligo_r))
+		if(symmetry_thermo(d_seq,start,length))
 			Initdouble[2]=1.9872* log(38/1000000000.0);
 		else
 			Initdouble[2]=1.9872* log(38/4000000000.0);
@@ -2332,22 +2351,46 @@ __device__ double thal(char oligo_f[],char oligo_r[],int type,char *d_numSeq,int
 /* convert nucleotides to numbers */
 	if(type==1 || type==2)
 	{
-		Initint[0]=seq_length(oligo_f);
-		Initint[1]=seq_length(oligo_r);
-	 	for(i=1;i<=Initint[0];++i)
-			d_numSeq[id*54+i]=str2int(oligo_f[i-1]);
-		for(i=1;i<=Initint[1];++i)
-			d_numSeq[id*54+27+i]=str2int(oligo_r[Initint[1]-i]);
+		Initint[0]=length;
+		Initint[1]=length;
+		if(strand_flag==0) //plus
+		{
+	 		for(i=1;i<=length;++i)
+			{
+				str2int(d_seq[start+i-1],d_numSeq,(id*54+i));
+				str2int(d_seq[start+length-i],d_numSeq,(id*54+27+i));
+			}
+		}
+		else
+		{
+			for(i=1;i<=length;++i)
+			{
+				str2int_rev(d_seq[start+length-i],d_numSeq,(id*54+i));
+				str2int_rev(d_seq[start+i-1],d_numSeq,(id*54+27+i));
+			}
+		}
 	}
 	else
 	{
-		Initint[0]=seq_length(oligo_f);
-                Initint[1]=seq_length(oligo_r);
+		Initint[0]=length;
+                Initint[1]=length;
 		Initint[2]=Initint[1]-1;
-                for(i=1;i<=Initint[0];++i)      
-                        d_numSeq[id*54+i]=str2int(oligo_f[i-1]);   
-                for(i=1;i<=Initint[1];++i)      
-                        d_numSeq[id*54+27+i]=str2int(oligo_r[i-1]);
+		if(strand_flag==0)
+		{
+                	for(i=1;i<=length;++i)
+			{
+				str2int(d_seq[start+i-1],d_numSeq,(id*54+i));
+				d_numSeq[id*54+27+i]=d_numSeq[id*54+i];
+			}
+		}
+		else
+		{
+			for(i=1;i<=length;++i)
+			{
+				str2int_rev(d_seq[start+length-i],d_numSeq,(id*54+i));
+				d_numSeq[id*54+27+i]=d_numSeq[id*54+i];
+			}
+		}
 	}
 	d_numSeq[id*54+0]=d_numSeq[id*54+Initint[0]+1]=d_numSeq[id*54+27+0]=d_numSeq[id*54+27+Initint[1]+1]=4; /* mark as N-s */
 
@@ -2432,17 +2475,6 @@ __device__ double thal(char oligo_f[],char oligo_r[],int type,char *d_numSeq,int
         return result_TH;
 }
 
-///function in gpu, generate a read; int length: the length of reads
-__device__ void generate(char *d_seq,char seq[],int pos,int length)
-{
-	int i;
-	for(i=0;i<length;i++)
-	{
-		seq[i]=d_seq[pos+i];
-	}
-	seq[i]='\0';
-}
-
 ///function in gpu, check the GC-content; int length: the length of read
 __device__ int gc(char *d_seq,int start,int length)
 {
@@ -2484,6 +2516,16 @@ __device__ int translate(char a)
 	return 3;
 }
 
+__device__ int translate_rev(char a)
+{
+        if(a=='T')
+                return 0;
+        if(a=='A')
+                return 1;
+        if(a=='G')
+                return 2;
+        return 3;
+}
 //function in gpu, caculate tm
 __device__ int tm(char *d_seq,int start,float *d_deltah,float *d_deltas,int length,float max_tm,float min_tm)
 {
@@ -2534,20 +2576,34 @@ __device__ int tm(char *d_seq,int start,float *d_deltah,float *d_deltas,int leng
 }
 
 ///function in gpu, caculate stability, int strand: 0 is 5' and 1 is 3'
-__device__ int stability(char seq[],float *d_stab,int length,int strand)
+__device__ int stability(char *d_seq,int start,int flag,float *d_stab,int length,int strand)//flag=0: plus
 {
 	int i,pos;
 	
 	pos=0;
 	for(i=0;i<6;i++)
 	{
-		if(strand==0)
+		if(flag==0)
 		{
-			pos=pos*4+translate(seq[i]);
+			if(strand==0)
+			{
+				pos=pos*4+translate(d_seq[start+i]);
+			}
+			else
+			{
+				pos=pos*4+translate(d_seq[start+i+length-6]);
+			}
 		}
 		else
 		{
-			pos=pos*4+translate(seq[i+length-6]);
+			if(strand==0)
+                        {
+                                pos=pos*4+translate_rev(d_seq[start+length-1-i]);
+                        }
+                        else
+                        {
+                                pos=pos*4+translate_rev(d_seq[start+5-i]);
+                        }
 		}
 	}
 	
@@ -2559,14 +2615,28 @@ __device__ int stability(char seq[],float *d_stab,int length,int strand)
         pos=0;
         for(i=0;i<6;i++)
         {
-                if(strand==1)
-                {
-                        pos=pos*4+translate(seq[i]);
-                }
-                else
-                {
-                        pos=pos*4+translate(seq[i+length-6]);
-                }
+		if(flag==0)
+		{
+                	if(strand==1)
+                	{
+				pos=pos*4+translate(d_seq[start+i]);
+                	}
+                	else
+                	{
+				pos=pos*4+translate(d_seq[start+i+length-6]);
+                	}
+		}
+		else //minus
+		{
+			if(strand==1)
+                        {
+                                pos=pos*4+translate_rev(d_seq[start+length-1-i]);      
+                        }
+                        else
+                        {
+                                pos=pos*4+translate_rev(d_seq[start+5-i]);
+                        }
+		}
         }
 
         if(d_stab[pos]<3)
@@ -2590,33 +2660,6 @@ __device__ int words(char *d_seq,int position,int length)
 		}
 	}
 	return 1;
-}
-
-//function in gpu, reverse the strand,+ to - strand
-__device__ void reverse(char seq[],char rev[],int length)
-{
-	int i;
-	
-	for(i=0;i<length;i++)
-	{
-		if(seq[length-1-i]=='A')
-		{
-			rev[i]='T';
-			continue;
-		}
-                if(seq[length-1-i]=='T')
-                {
-                        rev[i]='A';
-                        continue;
-                }
-                if(seq[length-1-i]=='C')
-                {
-                        rev[i]='G';
-                        continue;
-                }
-		rev[i]='C';
-	}
-	rev[i]='\0';
 }
 
 __device__ int check_long_ploy(char *d_seq,int start,int length)
@@ -2647,7 +2690,6 @@ __device__ int check_long_ploy(char *d_seq,int start,int length)
 __global__ void candidate_primer(char *d_seq,int *d_pos,int *d_len,int *d_rev_len,float *d_stab,float *d_deltah,float *d_deltas,int strand,float max_tm,float min_tm,int length,int check_flag,char *d_numSeq,double *d_DPT,int *d_ps)
 {
 	int id,i,circle,check,plus,minus;
-	char primer[30],rev[30];
 
 	id=threadIdx.x+blockIdx.x*blockDim.x;
 	for(circle=id;circle<length;circle=circle+blockDim.x*gridDim.x)
@@ -2667,7 +2709,6 @@ __global__ void candidate_primer(char *d_seq,int *d_pos,int *d_len,int *d_rev_le
 			if(check==0)
                                 break;
 
-			generate(d_seq,primer,circle,i);
 			check=gc(d_seq,circle,i);
 			if(check==0)
 				continue;
@@ -2680,7 +2721,7 @@ __global__ void candidate_primer(char *d_seq,int *d_pos,int *d_len,int *d_rev_le
 			if(check==0)
 				continue;
 
-                        check=stability(primer,d_stab,i,strand);
+                        check=stability(d_seq,circle,0,d_stab,i,strand);
                         if(check==1)     //+ strand
 				plus=1;
 			else
@@ -2689,24 +2730,23 @@ __global__ void candidate_primer(char *d_seq,int *d_pos,int *d_len,int *d_rev_le
 		//secondary structure
 			if(check_flag&&plus)
 			{
-				if(thal(primer,primer,1,d_numSeq,id,d_DPT,d_ps)>min_tm-10)
+				if(thal(d_seq,circle,i,0,1,d_numSeq,id,d_DPT,d_ps)>min_tm-10)
 					plus=0;	
 			}
 			if(check_flag&&plus)
                         {
-                                if(thal(primer,primer,2,d_numSeq,id,d_DPT,d_ps)>min_tm-10)  
+                                if(thal(d_seq,circle,i,0,2,d_numSeq,id,d_DPT,d_ps)>min_tm-10)  
                                         plus=0;
                         }
 			if(check_flag&&plus)
                         {                
-                                if(thal(primer,primer,4,d_numSeq,id,d_DPT,d_ps)>min_tm-10)
+                                if(thal(d_seq,circle,i,0,4,d_numSeq,id,d_DPT,d_ps)>min_tm-10)
                                         plus=0;         
                         }
 			if(plus)
                                 d_len[circle*8+i-18]=1;
-	
-			reverse(primer,rev,i);  //generate - strand
-			check=stability(rev,d_stab,i,strand);
+	//reverse
+			check=stability(d_seq,circle,1,d_stab,i,strand);
 			if(check==1)
 				minus=1;
 			else
@@ -2714,17 +2754,17 @@ __global__ void candidate_primer(char *d_seq,int *d_pos,int *d_len,int *d_rev_le
 		//secondary structure      
                         if(check_flag&&minus)
                         {                
-                                if(thal(rev,rev,1,d_numSeq,id,d_DPT,d_ps)>min_tm-10)
+                                if(thal(d_seq,circle,i,1,1,d_numSeq,id,d_DPT,d_ps)>min_tm-10)
                                         minus=0;         
                         }           
                         if(check_flag&&minus)
                         {
-                                if(thal(rev,rev,2,d_numSeq,id,d_DPT,d_ps)>min_tm-10)
+                                if(thal(d_seq,circle,i,1,2,d_numSeq,id,d_DPT,d_ps)>min_tm-10)
                                         minus=0;
                         }                
                         if(check_flag&&minus)
                         {
-                                if(thal(rev,rev,4,d_numSeq,id,d_DPT,d_ps)>min_tm-10)
+                                if(thal(d_seq,circle,i,1,4,d_numSeq,id,d_DPT,d_ps)>min_tm-10)
                                         minus=0;
                         }
                         if(minus)
