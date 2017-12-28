@@ -860,13 +860,13 @@ __device__ void initMatrix2(int length,double *d_DPT,char *d_numSeq,int id)
 		for(j=i;j<=length;++j)
 			if(j-i<4 || (d_numSeq[id*54+i]+d_numSeq[id*54+j]!=3))
 			{
-				d_DPT[id*1302+(i-1)*(length-1)+j-1]=1.0*INFINITY;
-				d_DPT[id*1302+625+(i-1)*(length-1)+j-1]=-1.0;
+				d_DPT[id*1340+(i-1)*(length-1)+j-1]=1.0*INFINITY;
+				d_DPT[id*1340+625+(i-1)*(length-1)+j-1]=-1.0;
 			}
 			else
 			{
-				d_DPT[id*1302+(i-1)*(length-1)+j-1]=0.0;
-				d_DPT[id*1302+625+(i-1)*(length-1)+j-1]=-3224.0;
+				d_DPT[id*1340+(i-1)*(length-1)+j-1]=0.0;
+				d_DPT[id*1340+625+(i-1)*(length-1)+j-1]=-3224.0;
 			}
 }
 
@@ -911,24 +911,24 @@ __device__ double Hs(int i,int j,int k,int length,char *d_numSeq,int id)
 		return parameter[625+d_numSeq[id*54+i]*125+d_numSeq[id*54+i+1]*25+d_numSeq[id*54+27+j]*5+d_numSeq[id*54+27+j+1]];
 }
 
-__device__ void maxTM2(int i,int j,double Initdouble[],int length,double *d_DPT,char *d_numSeq,int id)
+__device__ void maxTM2(int i,int j,int length,double *d_DPT,char *d_numSeq,int id)
 {
 	double T0,T1,S0,S1,H0,H1;
 
-	S0=d_DPT[id*1302+625+(i-1)*(length-1)+j-1];
-	H0=d_DPT[id*1302+(i-1)*(length-1)+j-1];
-	T0=(H0+Initdouble[0])/(S0+Initdouble[1]+Initdouble[2]);
-	if(fabs(d_DPT[id*1302+(i-1)*(length-1)+j-1])<999999999)
+	S0=d_DPT[id*1340+625+(i-1)*(length-1)+j-1];
+	H0=d_DPT[id*1340+(i-1)*(length-1)+j-1];
+	T0=(H0+d_DPT[id*1340+1302])/(S0+d_DPT[id*1340+1303]+d_DPT[id*1340+1304]);
+	if(fabs(d_DPT[id*1340+(i-1)*(length-1)+j-1])<999999999)
 	{
-		S1=(d_DPT[id*1302+625+i*(length-1)+j-2]+Ss(i,j,2,length,d_numSeq,id));
-		H1=(d_DPT[id*1302+i*(length-1)+j-2]+Hs(i,j,2,length,d_numSeq,id));
+		S1=(d_DPT[id*1340+625+i*(length-1)+j-2]+Ss(i,j,2,length,d_numSeq,id));
+		H1=(d_DPT[id*1340+i*(length-1)+j-2]+Hs(i,j,2,length,d_numSeq,id));
 	}
 	else
 	{
 		S1=-1.0;
 		H1=1.0*INFINITY;
 	}
-	T1=(H1+Initdouble[0])/(S1+Initdouble[1]+Initdouble[2]);
+	T1=(H1+d_DPT[id*1340+1302])/(S1+d_DPT[id*1340+1303]+d_DPT[id*1340+1304]);
 	if(S1<-2500.0)
 	{
 		S1=-3224.0;
@@ -942,17 +942,17 @@ __device__ void maxTM2(int i,int j,double Initdouble[],int length,double *d_DPT,
 
 	if(T1>T0)
 	{
-		d_DPT[id*1302+625+(i-1)*(length-1)+j-1]=S1;
-		d_DPT[id*1302+(i-1)*(length-1)+j-1]= H1;
+		d_DPT[id*1340+625+(i-1)*(length-1)+j-1]=S1;
+		d_DPT[id*1340+(i-1)*(length-1)+j-1]= H1;
 	}
 	else
 	{
-		d_DPT[id*1302+625+(i-1)*(length-1)+j-1]=S0;
-		d_DPT[id*1302+(i-1)*(length-1)+j-1]=H0;
+		d_DPT[id*1340+625+(i-1)*(length-1)+j-1]=S0;
+		d_DPT[id*1340+(i-1)*(length-1)+j-1]=H0;
 	}
 }
 
-__device__ void calc_bulge_internal2(int i,int j,int ii,int jj,double *EntropyEnthalpy,int traceback,double Initdouble[0],int length,double *d_DPT,char *d_numSeq,int id)
+__device__ void calc_bulge_internal2(int i,int j,int ii,int jj,double *EntropyEnthalpy,int traceback,int length,double *d_DPT,char *d_numSeq,int id)
 {
 	int loopSize1,loopSize2,loopSize;
 	double T1,T2,S,H;
@@ -980,8 +980,8 @@ __device__ void calc_bulge_internal2(int i,int j,int ii,int jj,double *EntropyEn
  			}
 			if(traceback!=1)
 			{
-				H+=d_DPT[id*1302+(ii-1)*(length-1)+jj-1];
-				S+=d_DPT[id*1302+625+(ii-1)*(length-1)+jj-1];
+				H+=d_DPT[id*1340+(ii-1)*(length-1)+jj-1];
+				S+=d_DPT[id*1340+625+(ii-1)*(length-1)+jj-1];
 			}
 
 			if(fabs(H)>999999999)
@@ -989,8 +989,8 @@ __device__ void calc_bulge_internal2(int i,int j,int ii,int jj,double *EntropyEn
 				H=1.0*INFINITY;
 				S=-1.0;
 			}
-			T1=(H+Initdouble[0])/((S+Initdouble[1])+Initdouble[2]);
-			T2=(d_DPT[id*1302+(i-1)*(length-1)+j-1]+Initdouble[0])/((d_DPT[id*1302+625+(i-1)*(length-1)+j-1])+Initdouble[1]+Initdouble[2]);
+			T1=(H+d_DPT[id*1340+1302])/((S+d_DPT[id*1340+1303])+d_DPT[id*1340+1304]);
+			T2=(d_DPT[id*1340+(i-1)*(length-1)+j-1]+d_DPT[id*1340+1302])/((d_DPT[id*1340+625+(i-1)*(length-1)+j-1])+d_DPT[id*1340+1303]+d_DPT[id*1340+1304]);
 			if((T1>T2)||((traceback&&T1>=T2)||traceback==1))
 			{
 				EntropyEnthalpy[0]=S;
@@ -1001,18 +1001,18 @@ __device__ void calc_bulge_internal2(int i,int j,int ii,int jj,double *EntropyEn
 		{
 			H=parameter[3150+loopSize]+parameter[5705+d_numSeq[id*54+i]*5+d_numSeq[id*54+27+j]]+parameter[5705+d_numSeq[id*54+ii]*5+d_numSeq[id*54+27+jj]];
 			if(traceback!=1)
-				H+=d_DPT[id*1302+(ii-1)*(length-1)+jj-1];
+				H+=d_DPT[id*1340+(ii-1)*(length-1)+jj-1];
 
 			S=parameter[3060+loopSize]+parameter[5680+d_numSeq[id*54+i]*5+d_numSeq[id*54+27+j]]+parameter[5680+d_numSeq[id*54+ii]*5+d_numSeq[id*54+27+jj]];
 			if(traceback!=1)
-				S+=d_DPT[id*1302+625+(ii-1)*(length-1)+jj-1];
+				S+=d_DPT[id*1340+625+(ii-1)*(length-1)+jj-1];
 			if(fabs(H)>999999999)
 			{
 				H=1.0*INFINITY;
 				S=-1.0;
 			}
-			T1=(H+Initdouble[0])/((S+Initdouble[1])+Initdouble[2]);
-			T2=(d_DPT[id*1302+(i-1)*(length-1)+j-1]+Initdouble[0])/(d_DPT[id*1302+625+(i-1)*(length-1)+j-1]+Initdouble[1]+Initdouble[2]);
+			T1=(H+d_DPT[id*1340+1302])/((S+d_DPT[id*1340+1303])+d_DPT[id*1340+1304]);
+			T2=(d_DPT[id*1340+(i-1)*(length-1)+j-1]+d_DPT[id*1340+1302])/(d_DPT[id*1340+625+(i-1)*(length-1)+j-1]+d_DPT[id*1340+1303]+d_DPT[id*1340+1304]);
 			if((T1>T2)||((traceback&&T1>=T2)||(traceback==1)))
 			{
 				EntropyEnthalpy[0]=S;
@@ -1024,18 +1024,18 @@ __device__ void calc_bulge_internal2(int i,int j,int ii,int jj,double *EntropyEn
 	{
 		S=parameter[1250+d_numSeq[id*54+i]*125+d_numSeq[id*54+i+1]*25+d_numSeq[id*54+27+j]*5+d_numSeq[id*54+27+j-1]]+parameter[1250+d_numSeq[id*54+27+jj]*125+d_numSeq[id*54+27+jj+1]*25+d_numSeq[id*54+ii]*5+d_numSeq[id*54+ii-1]];
 		if(traceback!=1)
-			S+=d_DPT[id*1302+625+(ii-1)*(length-1)+jj-1];
+			S+=d_DPT[id*1340+625+(ii-1)*(length-1)+jj-1];
 
 		H=parameter[1875+d_numSeq[id*54+i]*125+d_numSeq[id*54+i+1]*25+d_numSeq[id*54+27+j]*5+d_numSeq[id*54+27+j-1]]+parameter[1875+d_numSeq[id*54+27+jj]*125+d_numSeq[id*54+27+jj+1]*25+d_numSeq[id*54+ii]*5+d_numSeq[id*54+ii-1]];
 		if(traceback!=1)
-			H+=d_DPT[id*1302+(ii-1)*(length-1)+jj-1];
+			H+=d_DPT[id*1340+(ii-1)*(length-1)+jj-1];
 		if(fabs(H)>999999999)
 		{
 			H=1.0*INFINITY;
 			S=-1.0;
 		}
-		T1=(H+Initdouble[0])/((S+Initdouble[1])+Initdouble[2]);
-		T2=(d_DPT[id*1302+(i-1)*(length-1)+j-1]+Initdouble[0])/(d_DPT[id*1302+625+(i-1)*(length-1)+j-1]+Initdouble[1]+Initdouble[2]);
+		T1=(H+d_DPT[id*1340+1302])/((S+d_DPT[id*1340+1303])+d_DPT[id*1340+1304]);
+		T2=(d_DPT[id*1340+(i-1)*(length-1)+j-1]+d_DPT[id*1340+1302])/(d_DPT[id*1340+625+(i-1)*(length-1)+j-1]+d_DPT[id*1340+1303]+d_DPT[id*1340+1304]);
 		if((T1-T2>=0.000001)||traceback)
 		{
 			if((T1>T2)||((traceback&&T1>= T2)||traceback==1))
@@ -1050,19 +1050,19 @@ __device__ void calc_bulge_internal2(int i,int j,int ii,int jj,double *EntropyEn
 	{
 		H=parameter[3120+loopSize]+parameter[3805+d_numSeq[id*54+i]*125+d_numSeq[id*54+i+1]*25+d_numSeq[id*54+27+j]*5+d_numSeq[id*54+27+j-1]]+parameter[3805+d_numSeq[id*54+27+jj]*125+d_numSeq[id*54+27+jj+1]*25+d_numSeq[id*54+ii]*5+d_numSeq[id*54+ii-1]];
 		if(traceback!=1)
-			H+=d_DPT[id*1302+(ii-1)*(length-1)+jj-1];
+			H+=d_DPT[id*1340+(ii-1)*(length-1)+jj-1];
 
 		S=parameter[3030+loopSize]+parameter[3180+d_numSeq[id*54+i]*125+d_numSeq[id*54+i+1]*25+d_numSeq[id*54+27+j]*5+d_numSeq[id*54+27+j-1]]+parameter[3180+d_numSeq[id*54+27+jj]*125+d_numSeq[id*54+27+jj+1]*25+d_numSeq[id*54+ii]*5+d_numSeq[id*54+ii-1]]+(-300/310.15*abs(loopSize1-loopSize2));
 		if(traceback!=1)
-			S+=d_DPT[id*1302+625+(ii-1)*(length-1)+jj-1];
+			S+=d_DPT[id*1340+625+(ii-1)*(length-1)+jj-1];
 		if(fabs(H)>999999999)
 		{
 			H=1.0*INFINITY;
 			S=-1.0;
 		}
 
-		T1=(H+Initdouble[0])/((S+Initdouble[1])+Initdouble[2]);
-		T2=(d_DPT[id*1302+(i-1)*(length-1)+j-1]+Initdouble[0])/((d_DPT[id*1302+625+(i-1)*(length-1)+j-1])+Initdouble[1]+Initdouble[2]);
+		T1=(H+d_DPT[id*1340+1302])/((S+d_DPT[id*1340+1303])+d_DPT[id*1340+1304]);
+		T2=(d_DPT[id*1340+(i-1)*(length-1)+j-1]+d_DPT[id*1340+1302])/((d_DPT[id*1340+625+(i-1)*(length-1)+j-1])+d_DPT[id*1340+1303]+d_DPT[id*1340+1304]);
 		if((T1>T2)||((traceback&&T1>=T2)||(traceback==1)))
 		{
 			EntropyEnthalpy[0]=S;
@@ -1072,7 +1072,7 @@ __device__ void calc_bulge_internal2(int i,int j,int ii,int jj,double *EntropyEn
 	return;
 }
 
-__device__ void CBI(int i,int j,double* EntropyEnthalpy,int traceback,double Initdouble[],int length,double *d_DPT,char *d_numSeq,int id)
+__device__ void CBI(int i,int j,double* EntropyEnthalpy,int traceback,int length,double *d_DPT,char *d_numSeq,int id)
 {
 	int d,ii,jj;
 
@@ -1085,9 +1085,9 @@ __device__ void CBI(int i,int j,double* EntropyEnthalpy,int traceback,double Ini
 				EntropyEnthalpy[0]=-1.0;
 				EntropyEnthalpy[1]=1.0*INFINITY;
 			}
-			if(fabs(d_DPT[id*1302+(ii-1)*(length-1)+jj-1])<999999999)
+			if(fabs(d_DPT[id*1340+(ii-1)*(length-1)+jj-1])<999999999)
 			{
-				calc_bulge_internal2(i,j,ii,jj,EntropyEnthalpy,traceback,Initdouble,length,d_DPT,d_numSeq,id);
+				calc_bulge_internal2(i,j,ii,jj,EntropyEnthalpy,traceback,length,d_DPT,d_numSeq,id);
 				if(fabs(EntropyEnthalpy[1])<999999999)
 				{
 					if(EntropyEnthalpy[0] <-2500.0)
@@ -1097,8 +1097,8 @@ __device__ void CBI(int i,int j,double* EntropyEnthalpy,int traceback,double Ini
 					}
 					if(traceback==0)
 					{
-						d_DPT[id*1302+(i-1)*(length-1)+j-1]=EntropyEnthalpy[1];
-						d_DPT[id*1302+625+(i-1)*(length-1)+j-1]=EntropyEnthalpy[0];
+						d_DPT[id*1340+(i-1)*(length-1)+j-1]=EntropyEnthalpy[1];
+						d_DPT[id*1340+625+(i-1)*(length-1)+j-1]=EntropyEnthalpy[0];
 					}
 				}
 			}
@@ -1127,7 +1127,7 @@ __device__ int find_pos(char *ref,int ref_start,int start,int length,int num)
 	return -1;
 }
 
-__device__ void calc_hairpin(int i,int j,double *EntropyEnthalpy,int traceback,double Initdouble[],int length,double *d_DPT,char *d_numSeq,int id)
+__device__ void calc_hairpin(int i,int j,double *EntropyEnthalpy,int traceback,int length,double *d_DPT,char *d_numSeq,int id)
 {
 	int pos,loopSize=j-i-1;
 	double T1,T2;
@@ -1196,17 +1196,17 @@ __device__ void calc_hairpin(int i,int j,double *EntropyEnthalpy,int traceback,d
 		EntropyEnthalpy[1] =1.0*INFINITY;
 		EntropyEnthalpy[0] = -1.0;
 	}
-	T1 = (EntropyEnthalpy[1] +Initdouble[0]) / ((EntropyEnthalpy[0] +Initdouble[1]+ Initdouble[2]));
-	T2 = (d_DPT[id*1302+(i-1)*(length-1)+j-1] +Initdouble[0]) / ((d_DPT[id*1302+625+(i-1)*(length-1)+j-1]) +Initdouble[1]+ Initdouble[2]);
+	T1 = (EntropyEnthalpy[1] +d_DPT[id*1340+1302]) / ((EntropyEnthalpy[0] +d_DPT[id*1340+1303]+ d_DPT[id*1340+1304]));
+	T2 = (d_DPT[id*1340+(i-1)*(length-1)+j-1] +d_DPT[id*1340+1302]) / ((d_DPT[id*1340+625+(i-1)*(length-1)+j-1]) +d_DPT[id*1340+1303]+ d_DPT[id*1340+1304]);
 	if(T1 < T2 && traceback == 0)
 	{
-		EntropyEnthalpy[0] =d_DPT[id*1302+625+(i-1)*(length-1)+j-1];
-		EntropyEnthalpy[1] =d_DPT[id*1302+(i-1)*(length-1)+j-1];
+		EntropyEnthalpy[0] =d_DPT[id*1340+625+(i-1)*(length-1)+j-1];
+		EntropyEnthalpy[1] =d_DPT[id*1340+(i-1)*(length-1)+j-1];
 	}
 	return;
 }
 
-__device__ void fillMatrix2(double Initdouble[],int length,double *d_DPT,char *d_numSeq,int id)
+__device__ void fillMatrix2(int length,double *d_DPT,char *d_numSeq,int id)
 {
 	int i, j;
 	double SH[2];
@@ -1214,16 +1214,16 @@ __device__ void fillMatrix2(double Initdouble[],int length,double *d_DPT,char *d
 	for (j = 2; j <= length; ++j)
 		for (i = j - 3 - 1; i >= 1; --i)
 		{
-			if (fabs(d_DPT[id*1302+(i-1)*(length-1)+j-1])<999999999)
+			if (fabs(d_DPT[id*1340+(i-1)*(length-1)+j-1])<999999999)
 			{
 				SH[0] = -1.0;
 				SH[1] =1.0*INFINITY;
-				maxTM2(i,j,Initdouble,length,d_DPT,d_numSeq,id);
-				CBI(i,j,SH,0,Initdouble,length,d_DPT,d_numSeq,id);
+				maxTM2(i,j,length,d_DPT,d_numSeq,id);
+				CBI(i,j,SH,0,length,d_DPT,d_numSeq,id);
 
 				SH[0] = -1.0;
 				SH[1] =1.0*INFINITY;
-				calc_hairpin(i, j, SH, 0,Initdouble,length,d_DPT,d_numSeq,id);
+				calc_hairpin(i, j, SH, 0,length,d_DPT,d_numSeq,id);
 				if(fabs(SH[1])<999999999)
 				{
 					if(SH[0] <-2500.0) /* to not give dH any value if dS is unreasonable */
@@ -1231,8 +1231,8 @@ __device__ void fillMatrix2(double Initdouble[],int length,double *d_DPT,char *d
 						SH[0] =-3224.0;
 						SH[1] = 0.0;
 					}
-					d_DPT[id*1302+625+(i-1)*(length-1)+j-1]= SH[0];
-					d_DPT[id*1302+(i-1)*(length-1)+j-1]= SH[1];
+					d_DPT[id*1340+625+(i-1)*(length-1)+j-1]= SH[0];
+					d_DPT[id*1340+(i-1)*(length-1)+j-1]= SH[1];
 				}
 			}
 		}
@@ -1282,7 +1282,7 @@ __device__ double Htstack(int i,int j,char *d_numSeq,int id)
 	return parameter[5055+d_numSeq[id*54+i]*125+d_numSeq[id*54+i+1]*25+d_numSeq[id*54+j]*5+d_numSeq[id*54+j-1]];
 }
 
-__device__ double END5_1(int i,int hs,double Initdouble[],int length,double *d_DPT,char *d_numSeq,int id)
+__device__ double END5_1(int i,int hs,int length,double *d_DPT,char *d_numSeq,int id)
 {
 	int k;
 	double max_tm,T1,T2,H,S,H_max,S_max;
@@ -1292,29 +1292,29 @@ __device__ double END5_1(int i,int hs,double Initdouble[],int length,double *d_D
 	S_max=-1.0;
 	for(k=0;k<=i-5;++k)
 	{
-		T1=(d_DPT[id*1302+1276+k]+Initdouble[0])/(d_DPT[id*1302+1250+k]+Initdouble[1]+Initdouble[2]);
-		T2=Initdouble[0]/(Initdouble[1]+Initdouble[2]);
+		T1=(d_DPT[id*1340+1276+k]+d_DPT[id*1340+1302])/(d_DPT[id*1340+1250+k]+d_DPT[id*1340+1303]+d_DPT[id*1340+1304]);
+		T2=d_DPT[id*1340+1302]/(d_DPT[id*1340+1303]+d_DPT[id*1340+1304]);
 		if(T1>=T2)
 		{
-			H=d_DPT[id*1302+1276+k]+parameter[5705+d_numSeq[id*54+k+1]*5+d_numSeq[id*54+i]]+d_DPT[id*1302+k*(length-1)+i-1];
-			S=d_DPT[id*1302+1250+k]+parameter[5680+d_numSeq[id*54+k+1]*5+d_numSeq[id*54+i]]+d_DPT[id*1302+625+k*(length-1)+i-1];
+			H=d_DPT[id*1340+1276+k]+parameter[5705+d_numSeq[id*54+k+1]*5+d_numSeq[id*54+i]]+d_DPT[id*1340+k*(length-1)+i-1];
+			S=d_DPT[id*1340+1250+k]+parameter[5680+d_numSeq[id*54+k+1]*5+d_numSeq[id*54+i]]+d_DPT[id*1340+625+k*(length-1)+i-1];
 			if(fabs(H)>999999999||H>0||S>0)  // H and S must be greater than 0 to avoid BS
 			{
 				H=1.0*INFINITY;
 				S=-1.0;
 			}
-			T1=(H+Initdouble[0])/(S+Initdouble[1]+Initdouble[2]);
+			T1=(H+d_DPT[id*1340+1302])/(S+d_DPT[id*1340+1303]+d_DPT[id*1340+1304]);
 		}
 		else
 		{
-			H=parameter[5705+d_numSeq[id*54+k+1]*5+d_numSeq[id*54+i]]+d_DPT[id*1302+k*(length-1)+i-1];
-			S=parameter[5680+d_numSeq[id*54+k+1]*5+d_numSeq[id*54+i]]+d_DPT[id*1302+625+k*(length-1)+i-1];
+			H=parameter[5705+d_numSeq[id*54+k+1]*5+d_numSeq[id*54+i]]+d_DPT[id*1340+k*(length-1)+i-1];
+			S=parameter[5680+d_numSeq[id*54+k+1]*5+d_numSeq[id*54+i]]+d_DPT[id*1340+625+k*(length-1)+i-1];
 			if(fabs(H)>999999999||H>0||S>0)
 			{
 				H=1.0*INFINITY;
 				S=-1.0;
 			}
-			T1=(H+Initdouble[0])/(S+Initdouble[1]+Initdouble[2]);
+			T1=(H+d_DPT[id*1340+1302])/(S+d_DPT[id*1340+1303]+d_DPT[id*1340+1304]);
 		}
 
 		if(max_tm<T1)
@@ -1332,7 +1332,7 @@ __device__ double END5_1(int i,int hs,double Initdouble[],int length,double *d_D
 	return S_max;
 }
 
-__device__ double END5_2(int i,int hs,double Initdouble[],int length,double *d_DPT,char *d_numSeq,int id)
+__device__ double END5_2(int i,int hs,int length,double *d_DPT,char *d_numSeq,int id)
 {
 	int k;
 	double max_tm,T1,T2,H,S,H_max,S_max;
@@ -1342,29 +1342,29 @@ __device__ double END5_2(int i,int hs,double Initdouble[],int length,double *d_D
 	S_max=-1.0;
 	for(k=0;k<=i-6;++k)
 	{
-		T1=(d_DPT[id*1302+1276+k]+Initdouble[0])/(d_DPT[id*1302+1250+k]+Initdouble[1]+Initdouble[2]);
-		T2=Initdouble[0]/(Initdouble[1]+Initdouble[2]);
+		T1=(d_DPT[id*1340+1276+k]+d_DPT[id*1340+1302])/(d_DPT[id*1340+1250+k]+d_DPT[id*1340+1303]+d_DPT[id*1340+1304]);
+		T2=d_DPT[id*1340+1302]/(d_DPT[id*1340+1303]+d_DPT[id*1340+1304]);
 		if(T1>=T2)
 		{
-			H=d_DPT[id*1302+1276+k]+parameter[5705+d_numSeq[id*54+k+2]*5+d_numSeq[id*54+i]]+Hd5(i,k+2,d_numSeq,id)+d_DPT[id*1302+(k+1)*(length-1)+i-1];
-			S=d_DPT[id*1302+1250+k]+parameter[5680+d_numSeq[id*54+k+2]*5+d_numSeq[id*54+i]]+Sd5(i,k+2,d_numSeq,id)+d_DPT[id*1302+625+(k+1)*(length-1)+i-1];
+			H=d_DPT[id*1340+1276+k]+parameter[5705+d_numSeq[id*54+k+2]*5+d_numSeq[id*54+i]]+Hd5(i,k+2,d_numSeq,id)+d_DPT[id*1340+(k+1)*(length-1)+i-1];
+			S=d_DPT[id*1340+1250+k]+parameter[5680+d_numSeq[id*54+k+2]*5+d_numSeq[id*54+i]]+Sd5(i,k+2,d_numSeq,id)+d_DPT[id*1340+625+(k+1)*(length-1)+i-1];
 			if(fabs(H)>999999999||H>0||S>0)
 			{
 				H=1.0*INFINITY;
 				S=-1.0;
 			}
-			T1=(H+Initdouble[0])/(S+Initdouble[1]+Initdouble[2]);
+			T1=(H+d_DPT[id*1340+1302])/(S+d_DPT[id*1340+1303]+d_DPT[id*1340+1304]);
 		}
 		else
 		{
-			H=parameter[5705+d_numSeq[id*54+k+2]*5+d_numSeq[id*54+i]]+Hd5(i,k+2,d_numSeq,id)+d_DPT[id*1302+(k+1)*(length-1)+i-1];
-			S=parameter[5680+d_numSeq[id*54+k+2]*5+d_numSeq[id*54+i]]+Sd5(i,k+2,d_numSeq,id)+d_DPT[id*1302+625+(k+1)*(length-1)+i-1];
+			H=parameter[5705+d_numSeq[id*54+k+2]*5+d_numSeq[id*54+i]]+Hd5(i,k+2,d_numSeq,id)+d_DPT[id*1340+(k+1)*(length-1)+i-1];
+			S=parameter[5680+d_numSeq[id*54+k+2]*5+d_numSeq[id*54+i]]+Sd5(i,k+2,d_numSeq,id)+d_DPT[id*1340+625+(k+1)*(length-1)+i-1];
 			if(fabs(H)>999999999||H>0||S>0)
 			{
 				H=1.0*INFINITY;
 				S=-1.0;
 			}
-			T1=(H+Initdouble[0])/(S+Initdouble[1]+Initdouble[2]);
+			T1=(H+d_DPT[id*1340+1302])/(S+d_DPT[id*1340+1303]+d_DPT[id*1340+1304]);
 		}
 
 		if(max_tm<T1)
@@ -1382,7 +1382,7 @@ __device__ double END5_2(int i,int hs,double Initdouble[],int length,double *d_D
 	return S_max;
 }
 
-__device__ double END5_3(int i,int hs,double Initdouble[],int length,double *d_DPT,char *d_numSeq,int id)
+__device__ double END5_3(int i,int hs,int length,double *d_DPT,char *d_numSeq,int id)
 {
 	int k;
 	double max_tm,T1,T2,H,S,H_max,S_max;
@@ -1392,29 +1392,29 @@ __device__ double END5_3(int i,int hs,double Initdouble[],int length,double *d_D
 	S_max=-1.0;
 	for(k=0;k<=i-6;++k)
 	{
-		T1=(d_DPT[id*1302+1276+k]+Initdouble[0])/(d_DPT[id*1302+1250+k]+Initdouble[1]+Initdouble[2]);
-		T2=Initdouble[0]/(Initdouble[1]+Initdouble[2]);
+		T1=(d_DPT[id*1340+1276+k]+d_DPT[id*1340+1302])/(d_DPT[id*1340+1250+k]+d_DPT[id*1340+1303]+d_DPT[id*1340+1304]);
+		T2=d_DPT[id*1340+1302]/(d_DPT[id*1340+1303]+d_DPT[id*1340+1304]);
 		if(T1>=T2)
 		{
-			H=d_DPT[id*1302+1276+k]+parameter[5705+d_numSeq[id*54+k+1]*5+d_numSeq[id*54+i-1]]+Hd3(i-1,k+1,d_numSeq,id)+d_DPT[id*1302+k*(length-1)+i-2];
-			S=d_DPT[id*1302+1250+k]+parameter[5680+d_numSeq[id*54+k+1]*5+d_numSeq[id*54+i-1]]+Sd3(i-1,k+1,d_numSeq,id)+d_DPT[id*1302+625+k*(length-1)+i-2];
+			H=d_DPT[id*1340+1276+k]+parameter[5705+d_numSeq[id*54+k+1]*5+d_numSeq[id*54+i-1]]+Hd3(i-1,k+1,d_numSeq,id)+d_DPT[id*1340+k*(length-1)+i-2];
+			S=d_DPT[id*1340+1250+k]+parameter[5680+d_numSeq[id*54+k+1]*5+d_numSeq[id*54+i-1]]+Sd3(i-1,k+1,d_numSeq,id)+d_DPT[id*1340+625+k*(length-1)+i-2];
 			if(fabs(H)>999999999||H>0||S>0)
 			{
 				H=1.0*INFINITY;
 				S=-1.0;
 			}
-			T1=(H+Initdouble[0])/(S+Initdouble[1]+Initdouble[2]);
+			T1=(H+d_DPT[id*1340+1302])/(S+d_DPT[id*1340+1303]+d_DPT[id*1340+1304]);
 		}
 		else
 		{
-			H=parameter[5705+d_numSeq[id*54+k+1]*5+d_numSeq[id*54+i-1]]+Hd3(i-1,k+1,d_numSeq,id)+d_DPT[id*1302+k*(length-1)+i-2];
-			S=parameter[5680+d_numSeq[id*54+k+1]*5+d_numSeq[id*54+i-1]]+Sd3(i-1,k+1,d_numSeq,id)+d_DPT[id*1302+625+k*(length-1)+i-2];
+			H=parameter[5705+d_numSeq[id*54+k+1]*5+d_numSeq[id*54+i-1]]+Hd3(i-1,k+1,d_numSeq,id)+d_DPT[id*1340+k*(length-1)+i-2];
+			S=parameter[5680+d_numSeq[id*54+k+1]*5+d_numSeq[id*54+i-1]]+Sd3(i-1,k+1,d_numSeq,id)+d_DPT[id*1340+625+k*(length-1)+i-2];
 			if(fabs(H)>999999999||H>0||S>0)
 			{
 				H=1.0*INFINITY;
 				S=-1.0;
 			}
-			T1=(H+Initdouble[0])/(S+Initdouble[1]+Initdouble[2]);
+			T1=(H+d_DPT[id*1340+1302])/(S+d_DPT[id*1340+1303]+d_DPT[id*1340+1304]);
 		}
 
 		if(max_tm<T1)
@@ -1432,7 +1432,7 @@ __device__ double END5_3(int i,int hs,double Initdouble[],int length,double *d_D
 	return S_max;
 }
 
-__device__ double END5_4(int i,int hs,double Initdouble[],int length,double *d_DPT,char *d_numSeq,int id)
+__device__ double END5_4(int i,int hs,int length,double *d_DPT,char *d_numSeq,int id)
 {
 	int k;
 	double max_tm,T1,T2,H,S,H_max,S_max;
@@ -1442,29 +1442,29 @@ __device__ double END5_4(int i,int hs,double Initdouble[],int length,double *d_D
 	S_max=-1.0;
 	for(k=0;k<=i-7;++k)
 	{
-		T1=(d_DPT[id*1302+1276+k]+Initdouble[0])/(d_DPT[id*1302+1250+k]+Initdouble[1]+Initdouble[2]);
-		T2=Initdouble[0]/(Initdouble[1]+Initdouble[2]);
+		T1=(d_DPT[id*1340+1276+k]+d_DPT[id*1340+1302])/(d_DPT[id*1340+1250+k]+d_DPT[id*1340+1303]+d_DPT[id*1340+1304]);
+		T2=d_DPT[id*1340+1302]/(d_DPT[id*1340+1303]+d_DPT[id*1340+1304]);
 		if(T1>=T2)
 		{
-			H=d_DPT[id*1302+1276+k]+parameter[5705+d_numSeq[id*54+k+2]*5+d_numSeq[id*54+i-1]]+Htstack(i-1,k+2,d_numSeq,id)+d_DPT[id*1302+(k+1)*(length-1)+i-2];
-			S=d_DPT[id*1302+1250+k]+parameter[5680+d_numSeq[id*54+k+2]*5+d_numSeq[id*54+i-1]]+Ststack(i-1,k+2,d_numSeq,id)+d_DPT[id*1302+625+(k+1)*(length-1)+i-2];
+			H=d_DPT[id*1340+1276+k]+parameter[5705+d_numSeq[id*54+k+2]*5+d_numSeq[id*54+i-1]]+Htstack(i-1,k+2,d_numSeq,id)+d_DPT[id*1340+(k+1)*(length-1)+i-2];
+			S=d_DPT[id*1340+1250+k]+parameter[5680+d_numSeq[id*54+k+2]*5+d_numSeq[id*54+i-1]]+Ststack(i-1,k+2,d_numSeq,id)+d_DPT[id*1340+625+(k+1)*(length-1)+i-2];
 			if(fabs(H)>999999999||H>0||S>0)
 			{
 				H=1.0*INFINITY;
 				S=-1.0;
 			}
-			T1=(H+Initdouble[0])/(S+Initdouble[1]+Initdouble[2]);
+			T1=(H+d_DPT[id*1340+1302])/(S+d_DPT[id*1340+1303]+d_DPT[id*1340+1304]);
 		}
 		else
 		{
-			H=parameter[5705+d_numSeq[id*54+k+2]*5+d_numSeq[id*54+i-1]]+Htstack(i-1,k+2,d_numSeq,id)+d_DPT[id*1302+(k+1)*(length-1)+i-2];
-			S=parameter[5680+d_numSeq[id*54+k+2]*5+d_numSeq[id*54+i-1]]+Ststack(i-1,k+2,d_numSeq,id)+d_DPT[id*1302+625+(k+1)*(length-1)+i-2];
+			H=parameter[5705+d_numSeq[id*54+k+2]*5+d_numSeq[id*54+i-1]]+Htstack(i-1,k+2,d_numSeq,id)+d_DPT[id*1340+(k+1)*(length-1)+i-2];
+			S=parameter[5680+d_numSeq[id*54+k+2]*5+d_numSeq[id*54+i-1]]+Ststack(i-1,k+2,d_numSeq,id)+d_DPT[id*1340+625+(k+1)*(length-1)+i-2];
 			if(fabs(H)>999999999||H>0||S>0)
 			{
 				H=1.0*INFINITY;
 				S=-1.0;
 			}
-			T1=(H+Initdouble[0])/(S+Initdouble[1]+Initdouble[2]);
+			T1=(H+d_DPT[id*1340+1302])/(S+d_DPT[id*1340+1303]+d_DPT[id*1340+1304]);
  		}
 
 		if(max_tm<T1)
@@ -1482,95 +1482,95 @@ __device__ double END5_4(int i,int hs,double Initdouble[],int length,double *d_D
 	return S_max;
 }
 
-__device__ void calc_terminal_bp(double temp,double Initdouble[],int length,double *d_DPT,char *d_numSeq,int id)
+__device__ void calc_terminal_bp(double temp,int length,double *d_DPT,char *d_numSeq,int id)
 {
 	int i,max;
 	double T1,T2,T3,T4,T5,G,end5_11,end5_12,end5_21,end5_22,end5_31,end5_32,end5_41,end5_42;
 	
-	d_DPT[id*1302+1250+0]=d_DPT[id*1302+1250+1]= -1.0;
-	d_DPT[id*1302+1276+0]=d_DPT[id*1302+1276+1]=1.0*INFINITY;
+	d_DPT[id*1340+1250+0]=d_DPT[id*1340+1250+1]= -1.0;
+	d_DPT[id*1340+1276+0]=d_DPT[id*1340+1276+1]=1.0*INFINITY;
 
 	for(i=2;i<=length;i++)
 	{
-		d_DPT[id*1302+1250+i]=-3224.0;
-		d_DPT[id*1302+1276+i]=0;
+		d_DPT[id*1340+1250+i]=-3224.0;
+		d_DPT[id*1340+1276+i]=0;
 	}
 
 // adding terminal penalties to 3' end and to 5' end 
 	for(i=2;i<=length;++i)
 	{
 		max=0;
-		T1=(d_DPT[id*1302+1276+i-1]+Initdouble[0])/(d_DPT[id*1302+1250+i-1]+Initdouble[1]+Initdouble[2]);
-		end5_11=END5_1(i,1,Initdouble,length,d_DPT,d_numSeq,id);
-		end5_12=END5_1(i,2,Initdouble,length,d_DPT,d_numSeq,id);
-		T2=(end5_11+Initdouble[0])/(end5_12+Initdouble[1]+Initdouble[2]);
-		end5_21=END5_2(i,1,Initdouble,length,d_DPT,d_numSeq,id);
-		end5_22=END5_2(i,2,Initdouble,length,d_DPT,d_numSeq,id);
-		T3=(end5_21+Initdouble[0])/(end5_22+Initdouble[1]+Initdouble[2]);
-		end5_31=END5_3(i,1,Initdouble,length,d_DPT,d_numSeq,id);
-		end5_32=END5_3(i,2,Initdouble,length,d_DPT,d_numSeq,id);
-		T4=(end5_31+Initdouble[0])/(end5_32+Initdouble[1]+Initdouble[2]);
-		end5_41=END5_4(i,1,Initdouble,length,d_DPT,d_numSeq,id);
-		end5_42=END5_4(i,2,Initdouble,length,d_DPT,d_numSeq,id);
-		T5=(end5_41+Initdouble[0])/(end5_42+Initdouble[1]+Initdouble[2]);
+		T1=(d_DPT[id*1340+1276+i-1]+d_DPT[id*1340+1302])/(d_DPT[id*1340+1250+i-1]+d_DPT[id*1340+1303]+d_DPT[id*1340+1304]);
+		end5_11=END5_1(i,1,length,d_DPT,d_numSeq,id);
+		end5_12=END5_1(i,2,length,d_DPT,d_numSeq,id);
+		T2=(end5_11+d_DPT[id*1340+1302])/(end5_12+d_DPT[id*1340+1303]+d_DPT[id*1340+1304]);
+		end5_21=END5_2(i,1,length,d_DPT,d_numSeq,id);
+		end5_22=END5_2(i,2,length,d_DPT,d_numSeq,id);
+		T3=(end5_21+d_DPT[id*1340+1302])/(end5_22+d_DPT[id*1340+1303]+d_DPT[id*1340+1304]);
+		end5_31=END5_3(i,1,length,d_DPT,d_numSeq,id);
+		end5_32=END5_3(i,2,length,d_DPT,d_numSeq,id);
+		T4=(end5_31+d_DPT[id*1340+1302])/(end5_32+d_DPT[id*1340+1303]+d_DPT[id*1340+1304]);
+		end5_41=END5_4(i,1,length,d_DPT,d_numSeq,id);
+		end5_42=END5_4(i,2,length,d_DPT,d_numSeq,id);
+		T5=(end5_41+d_DPT[id*1340+1302])/(end5_42+d_DPT[id*1340+1303]+d_DPT[id*1340+1304]);
 
 		max=max5(T1,T2,T3,T4,T5);
 		switch(max)
 		{
 			case 1:
-				d_DPT[id*1302+1250+i]=d_DPT[id*1302+1250+i-1];
-				d_DPT[id*1302+1276+i]=d_DPT[id*1302+1276+i-1];
+				d_DPT[id*1340+1250+i]=d_DPT[id*1340+1250+i-1];
+				d_DPT[id*1340+1276+i]=d_DPT[id*1340+1276+i-1];
 				break;
 			case 2:
 				G=end5_11-temp*end5_12;
 				if(G<0.0)
 				{
-					d_DPT[id*1302+1250+i]=end5_12;
-					d_DPT[id*1302+1276+i]=end5_11;
+					d_DPT[id*1340+1250+i]=end5_12;
+					d_DPT[id*1340+1276+i]=end5_11;
 				}
 				else
 				{
-					d_DPT[id*1302+1250+i]=d_DPT[id*1302+1250+i-1];
-					d_DPT[id*1302+1276+i]=d_DPT[id*1302+1276+i-1];
+					d_DPT[id*1340+1250+i]=d_DPT[id*1340+1250+i-1];
+					d_DPT[id*1340+1276+i]=d_DPT[id*1340+1276+i-1];
 				}
 				break;
 			case 3:
 				G=end5_21-temp*end5_22;
 				if(G<0.0)
 				{
-					d_DPT[id*1302+1250+i]=end5_22;
-					d_DPT[id*1302+1276+i]=end5_21;
+					d_DPT[id*1340+1250+i]=end5_22;
+					d_DPT[id*1340+1276+i]=end5_21;
 				}
 				else
 				{
-					d_DPT[id*1302+1250+i]=d_DPT[id*1302+1250+i-1];
-					d_DPT[id*1302+1276+i]=d_DPT[id*1302+1276+i-1];
+					d_DPT[id*1340+1250+i]=d_DPT[id*1340+1250+i-1];
+					d_DPT[id*1340+1276+i]=d_DPT[id*1340+1276+i-1];
 				}
 				break;
 			case 4:
 				G=end5_31-temp*end5_32;
 				if(G<0.0)
 				{
-					d_DPT[id*1302+1250+i]=end5_32;
-					d_DPT[id*1302+1276+i]=end5_31;
+					d_DPT[id*1340+1250+i]=end5_32;
+					d_DPT[id*1340+1276+i]=end5_31;
 				}
 				else
 				{
-					d_DPT[id*1302+1250+i]=d_DPT[id*1302+1250+i-1];
-					d_DPT[id*1302+1276+i]=d_DPT[id*1302+1276+i-1];
+					d_DPT[id*1340+1250+i]=d_DPT[id*1340+1250+i-1];
+					d_DPT[id*1340+1276+i]=d_DPT[id*1340+1276+i-1];
 				}
 				break;
 			case 5:
 				G=end5_41-temp*end5_42;
 				if(G<0.0)
 				{
-					d_DPT[id*1302+1250+i]=end5_42;
-					d_DPT[id*1302+1276+i]=end5_41;
+					d_DPT[id*1340+1250+i]=end5_42;
+					d_DPT[id*1340+1276+i]=end5_41;
 				}
 				else
 				{
-					d_DPT[id*1302+1250+i]=d_DPT[id*1302+1250+i-1];
-					d_DPT[id*1302+1276+i]=d_DPT[id*1302+1276+i-1];
+					d_DPT[id*1340+1250+i]=d_DPT[id*1340+1250+i-1];
+					d_DPT[id*1340+1276+i]=d_DPT[id*1340+1276+i-1];
 				}
 				break;
 			default:
@@ -1602,7 +1602,7 @@ __device__ int equal(double a,double b)
 	return fabs(a-b)<1e-5;
 }
 
-__device__ void tracebacku(int *d_ps,double Initdouble[],int length,double *d_DPT,char *d_numSeq,int id)
+__device__ void tracebacku(int *d_ps,int length,double *d_DPT,char *d_numSeq,int id)
 {
 	int i,j,store[50],total,now,ii,jj,k,d,done;
 	double SH1[2],SH2[2],EntropyEnthalpy[2];
@@ -1615,64 +1615,64 @@ __device__ void tracebacku(int *d_ps,double Initdouble[],int length,double *d_DP
                 j=store[3*now+1]; // top->j;
                 if(store[now*3+2]==1)
                 {
-                        while(equal(d_DPT[id*1302+1250+i],d_DPT[id*1302+1250+i-1])&&equal(d_DPT[id*1302+1276+i],d_DPT[id*1302+1276+i-1])) // if previous structure is the same as this one
+                        while(equal(d_DPT[id*1340+1250+i],d_DPT[id*1340+1250+i-1])&&equal(d_DPT[id*1340+1276+i],d_DPT[id*1340+1276+i-1])) // if previous structure is the same as this one
                                 --i;
                         if(i==0)
                                 continue;
-                        if(equal(d_DPT[id*1302+1250+i],END5_1(i,2,Initdouble,length,d_DPT,d_numSeq,id))&&equal(d_DPT[id*1302+1276+i],END5_1(i,1,Initdouble,length,d_DPT,d_numSeq,id)))
+                        if(equal(d_DPT[id*1340+1250+i],END5_1(i,2,length,d_DPT,d_numSeq,id))&&equal(d_DPT[id*1340+1276+i],END5_1(i,1,length,d_DPT,d_numSeq,id)))
                         {
                                 for(k=0;k<=i-5;++k)
-                                        if(equal(d_DPT[id*1302+1250+i],parameter[5680+d_numSeq[id*54+k+1]*5+d_numSeq[id*54+i]]+d_DPT[id*1302+625+k*(length-1)+i-1])&&equal(d_DPT[id*1302+1276+i],parameter[5705+d_numSeq[id*54+k+1]*5+d_numSeq[id*54+i]]+d_DPT[id*1302+k*(length-1)+i-1]))
+                                        if(equal(d_DPT[id*1340+1250+i],parameter[5680+d_numSeq[id*54+k+1]*5+d_numSeq[id*54+i]]+d_DPT[id*1340+625+k*(length-1)+i-1])&&equal(d_DPT[id*1340+1276+i],parameter[5705+d_numSeq[id*54+k+1]*5+d_numSeq[id*54+i]]+d_DPT[id*1340+k*(length-1)+i-1]))
                                         {
                                                 total=newpush(store,k+1,i,0,total,now+1);                    
                                                 break;
                                         }
-                                        else if(equal(d_DPT[id*1302+1250+i],d_DPT[id*1302+1250+k]+parameter[5680+d_numSeq[id*54+k+1]*5+d_numSeq[id*54+i]]+d_DPT[id*1302+625+k*(length-1)+i-1])&&equal(d_DPT[id*1302+1276+i],d_DPT[id*1302+1276+k]+parameter[5705+d_numSeq[id*54+k+1]*5+d_numSeq[id*54+i]]+d_DPT[id*1302+k*(length-1)+i-1]))
+                                        else if(equal(d_DPT[id*1340+1250+i],d_DPT[id*1340+1250+k]+parameter[5680+d_numSeq[id*54+k+1]*5+d_numSeq[id*54+i]]+d_DPT[id*1340+625+k*(length-1)+i-1])&&equal(d_DPT[id*1340+1276+i],d_DPT[id*1340+1276+k]+parameter[5705+d_numSeq[id*54+k+1]*5+d_numSeq[id*54+i]]+d_DPT[id*1340+k*(length-1)+i-1]))
                                         {
                                                 total=newpush(store,k+1,i,0,total,now+1);
                                                 total=newpush(store,k,0,1,total,now+1);
                                                 break;
                                         }
                         }
-                        else if(equal(d_DPT[id*1302+1250+i],END5_2(i,2,Initdouble,length,d_DPT,d_numSeq,id))&&equal(d_DPT[id*1302+1276+i],END5_2(i,1,Initdouble,length,d_DPT,d_numSeq,id)))
+                        else if(equal(d_DPT[id*1340+1250+i],END5_2(i,2,length,d_DPT,d_numSeq,id))&&equal(d_DPT[id*1340+1276+i],END5_2(i,1,length,d_DPT,d_numSeq,id)))
                         {
                                 for (k=0;k<=i-6;++k)
-                                        if(equal(d_DPT[id*1302+1250+i],parameter[5680+d_numSeq[id*54+k+2]*5+d_numSeq[id*54+i]]+Sd5(i,k+2,d_numSeq,id)+d_DPT[id*1302+625+(k+1)*(length-1)+i-1])&&equal(d_DPT[id*1302+1276+i],parameter[5705+d_numSeq[id*54+k+2]*5+d_numSeq[id*54+i]]+Hd5(i,k+2,d_numSeq,id)+d_DPT[id*1302+(k+1)*(length-1)+i-1]))
+                                        if(equal(d_DPT[id*1340+1250+i],parameter[5680+d_numSeq[id*54+k+2]*5+d_numSeq[id*54+i]]+Sd5(i,k+2,d_numSeq,id)+d_DPT[id*1340+625+(k+1)*(length-1)+i-1])&&equal(d_DPT[id*1340+1276+i],parameter[5705+d_numSeq[id*54+k+2]*5+d_numSeq[id*54+i]]+Hd5(i,k+2,d_numSeq,id)+d_DPT[id*1340+(k+1)*(length-1)+i-1]))
                                         {
                                                 total=newpush(store,k+2,i,0,total,now+1);
                                                 break;
                                         }
-                                        else if(equal(d_DPT[id*1302+1250+i],d_DPT[id*1302+1250+k]+parameter[5680+d_numSeq[id*54+k+2]*5+d_numSeq[id*54+i]]+Sd5(i,k+2,d_numSeq,id)+d_DPT[id*1302+625+(k+1)*(length-1)+i-1])&&equal(d_DPT[id*1302+1276+i],d_DPT[id*1302+1276+k]+parameter[5705+d_numSeq[id*54+k+2]*5+d_numSeq[id*54+i]]+Hd5(i,k+2,d_numSeq,id)+d_DPT[id*1302+(k+1)*(length-1)+i-1]))
+                                        else if(equal(d_DPT[id*1340+1250+i],d_DPT[id*1340+1250+k]+parameter[5680+d_numSeq[id*54+k+2]*5+d_numSeq[id*54+i]]+Sd5(i,k+2,d_numSeq,id)+d_DPT[id*1340+625+(k+1)*(length-1)+i-1])&&equal(d_DPT[id*1340+1276+i],d_DPT[id*1340+1276+k]+parameter[5705+d_numSeq[id*54+k+2]*5+d_numSeq[id*54+i]]+Hd5(i,k+2,d_numSeq,id)+d_DPT[id*1340+(k+1)*(length-1)+i-1]))
                                         {
                                                 total=newpush(store,k+2,i,0,total,now+1);
                                                 total=newpush(store,k,0,1,total,now+1);
                                                 break;
                                         }
                         }
-                        else if(equal(d_DPT[id*1302+1250+i],END5_3(i,2,Initdouble,length,d_DPT,d_numSeq,id))&&equal(d_DPT[id*1302+1276+i],END5_3(i,1,Initdouble,length,d_DPT,d_numSeq,id)))
+                        else if(equal(d_DPT[id*1340+1250+i],END5_3(i,2,length,d_DPT,d_numSeq,id))&&equal(d_DPT[id*1340+1276+i],END5_3(i,1,length,d_DPT,d_numSeq,id)))
                         {
                                 for (k=0;k<=i-6;++k)
-                                        if(equal(d_DPT[id*1302+1250+i],parameter[5680+d_numSeq[id*54+k+1]*5+d_numSeq[id*54+i-1]]+Sd3(i-1,k+1,d_numSeq,id)+d_DPT[id*1302+625+k*(length-1)+i-2])&&equal(d_DPT[id*1302+1276+i],parameter[5705+d_numSeq[id*54+k+1]*5+d_numSeq[id*54+i-1]]+Hd3(i-1,k+1,d_numSeq,id)+d_DPT[id*1302+k*(length-1)+i-2]))
+                                        if(equal(d_DPT[id*1340+1250+i],parameter[5680+d_numSeq[id*54+k+1]*5+d_numSeq[id*54+i-1]]+Sd3(i-1,k+1,d_numSeq,id)+d_DPT[id*1340+625+k*(length-1)+i-2])&&equal(d_DPT[id*1340+1276+i],parameter[5705+d_numSeq[id*54+k+1]*5+d_numSeq[id*54+i-1]]+Hd3(i-1,k+1,d_numSeq,id)+d_DPT[id*1340+k*(length-1)+i-2]))
                                         {
                                                 total=newpush(store,k+1,i-1,0,total,now+1);
                                                 break;
                                         }
-                                        else if(equal(d_DPT[id*1302+1250+i],d_DPT[id*1302+1250+k]+parameter[5680+d_numSeq[id*54+k+1]*5+d_numSeq[id*54+i-1]]+Sd3(i-1,k+1,d_numSeq,id)+d_DPT[id*1302+625+k*(length-1)+i-2])&&equal(d_DPT[id*1302+1276+i],d_DPT[id*1302+1276+k]+parameter[5705+d_numSeq[id*54+k+1]*5+d_numSeq[id*54+i-1]]+Hd3(i-1,k+1,d_numSeq,id)+d_DPT[id*1302+k*(length-1)+i-2]))
+                                        else if(equal(d_DPT[id*1340+1250+i],d_DPT[id*1340+1250+k]+parameter[5680+d_numSeq[id*54+k+1]*5+d_numSeq[id*54+i-1]]+Sd3(i-1,k+1,d_numSeq,id)+d_DPT[id*1340+625+k*(length-1)+i-2])&&equal(d_DPT[id*1340+1276+i],d_DPT[id*1340+1276+k]+parameter[5705+d_numSeq[id*54+k+1]*5+d_numSeq[id*54+i-1]]+Hd3(i-1,k+1,d_numSeq,id)+d_DPT[id*1340+k*(length-1)+i-2]))
                                         {
                                                 total=newpush(store,k+1,i-1,0,total,now+1);
                                                 total=newpush(store,k,0,1,total,now+1);
                                                 break;
                                         }
                         }
-                        else if(equal(d_DPT[id*1302+1250+i],END5_4(i,2,Initdouble,length,d_DPT,d_numSeq,id))&&equal(d_DPT[id*1302+1276+i],END5_4(i,1,Initdouble,length,d_DPT,d_numSeq,id)))
+                        else if(equal(d_DPT[id*1340+1250+i],END5_4(i,2,length,d_DPT,d_numSeq,id))&&equal(d_DPT[id*1340+1276+i],END5_4(i,1,length,d_DPT,d_numSeq,id)))
                         {
                                 for (k=0;k<=i-7;++k)
-                                        if(equal(d_DPT[id*1302+1250+i],parameter[5680+d_numSeq[id*54+k+2]*5+d_numSeq[id*54+i-1]]+Ststack(i-1,k+2,d_numSeq,id)+d_DPT[id*1302+625+(k+1)*(length-1)+i-2])&&equal(d_DPT[id*1302+1276+i],parameter[5705+d_numSeq[id*54+k+2]*5+d_numSeq[id*54+i-1]]+Htstack(i-1,k+2,d_numSeq,id)+d_DPT[id*1302+(k+1)*(length-1)+i-2]))
+                                        if(equal(d_DPT[id*1340+1250+i],parameter[5680+d_numSeq[id*54+k+2]*5+d_numSeq[id*54+i-1]]+Ststack(i-1,k+2,d_numSeq,id)+d_DPT[id*1340+625+(k+1)*(length-1)+i-2])&&equal(d_DPT[id*1340+1276+i],parameter[5705+d_numSeq[id*54+k+2]*5+d_numSeq[id*54+i-1]]+Htstack(i-1,k+2,d_numSeq,id)+d_DPT[id*1340+(k+1)*(length-1)+i-2]))
                                         {
                                                 total=newpush(store,k+2,i-1,0,total,now+1);
                                                 break;
                                         }
-                                        else if(equal(d_DPT[id*1302+1250+i],d_DPT[id*1302+1250+k]+parameter[5680+d_numSeq[id*54+k+2]*5+d_numSeq[id*54+i-1]]+Ststack(i-1,k+2,d_numSeq,id)+d_DPT[id*1302+625+(k+1)*(length-1)+i-2])&&equal(d_DPT[id*1302+1276+i],d_DPT[id*1302+1276+k]+parameter[5705+d_numSeq[id*54+k+2]*5+d_numSeq[id*54+i-1]]+Htstack(i-1,k+2,d_numSeq,id)+d_DPT[id*1302+(k+1)*(length-1)+i-2]))
+                                        else if(equal(d_DPT[id*1340+1250+i],d_DPT[id*1340+1250+k]+parameter[5680+d_numSeq[id*54+k+2]*5+d_numSeq[id*54+i-1]]+Ststack(i-1,k+2,d_numSeq,id)+d_DPT[id*1340+625+(k+1)*(length-1)+i-2])&&equal(d_DPT[id*1340+1276+i],d_DPT[id*1340+1276+k]+parameter[5705+d_numSeq[id*54+k+2]*5+d_numSeq[id*54+i-1]]+Htstack(i-1,k+2,d_numSeq,id)+d_DPT[id*1340+(k+1)*(length-1)+i-2]))
                                         {
                                                 total=newpush(store,k+2,i-1,0,total,now+1);
                                                 total=newpush(store,k,0,1,total,now+1);
@@ -1686,16 +1686,16 @@ __device__ void tracebacku(int *d_ps,double Initdouble[],int length,double *d_DP
                         d_ps[id*50+j-1]=i;
                         SH1[0]=-1.0;
                         SH1[1]=1.0*INFINITY;
-                        calc_hairpin(i,j,SH1,1,Initdouble,length,d_DPT,d_numSeq,id);
+                        calc_hairpin(i,j,SH1,1,length,d_DPT,d_numSeq,id);
 
                         SH2[0]=-1.0;
                         SH2[1]=1.0*INFINITY;
-                        CBI(i,j,SH2,2,Initdouble,length,d_DPT,d_numSeq,id);
+                        CBI(i,j,SH2,2,length,d_DPT,d_numSeq,id);
 
-                        if (equal(d_DPT[id*1302+625+(i-1)*(length-1)+j-1],Ss(i,j,2,length,d_numSeq,id)+d_DPT[id*1302+625+i*(length-1)+j-2])&&equal(d_DPT[id*1302+(i-1)*(length-1)+j-1],Hs(i,j,2,length,d_numSeq,id)+d_DPT[id*1302+i*(length-1)+j-2]))
+                        if (equal(d_DPT[id*1340+625+(i-1)*(length-1)+j-1],Ss(i,j,2,length,d_numSeq,id)+d_DPT[id*1340+625+i*(length-1)+j-2])&&equal(d_DPT[id*1340+(i-1)*(length-1)+j-1],Hs(i,j,2,length,d_numSeq,id)+d_DPT[id*1340+i*(length-1)+j-2]))
                                 total=newpush(store,i+1,j-1,0,total,now+1);
-                        else if(equal(d_DPT[id*1302+625+(i-1)*(length-1)+j-1],SH1[0])&&equal(d_DPT[id*1302+(i-1)*(length-1)+j-1],SH1[1]));
-                        else if(equal(d_DPT[id*1302+625+(i-1)*(length-1)+j-1],SH2[0])&&equal(d_DPT[id*1302+(i-1)*(length-1)+j-1],SH2[1]))
+                        else if(equal(d_DPT[id*1340+625+(i-1)*(length-1)+j-1],SH1[0])&&equal(d_DPT[id*1340+(i-1)*(length-1)+j-1],SH1[1]));
+                        else if(equal(d_DPT[id*1340+625+(i-1)*(length-1)+j-1],SH2[0])&&equal(d_DPT[id*1340+(i-1)*(length-1)+j-1],SH2[1]))
                         {
                                 for (done=0,d=j-i-3;d>=4&&d>=j-i-32&&!done;--d)
                                         for (ii=i+1;ii<j-d;++ii)
@@ -1703,9 +1703,9 @@ __device__ void tracebacku(int *d_ps,double Initdouble[],int length,double *d_DP
                                                 jj=d+ii;
                                                 EntropyEnthalpy[0]=-1.0;
                                                 EntropyEnthalpy[1]=1.0*INFINITY;
-                                                calc_bulge_internal2(i,j,ii,jj,EntropyEnthalpy,1,Initdouble,length,d_DPT,d_numSeq,id);
+                                                calc_bulge_internal2(i,j,ii,jj,EntropyEnthalpy,1,length,d_DPT,d_numSeq,id);
 
-                                                if (equal(d_DPT[id*1302+625+(i-1)*(length-1)+j-1],EntropyEnthalpy[0]+d_DPT[id*1302+625+(ii-1)*(length-1)+jj-1])&&equal(d_DPT[id*1302+(i-1)*(length-1)+j-1],EntropyEnthalpy[1]+d_DPT[id*1302+(ii-1)*(length-1)+jj-1]))
+                                                if (equal(d_DPT[id*1340+625+(i-1)*(length-1)+j-1],EntropyEnthalpy[0]+d_DPT[id*1340+625+(ii-1)*(length-1)+jj-1])&&equal(d_DPT[id*1340+(i-1)*(length-1)+j-1],EntropyEnthalpy[1]+d_DPT[id*1340+(ii-1)*(length-1)+jj-1]))
                                                 {
                                                         total=newpush(store,ii,jj,0,total,now+1);
                                                         ++done;
@@ -1748,26 +1748,26 @@ __device__ void initMatrix(int length,double *d_DPT,char *d_numSeq,int id)
 		{
 			if(d_numSeq[id*54+i]+d_numSeq[id*54+27+j]!=3)
 			{
-				d_DPT[id*1302+(i-1)*length+j-1]=1.0*INFINITY;
-				d_DPT[id*1302+625+(i-1)*length+j-1]=-1.0;
+				d_DPT[id*1340+(i-1)*length+j-1]=1.0*INFINITY;
+				d_DPT[id*1340+625+(i-1)*length+j-1]=-1.0;
 			}
 			else
 			{
-				d_DPT[id*1302+(i-1)*length+j-1]=0.0;
-				d_DPT[id*1302+625+(i-1)*length+j-1]=-3224.0;
+				d_DPT[id*1340+(i-1)*length+j-1]=0.0;
+				d_DPT[id*1340+625+(i-1)*length+j-1]=-3224.0;
 			}
 		}
 	}
 }
 
-__device__ void LSH(int i,int j,double *EntropyEnthalpy,double Initdouble[],int length,double *d_DPT,char *d_numSeq,int id)
+__device__ void LSH(int i,int j,double *EntropyEnthalpy,int length,double *d_DPT,char *d_numSeq,int id)
 {
 	double S1,H1,T1,S2,H2,T2;
 
 	if(d_numSeq[id*54+i]+d_numSeq[id*54+27+j]!=3)
 	{
-		d_DPT[id*1302+625+(i-1)*length+j-1]=-1.0;
-		d_DPT[id*1302+(i-1)*length+j-1]=1.0*INFINITY;
+		d_DPT[id*1340+625+(i-1)*length+j-1]=-1.0;
+		d_DPT[id*1340+(i-1)*length+j-1]=1.0*INFINITY;
 		return;
 	}
 
@@ -1788,10 +1788,10 @@ __device__ void LSH(int i,int j,double *EntropyEnthalpy,double Initdouble[],int 
 			H2=1.0*INFINITY;
 			S2=-1.0;
 		}
-		T2=(H2+Initdouble[0])/(S2+Initdouble[1]+Initdouble[2]);
+		T2=(H2+d_DPT[id*1340+1302])/(S2+d_DPT[id*1340+1303]+d_DPT[id*1340+1304]);
 		if(fabs(H1)<999999999)
 		{
-			T1=(H1+Initdouble[0])/(S1+Initdouble[1]+Initdouble[2]);
+			T1=(H1+d_DPT[id*1340+1302])/(S1+d_DPT[id*1340+1303]+d_DPT[id*1340+1304]);
 			if(T1<T2)
 			{
 				S1=S2;
@@ -1815,10 +1815,10 @@ __device__ void LSH(int i,int j,double *EntropyEnthalpy,double Initdouble[],int 
 			H2=1.0*INFINITY;
 			S2=-1.0;
 		}
-		T2=(H2+Initdouble[0])/(S2+Initdouble[1]+Initdouble[2]);
+		T2=(H2+d_DPT[id*1340+1302])/(S2+d_DPT[id*1340+1303]+d_DPT[id*1340+1304]);
 		if(fabs(H1)<999999999)
 		{
-			T1=(H1+Initdouble[0])/(S1+Initdouble[1]+Initdouble[2]);
+			T1=(H1+d_DPT[id*1340+1302])/(S1+d_DPT[id*1340+1303]+d_DPT[id*1340+1304]);
 			if(T1<T2)
 			{
 				S1=S2;
@@ -1842,10 +1842,10 @@ __device__ void LSH(int i,int j,double *EntropyEnthalpy,double Initdouble[],int 
 			H2=1.0*INFINITY;
 			S2=-1.0;
 		}
-		T2=(H2+Initdouble[0])/(S2+Initdouble[1]+Initdouble[2]);
+		T2=(H2+d_DPT[id*1340+1302])/(S2+d_DPT[id*1340+1303]+d_DPT[id*1340+1304]);
 		if(fabs(H1)<999999999)
 		{
-			T1=(H1+Initdouble[0])/(S1+Initdouble[1]+Initdouble[2]);
+			T1=(H1+d_DPT[id*1340+1302])/(S1+d_DPT[id*1340+1303]+d_DPT[id*1340+1304]);
 			if(T1<T2)
 			{
 				S1=S2;
@@ -1863,7 +1863,7 @@ __device__ void LSH(int i,int j,double *EntropyEnthalpy,double Initdouble[],int 
 
 	S2=parameter[5680+d_numSeq[id*54+i]*5+d_numSeq[id*54+27+j]];
 	H2=parameter[5705+d_numSeq[id*54+i]*5+d_numSeq[id*54+27+j]];
-	T2=(H2+Initdouble[0])/(S2+Initdouble[1]+Initdouble[2]);
+	T2=(H2+d_DPT[id*1340+1302])/(S2+d_DPT[id*1340+1303]+d_DPT[id*1340+1304]);
 	if(fabs(H1)<999999999)
 	{
 		if(T1<T2)
@@ -1885,24 +1885,24 @@ __device__ void LSH(int i,int j,double *EntropyEnthalpy,double Initdouble[],int 
 	return;
 }
 
-__device__ void maxTM(int i,int j,double Initdouble[],int length,double *d_DPT,char *d_numSeq,int id)
+__device__ void maxTM(int i,int j,int length,double *d_DPT,char *d_numSeq,int id)
 {
 	double T0,T1,S0,S1,H0,H1;
 
-	S0=d_DPT[id*1302+625+(i-1)*length+j-1];
-	H0=d_DPT[id*1302+(i-1)*length+j-1];
-	T0=(H0+Initdouble[0])/(S0+Initdouble[1]+Initdouble[2]); // at current position 
-	if(fabs(d_DPT[id*1302+(i-2)*length+j-2])<999999999&&fabs(Hs(i-1,j-1,1,length,d_numSeq,id))<999999999)
+	S0=d_DPT[id*1340+625+(i-1)*length+j-1];
+	H0=d_DPT[id*1340+(i-1)*length+j-1];
+	T0=(H0+d_DPT[id*1340+1302])/(S0+d_DPT[id*1340+1303]+d_DPT[id*1340+1304]); // at current position 
+	if(fabs(d_DPT[id*1340+(i-2)*length+j-2])<999999999&&fabs(Hs(i-1,j-1,1,length,d_numSeq,id))<999999999)
 	{
-		S1=(d_DPT[id*1302+625+(i-2)*length+j-2]+Ss(i-1,j-1,1,length,d_numSeq,id));
-		H1=(d_DPT[id*1302+(i-2)*length+j-2]+Hs(i-1,j-1,1,length,d_numSeq,id));
+		S1=(d_DPT[id*1340+625+(i-2)*length+j-2]+Ss(i-1,j-1,1,length,d_numSeq,id));
+		H1=(d_DPT[id*1340+(i-2)*length+j-2]+Hs(i-1,j-1,1,length,d_numSeq,id));
 	}
 	else
 	{
 		S1=-1.0;
 		H1=1.0*INFINITY;
 	}
-	T1=(H1+Initdouble[0])/(S1+Initdouble[1]+Initdouble[2]);
+	T1=(H1+d_DPT[id*1340+1302])/(S1+d_DPT[id*1340+1303]+d_DPT[id*1340+1304]);
 
 	if(S1<-2500.0)
 	{
@@ -1918,17 +1918,17 @@ __device__ void maxTM(int i,int j,double Initdouble[],int length,double *d_DPT,c
 	}
 	if((T1>T0)||(S0>0&&H0>0)) // T1 on suurem 
 	{
-		d_DPT[id*1302+625+(i-1)*length+j-1]=S1;
-		d_DPT[id*1302+(i-1)*length+j-1]=H1;
+		d_DPT[id*1340+625+(i-1)*length+j-1]=S1;
+		d_DPT[id*1340+(i-1)*length+j-1]=H1;
 	}
 	else if(T0>=T1)
 	{
-		d_DPT[id*1302+625+(i-1)*length+j-1]=S0;
-		d_DPT[id*1302+(i-1)*length+j-1]=H0;
+		d_DPT[id*1340+625+(i-1)*length+j-1]=S0;
+		d_DPT[id*1340+(i-1)*length+j-1]=H0;
 	}
 }
 
-__device__ void calc_bulge_internal(int i,int j,int ii,int jj,double* EntropyEnthalpy,int traceback,double Initdouble[],int length,double *d_DPT,char *d_numSeq,int id)
+__device__ void calc_bulge_internal(int i,int j,int ii,int jj,double* EntropyEnthalpy,int traceback,int length,double *d_DPT,char *d_numSeq,int id)
 {
 	int loopSize1,loopSize2,loopSize,N,N_loop;
 	double T1,T2,S,H;
@@ -1967,16 +1967,16 @@ __device__ void calc_bulge_internal(int i,int j,int ii,int jj,double* EntropyEnt
 				H=parameter[3150+loopSize]+parameter[625+d_numSeq[id*54+i]*125+d_numSeq[id*54+ii]*25+d_numSeq[id*54+27+j]*5+d_numSeq[id*54+27+jj]];
 				S=parameter[3060+loopSize]+parameter[d_numSeq[id*54+i]*125+d_numSeq[id*54+ii]*25+d_numSeq[id*54+27+j]*5+d_numSeq[id*54+27+jj]];
 			}
-			H+=d_DPT[id*1302+(i-1)*length+j-1];
-			S+=d_DPT[id*1302+625+(i-1)*length+j-1];
+			H+=d_DPT[id*1340+(i-1)*length+j-1];
+			S+=d_DPT[id*1340+625+(i-1)*length+j-1];
 			if(fabs(H)>999999999)
 			{
 				H=1.0*INFINITY;
 				S=-1.0;
 			}
 
-			T1=(H+Initdouble[0])/((S+Initdouble[1])+Initdouble[2]);
-			T2=(d_DPT[id*1302+(ii-1)*length+jj-1]+Initdouble[0])/((d_DPT[id*1302+625+(ii-1)*length+jj-1])+Initdouble[1]+Initdouble[2]);
+			T1=(H+d_DPT[id*1340+1302])/((S+d_DPT[id*1340+1303])+d_DPT[id*1340+1304]);
+			T2=(d_DPT[id*1340+(ii-1)*length+jj-1]+d_DPT[id*1340+1302])/((d_DPT[id*1340+625+(ii-1)*length+jj-1])+d_DPT[id*1340+1303]+d_DPT[id*1340+1304]);
 			if((T1>T2)||((traceback&&T1>=T2)||(traceback==1)))
 			{
 				EntropyEnthalpy[0]=S;
@@ -1986,17 +1986,17 @@ __device__ void calc_bulge_internal(int i,int j,int ii,int jj,double* EntropyEnt
 		else // we have _not_ implemented Jacobson-Stockaymayer equation; the maximum bulgeloop size is 30
 		{
 			H=parameter[3150+loopSize]+parameter[5705+d_numSeq[id*54+i]*5+d_numSeq[id*54+27+j]]+parameter[5705+d_numSeq[id*54+ii]*5+d_numSeq[id*54+27+jj]];
-			H+=d_DPT[id*1302+(i-1)*length+j-1];
+			H+=d_DPT[id*1340+(i-1)*length+j-1];
 
 			S=parameter[3060+loopSize]+parameter[5680+d_numSeq[id*54+i]*5+d_numSeq[id*54+27+j]]+parameter[5680+d_numSeq[id*54+ii]*5+d_numSeq[id*54+27+jj]];
-			S+=d_DPT[id*1302+625+(i-1)*length+j-1];
+			S+=d_DPT[id*1340+625+(i-1)*length+j-1];
 			if(fabs(H)>999999999)
 			{
 				H=1.0*INFINITY;
 				S=-1.0;
 			}
-			T1=(H+Initdouble[0])/((S+Initdouble[1])+Initdouble[2]);
-			T2=(d_DPT[id*1302+(ii-1)*length+jj-1]+Initdouble[0])/(d_DPT[id*1302+625+(ii-1)*length+jj-1]+Initdouble[1]+Initdouble[2]);
+			T1=(H+d_DPT[id*1340+1302])/((S+d_DPT[id*1340+1303])+d_DPT[id*1340+1304]);
+			T2=(d_DPT[id*1340+(ii-1)*length+jj-1]+d_DPT[id*1340+1302])/(d_DPT[id*1340+625+(ii-1)*length+jj-1]+d_DPT[id*1340+1303]+d_DPT[id*1340+1304]);
 			if((T1>T2)||((traceback&&T1>=T2)||(traceback==1)))
 			{
 				EntropyEnthalpy[0]=S;
@@ -2007,17 +2007,17 @@ __device__ void calc_bulge_internal(int i,int j,int ii,int jj,double* EntropyEnt
 	else if(loopSize1==1&&loopSize2==1)
 	{
 		S=parameter[1250+d_numSeq[id*54+i]*125+d_numSeq[id*54+i+1]*25+d_numSeq[id*54+27+j]*5+d_numSeq[id*54+27+j+1]]+parameter[1250+d_numSeq[id*54+27+jj]*125+d_numSeq[id*54+27+jj-1]*25+d_numSeq[id*54+ii]*5+d_numSeq[id*54+ii-1]];
-		S+=d_DPT[id*1302+625+(i-1)*length+j-1];
+		S+=d_DPT[id*1340+625+(i-1)*length+j-1];
 
 		H=parameter[1875+d_numSeq[id*54+i]*125+d_numSeq[id*54+i+1]*25+d_numSeq[id*54+27+j]*5+d_numSeq[id*54+27+j+1]]+parameter[1875+d_numSeq[id*54+27+jj]*125+d_numSeq[id*54+27+jj-1]*25+d_numSeq[id*54+ii]*5+d_numSeq[id*54+ii-1]];
-		H+=d_DPT[id*1302+(i-1)*length+j-1];
+		H+=d_DPT[id*1340+(i-1)*length+j-1];
 		if(fabs(H)>999999999)
 		{
 			H=1.0*INFINITY;
 			S=-1.0;
 		}
-		T1=(H+Initdouble[0])/((S+Initdouble[1])+Initdouble[2]);
-		T2=(d_DPT[id*1302+(ii-1)*length+jj-1]+Initdouble[0])/(d_DPT[id*1302+625+(ii-1)*length+jj-1]+Initdouble[1]+Initdouble[2]);
+		T1=(H+d_DPT[id*1340+1302])/((S+d_DPT[id*1340+1303])+d_DPT[id*1340+1304]);
+		T2=(d_DPT[id*1340+(ii-1)*length+jj-1]+d_DPT[id*1340+1302])/(d_DPT[id*1340+625+(ii-1)*length+jj-1]+d_DPT[id*1340+1303]+d_DPT[id*1340+1304]);
 		if((T1-T2>=0.000001)||traceback==1)
 		{
 			if((T1>T2)||(traceback&&T1>=T2))
@@ -2031,17 +2031,17 @@ __device__ void calc_bulge_internal(int i,int j,int ii,int jj,double* EntropyEnt
 	else // only internal loops
 	{
 		H=parameter[3120+loopSize]+parameter[3805+d_numSeq[id*54+i]*125+d_numSeq[id*54+i+1]*25+d_numSeq[id*54+27+j]*5+d_numSeq[id*54+27+j+1]]+parameter[3805+d_numSeq[id*54+27+jj]*125+d_numSeq[id*54+27+jj-1]*25+d_numSeq[id*54+ii]*5+d_numSeq[id*54+ii-1]];
-		H+=d_DPT[id*1302+(i-1)*length+j-1];
+		H+=d_DPT[id*1340+(i-1)*length+j-1];
 
 		S=parameter[3030+loopSize]+parameter[3180+d_numSeq[id*54+i]*125+d_numSeq[id*54+i+1]*25+d_numSeq[id*54+27+j]*5+d_numSeq[id*54+27+j+1]]+parameter[3180+d_numSeq[id*54+27+jj]*125+d_numSeq[id*54+27+jj-1]*25+d_numSeq[id*54+ii]*5+d_numSeq[id*54+ii-1]]+(-300/310.15*abs(loopSize1-loopSize2));
-		S+=d_DPT[id*1302+625+(i-1)*length+j-1];
+		S+=d_DPT[id*1340+625+(i-1)*length+j-1];
 		if(fabs(H)>999999999)
 		{
 			H=1.0*INFINITY;
 			S=-1.0;
 		}
-		T1=(H+Initdouble[0])/((S+Initdouble[1])+Initdouble[2]);
-		T2=(d_DPT[id*1302+(ii-1)*length+jj-1]+Initdouble[0])/((d_DPT[id*1302+625+(ii-1)*length+jj-1])+Initdouble[1]+Initdouble[2]);
+		T1=(H+d_DPT[id*1340+1302])/((S+d_DPT[id*1340+1303])+d_DPT[id*1340+1304]);
+		T2=(d_DPT[id*1340+(ii-1)*length+jj-1]+d_DPT[id*1340+1302])/((d_DPT[id*1340+625+(ii-1)*length+jj-1])+d_DPT[id*1340+1303]+d_DPT[id*1340+1304]);
 		if((T1>T2)||((traceback&&T1>=T2)||(traceback==1)))
 		{
 			EntropyEnthalpy[0]=S;
@@ -2051,7 +2051,7 @@ __device__ void calc_bulge_internal(int i,int j,int ii,int jj,double* EntropyEnt
 	return;
 }
 
-__device__ void fillMatrix(double Initdouble[],int length,double *d_DPT,char *d_numSeq,int id)
+__device__ void fillMatrix(int length,double *d_DPT,char *d_numSeq,int id)
 {
 	int d,i,j,ii,jj;
 	double SH[2];
@@ -2060,20 +2060,20 @@ __device__ void fillMatrix(double Initdouble[],int length,double *d_DPT,char *d_
 	{
 		for(j=1;j<=length;++j)
 		{
-			if(fabs(d_DPT[id*1302+(i-1)*length+j-1])<999999999)
+			if(fabs(d_DPT[id*1340+(i-1)*length+j-1])<999999999)
 			{
 				SH[0]=-1.0;
 				SH[1]=1.0*INFINITY;
-				LSH(i,j,SH,Initdouble,length,d_DPT,d_numSeq,id);
+				LSH(i,j,SH,length,d_DPT,d_numSeq,id);
 
 				if(fabs(SH[1])<999999999)
 				{
-					d_DPT[id*1302+625+(i-1)*length+j-1]=SH[0];
-					d_DPT[id*1302+(i-1)*length+j-1]=SH[1];
+					d_DPT[id*1340+625+(i-1)*length+j-1]=SH[0];
+					d_DPT[id*1340+(i-1)*length+j-1]=SH[1];
 				}
 				if(i>1&&j>1)
 				{
-					maxTM(i,j,Initdouble,length,d_DPT,d_numSeq,id);
+					maxTM(i,j,length,d_DPT,d_numSeq,id);
 					for(d=3;d<=32;d++)
 					{
 						ii=i-1;
@@ -2085,11 +2085,11 @@ __device__ void fillMatrix(double Initdouble[],int length,double *d_DPT,char *d_
 						}
 						for(;ii>0&&jj<j;--ii,++jj)
 						{
-							if(fabs(d_DPT[id*1302+(ii-1)*length+jj-1])<999999999)
+							if(fabs(d_DPT[id*1340+(ii-1)*length+jj-1])<999999999)
 							{
 								SH[0]=-1.0;
 								SH[1]=1.0*INFINITY;
-								calc_bulge_internal(ii,jj,i,j,SH,0,Initdouble,length,d_DPT,d_numSeq,id);
+								calc_bulge_internal(ii,jj,i,j,SH,0,length,d_DPT,d_numSeq,id);
 
 								if(SH[0]<-2500.0)
 								{
@@ -2098,8 +2098,8 @@ __device__ void fillMatrix(double Initdouble[],int length,double *d_DPT,char *d_
 								}
 								if(fabs(SH[1])<999999999)
 								{
-									d_DPT[id*1302+(i-1)*length+j-1]=SH[1];
-									d_DPT[id*1302+625+(i-1)*length+j-1]=SH[0];
+									d_DPT[id*1340+(i-1)*length+j-1]=SH[1];
+									d_DPT[id*1340+625+(i-1)*length+j-1]=SH[0];
 								}
 							}
 						}
@@ -2110,14 +2110,14 @@ __device__ void fillMatrix(double Initdouble[],int length,double *d_DPT,char *d_
 	} //for
 }
 
-__device__ void RSH(int i,int j,double EntropyEnthalpy[],double Initdouble[],char *d_numSeq,int id)
+__device__ void RSH(int i,int j,double *d_DPT,char *d_numSeq,int id)
 {
 	double S1,S2,H1,H2,T1,T2;
 
 	if(d_numSeq[id*54+i]+d_numSeq[id*54+27+j]!=3)
 	{
-		EntropyEnthalpy[0]=-1.0;
-		EntropyEnthalpy[1]=1.0*INFINITY;
+		d_DPT[id*1340+1306]=-1.0;
+		d_DPT[id*1340+1307]=1.0*INFINITY;
 		return;
 	}
 	S1=parameter[5680+d_numSeq[id*54+i]*5+d_numSeq[id*54+27+j]]+parameter[4430+d_numSeq[id*54+i]*125+d_numSeq[id*54+i+1]*25+d_numSeq[id*54+27+j]*5+d_numSeq[id*54+27+j+1]];
@@ -2136,10 +2136,10 @@ __device__ void RSH(int i,int j,double EntropyEnthalpy[],double Initdouble[],cha
 			H2=1.0*INFINITY;
 			S2=-1.0;
 		}
-		T2=(H2+Initdouble[0])/(S2+Initdouble[1]+Initdouble[2]);
+		T2=(H2+d_DPT[id*1340+1302])/(S2+d_DPT[id*1340+1303]+d_DPT[id*1340+1304]);
 		if(fabs(H1)<999999999)
 		{
-			T1=(H1+Initdouble[0])/(S1+Initdouble[1]+Initdouble[2]);
+			T1=(H1+d_DPT[id*1340+1302])/(S1+d_DPT[id*1340+1303]+d_DPT[id*1340+1304]);
 			if(T1<T2)
 			{
 				S1=S2;
@@ -2164,10 +2164,10 @@ __device__ void RSH(int i,int j,double EntropyEnthalpy[],double Initdouble[],cha
 			H2=1.0*INFINITY;
 			S2=-1.0;
 		}
-		T2=(H2+Initdouble[0])/(S2+Initdouble[1]+Initdouble[2]);
+		T2=(H2+d_DPT[id*1340+1302])/(S2+d_DPT[id*1340+1303]+d_DPT[id*1340+1304]);
 		if(fabs(H1)<999999999)
 		{
-			T1=(H1+Initdouble[0])/(S1+Initdouble[1]+Initdouble[2]);
+			T1=(H1+d_DPT[id*1340+1302])/(S1+d_DPT[id*1340+1303]+d_DPT[id*1340+1304]);
 			if(T1<T2)
 			{
 				S1=S2;
@@ -2192,10 +2192,10 @@ __device__ void RSH(int i,int j,double EntropyEnthalpy[],double Initdouble[],cha
 			H2=1.0*INFINITY;
 			S2=-1.0;
 		}
-		T2=(H2+Initdouble[0])/(S2+Initdouble[1]+Initdouble[2]);
+		T2=(H2+d_DPT[id*1340+1302])/(S2+d_DPT[id*1340+1303]+d_DPT[id*1340+1304]);
 		if(fabs(H1)<999999999)
 		{
-			T1=(H1+Initdouble[0])/(S1+Initdouble[1]+Initdouble[2]);
+			T1=(H1+d_DPT[id*1340+1302])/(S1+d_DPT[id*1340+1303]+d_DPT[id*1340+1304]);
 			if(T1<T2)
 			{
 				S1=S2;
@@ -2212,29 +2212,29 @@ __device__ void RSH(int i,int j,double EntropyEnthalpy[],double Initdouble[],cha
 	}
 	S2=parameter[5680+d_numSeq[id*54+i]*5+d_numSeq[id*54+27+j]];
 	H2=parameter[5705+d_numSeq[id*54+i]*5+d_numSeq[id*54+27+j]];
-	T2=(H2+Initdouble[0])/(S2+Initdouble[1]+Initdouble[2]);
+	T2=(H2+d_DPT[id*1340+1302])/(S2+d_DPT[id*1340+1303]+d_DPT[id*1340+1304]);
 	if(fabs(H1)<999999999)
 	{
 		if(T1<T2)
 		{
-			EntropyEnthalpy[0]=S2;
-			EntropyEnthalpy[1]=H2;
+			d_DPT[id*1340+1306]=S2;
+			d_DPT[id*1340+1307]=H2;
 		}
 		else
 		{
-			EntropyEnthalpy[0]=S1;
-			EntropyEnthalpy[1]=H1;
+			d_DPT[id*1340+1306]=S1;
+			d_DPT[id*1340+1307]=H1;
 		}
 	}
 	else
 	{
-		EntropyEnthalpy[0]=S2;
-		EntropyEnthalpy[1]=H2;
+		d_DPT[id*1340+1306]=S2;
+		d_DPT[id*1340+1307]=H2;
 	}
 	return;
 }
 
-__device__ void traceback(int i,int j,int *d_ps,double Initdouble[],int length,double *d_DPT,char *d_numSeq,int id)
+__device__ void traceback(int i,int j,int *d_ps,int length,double *d_DPT,char *d_numSeq,int id)
 {
 	int d,ii,jj,done;
 	double SH[2];
@@ -2245,12 +2245,12 @@ __device__ void traceback(int i,int j,int *d_ps,double Initdouble[],int length,d
 	{
 		SH[0]=-1.0;
 		SH[1]=1.0*INFINITY;
-		LSH(i,j,SH,Initdouble,length,d_DPT,d_numSeq,id);
-		if(equal(d_DPT[id*1302+625+(i-1)*length+j-1],SH[0])&&equal(d_DPT[id*1302+(i-1)*length+j-1],SH[1]))
+		LSH(i,j,SH,length,d_DPT,d_numSeq,id);
+		if(equal(d_DPT[id*1340+625+(i-1)*length+j-1],SH[0])&&equal(d_DPT[id*1340+(i-1)*length+j-1],SH[1]))
 			break;
 
 		done = 0;
-		if(i>1&&j>1&&equal(d_DPT[id*1302+625+(i-1)*length+j-1],Ss(i-1,j-1,1,length,d_numSeq,id)+d_DPT[id*1302+625+(i-2)*length+j-2]))
+		if(i>1&&j>1&&equal(d_DPT[id*1340+625+(i-1)*length+j-1],Ss(i-1,j-1,1,length,d_numSeq,id)+d_DPT[id*1340+625+(i-2)*length+j-2]))
 		{
 			i=i-1;
 			j=j-1;
@@ -2271,8 +2271,8 @@ __device__ void traceback(int i,int j,int *d_ps,double Initdouble[],int length,d
 			{
 				SH[0]=-1.0;
 				SH[1]=1.0*INFINITY;
-				calc_bulge_internal(ii,jj,i,j,SH,1,Initdouble,length,d_DPT,d_numSeq,id);
-				if(equal(d_DPT[id*1302+625+(i-1)*length+j-1],SH[0])&&equal(d_DPT[id*1302+(i-1)*length+j-1],SH[1]))
+				calc_bulge_internal(ii,jj,i,j,SH,1,length,d_DPT,d_numSeq,id);
+				if(equal(d_DPT[id*1340+625+(i-1)*length+j-1],SH[0])&&equal(d_DPT[id*1340+(i-1)*length+j-1],SH[1]))
 				{
 					i=ii;
 					j=jj;
@@ -2286,11 +2286,11 @@ __device__ void traceback(int i,int j,int *d_ps,double Initdouble[],int length,d
 	}
 }
 
-__device__ double drawDimer(int *d_ps,int id,double H,double S,double Initdouble[],int length)
+__device__ double drawDimer(int *d_ps,int id,double H,double S,double *d_DPT,int length)
 {
         int i,N;
 
-        if(fabs(Initdouble[3])>999999999)
+        if(fabs(d_DPT[id*1340+1305])>999999999)
                 return (double)0.0;
         else
         {
@@ -2306,7 +2306,7 @@ __device__ double drawDimer(int *d_ps,int id,double H,double S,double Initdouble
                                 ++N;
                 }
                 N=(N/2)-1;
-                return (double)(H/(S+(N*-0.51986)+Initdouble[2])-273.15);
+                return (double)(H/(S+(N*-0.51986)+d_DPT[id*1340+1304])-273.15);
         }
 }
 
@@ -2327,29 +2327,26 @@ __device__ int symmetry_thermo(char *d_seq,int start,int length)
 	return 1;
 }
 
-__device__ double thal(char *d_seq,int start,int length,int strand_flag,int type,char *d_numSeq,int id,double *d_DPT,int *d_ps)
+__device__ void thal(char *d_seq,int start,int length,int strand_flag,int type,char *d_numSeq,int id,double *d_DPT,int *d_ps)
 {
-	double SH[2],Initdouble[4];//0 is dplx_init_H, 1 is dplx_init_S, 2 is RC, 3 is SHleft
 	int Initint[5]; //0 is len1, 1 is len2, 2 is len3, 3 is bestI, 4 is bestJ
 	int i, j;
-	double T1,result_TH;
-	double mh, ms;
 
 /*** INIT values for unimolecular and bimolecular structures ***/
 	if (type==4) /* unimolecular folding */
 	{
-		Initdouble[0]= 0.0;
-		Initdouble[1] = -0.00000000001;
-		Initdouble[2]=0;
+		d_DPT[id*1340+1302]= 0.0;
+		d_DPT[id*1340+1303] = -0.00000000001;
+		d_DPT[id*1340+1304]=0;
 	}
 	else /* hybridization of two oligos */
 	{
-		Initdouble[0]= 200;
-		Initdouble[1]= -5.7;
+		d_DPT[id*1340+1302]= 200;
+		d_DPT[id*1340+1303]= -5.7;
 		if(symmetry_thermo(d_seq,start,length))
-			Initdouble[2]=1.9872* log(38/1000000000.0);
+			d_DPT[id*1340+1304]=1.9872* log(38/1000000000.0);
 		else
-			Initdouble[2]=1.9872* log(38/4000000000.0);
+			d_DPT[id*1340+1304]=1.9872* log(38/4000000000.0);
 	}
 /* convert nucleotides to numbers */
 	if(type==1 || type==2)
@@ -2392,29 +2389,29 @@ __device__ double thal(char *d_seq,int start,int length,int strand_flag,int type
 	}
 	d_numSeq[id*54+0]=d_numSeq[id*54+length+1]=d_numSeq[id*54+27+0]=d_numSeq[id*54+27+length+1]=4; /* mark as N-s */
 
-	result_TH=0;
+	d_DPT[id*1340+1309]=0;
 	if (type==4) /* calculate structure of monomer */
 	{
 		initMatrix2(length,d_DPT,d_numSeq,id);
-		fillMatrix2(Initdouble,length,d_DPT,d_numSeq,id);
-		calc_terminal_bp(310.15,Initdouble,length,d_DPT,d_numSeq,id);
-		mh=d_DPT[id*1302+1276+length];
-		ms=d_DPT[id*1302+1250+length];
+		fillMatrix2(length,d_DPT,d_numSeq,id);
+		calc_terminal_bp(310.15,length,d_DPT,d_numSeq,id);
+		d_DPT[id*1340+1306]=d_DPT[id*1340+1276+length];
+		d_DPT[id*1340+1307]=d_DPT[id*1340+1250+length];
 		for (i=0;i<length;i++)
 			d_ps[id*50+i]=0;
-		if(fabs(mh)<999999999)
+		if(fabs(d_DPT[id*1340+1306])<999999999)
 		{
-			tracebacku(d_ps,Initdouble,length,d_DPT,d_numSeq,id);
-			result_TH=drawHairpin(d_ps,id,mh,ms,length);
-			result_TH=(int)(result_TH*100+0.5)/100.0;
+			tracebacku(d_ps,length,d_DPT,d_numSeq,id);
+			d_DPT[id*1340+1309]=drawHairpin(d_ps,id,d_DPT[id*1340+1306],d_DPT[id*1340+1307],length);
+			d_DPT[id*1340+1309]=(int)(d_DPT[id*1340+1309]*100+0.5)/100.0;
 		}
 	}
 	else  /* Hybridization of two moleculs */
 	{
 		initMatrix(length,d_DPT,d_numSeq,id);
-		fillMatrix(Initdouble,length,d_DPT,d_numSeq,id);
+		fillMatrix(length,d_DPT,d_numSeq,id);
 
-		Initdouble[3]=-1.0*INFINITY;
+		d_DPT[id*1340+1305]=-1.0*INFINITY;
 	/* calculate terminal basepairs */
 		Initint[3]=Initint[4]=0;
 		if(type==1)
@@ -2422,13 +2419,13 @@ __device__ double thal(char *d_seq,int start,int length,int strand_flag,int type
 			{
 				for (j=1;j<=length;j++)
 				{
-					RSH(i,j,SH,Initdouble,d_numSeq,id);
-					SH[0]=SH[0]+0.000001; /* this adding is done for compiler, optimization -O2 vs -O0 */
-					SH[1]=SH[1]+0.000001;
-					T1=((d_DPT[id*1302+(i-1)*length+j-1]+ SH[1] +Initdouble[0]) / ((d_DPT[id*1302+625+(i-1)*length+j-1]) + SH[0] +Initdouble[1] + Initdouble[2])) -273.15;
-					if(T1>Initdouble[3]&&((d_DPT[id*1302+625+(i-1)*length+j-1]+SH[0])<0&&(SH[1]+d_DPT[id*1302+(i-1)*length+j-1])<0))
+					RSH(i,j,d_DPT,d_numSeq,id);
+					d_DPT[id*1340+1306]=d_DPT[id*1340+1306]+0.000001; /* this adding is done for compiler, optimization -O2 vs -O0 */
+					d_DPT[id*1340+1307]=d_DPT[id*1340+1307]+0.000001;
+					d_DPT[id*1340+1308]=((d_DPT[id*1340+(i-1)*length+j-1]+d_DPT[id*1340+1307]+d_DPT[id*1340+1302]) / ((d_DPT[id*1340+625+(i-1)*length+j-1])+d_DPT[id*1340+1306]+d_DPT[id*1340+1303] + d_DPT[id*1340+1304])) -273.15;
+					if(d_DPT[id*1340+1308]>d_DPT[id*1340+1305]&&((d_DPT[id*1340+625+(i-1)*length+j-1]+d_DPT[id*1340+1306])<0&&(d_DPT[id*1340+1307]+d_DPT[id*1340+(i-1)*length+j-1])<0))
 					{
-						Initdouble[3]=T1;
+						d_DPT[id*1340+1305]=d_DPT[id*1340+1308];
 						Initint[3]=i;
 						Initint[4]=j;
 					}
@@ -2440,36 +2437,35 @@ __device__ double thal(char *d_seq,int start,int length,int strand_flag,int type
 			Initint[4]=0;
 			Initint[3]=length;
 			i=length;
-			Initdouble[3]=-1.0*INFINITY;
+			d_DPT[id*1340+1305]=-1.0*INFINITY;
 			for (j=1;j<=length;++j)
 			{
-				RSH(i,j,SH,Initdouble,d_numSeq,id);
-				SH[0]=SH[0]+0.000001; // this adding is done for compiler, optimization -O2 vs -O0,that compiler could understand that SH is changed in this cycle 
-				SH[1]=SH[1]+0.000001;
-				T1=((d_DPT[id*1302+(i-1)*length+j-1]+SH[1]+Initdouble[0])/((d_DPT[id*1302+625+(i-1)*length+j-1])+SH[0]+Initdouble[1]+Initdouble[2]))-273.15;
-				if (T1>Initdouble[3]&&((SH[0]+d_DPT[id*1302+625+(i-1)*length+j-1])<0&&(SH[1]+d_DPT[id*1302+(i-1)*length+j-1])<0))
+				RSH(i,j,d_DPT,d_numSeq,id);
+				d_DPT[id*1340+1306]=d_DPT[id*1340+1306]+0.000001; // this adding is done for compiler, optimization -O2 vs -O0,that compiler could understand that SH is changed in this cycle 
+				d_DPT[id*1340+1307]=d_DPT[id*1340+1307]+0.000001;
+				d_DPT[id*1340+1308]=((d_DPT[id*1340+(i-1)*length+j-1]+d_DPT[id*1340+1307]+d_DPT[id*1340+1302])/((d_DPT[id*1340+625+(i-1)*length+j-1])+d_DPT[id*1340+1306]+d_DPT[id*1340+1303]+d_DPT[id*1340+1304]))-273.15;
+				if (d_DPT[id*1340+1308]>d_DPT[id*1340+1305]&&((d_DPT[id*1340+1306]+d_DPT[id*1340+625+(i-1)*length+j-1])<0&&(d_DPT[id*1340+1307]+d_DPT[id*1340+(i-1)*length+j-1])<0))
 				{
-					Initdouble[3]=T1;
+					d_DPT[id*1340+1305]=d_DPT[id*1340+1308];
 					Initint[4]=j;
 				}
 			}
 		}
-		if(fabs(Initdouble[3])>999999999)
+		if(fabs(d_DPT[id*1340+1305])>999999999)
 			Initint[3]=Initint[4]=1;
-		RSH(Initint[3],Initint[4],SH,Initdouble,d_numSeq,id);
+		RSH(Initint[3],Initint[4],d_DPT,d_numSeq,id);
 	 // tracebacking 
 		for (i=0;i<length;++i)
 			d_ps[id*50+i]=0;
 		for (j=0;j<length;++j)
 			d_ps[id*50+25+j] = 0;
-		if(fabs(d_DPT[id*1302+(Initint[3]-1)*length+Initint[4]-1])<999999999)
+		if(fabs(d_DPT[id*1340+(Initint[3]-1)*length+Initint[4]-1])<999999999)
 		{
-			traceback(Initint[3],Initint[4],d_ps,Initdouble,length,d_DPT,d_numSeq,id);
-			result_TH=drawDimer(d_ps,id,(d_DPT[id*1302+(Initint[3]-1)*length+Initint[4]-1]+SH[1]+Initdouble[0]),(d_DPT[id*1302+625+(Initint[3]-1)*length+Initint[4]-1]+SH[0]+Initdouble[1]),Initdouble,length);
-			result_TH=(int)(result_TH*100+0.5)/100.0;
+			traceback(Initint[3],Initint[4],d_ps,length,d_DPT,d_numSeq,id);
+			d_DPT[id*1340+1309]=drawDimer(d_ps,id,(d_DPT[id*1340+(Initint[3]-1)*length+Initint[4]-1]+d_DPT[id*1340+1307]+d_DPT[id*1340+1302]),(d_DPT[id*1340+625+(Initint[3]-1)*length+Initint[4]-1]+d_DPT[id*1340+1306]+d_DPT[id*1340+1303]),d_DPT,length);
+			d_DPT[id*1340+1309]=(int)(d_DPT[id*1340+1309]*100+0.5)/100.0;
 		}
 	}
-        return result_TH;
 }
 
 ///function in gpu, check the GC-content; int length: the length of read
@@ -2727,17 +2723,20 @@ __global__ void candidate_primer(char *d_seq,int *d_pos,int *d_len,int *d_rev_le
 		//secondary structure
 			if(check_flag&&plus)
 			{
-				if(thal(d_seq,circle,i,0,1,d_numSeq,id,d_DPT,d_ps)>min_tm-10)
+				thal(d_seq,circle,i,0,1,d_numSeq,id,d_DPT,d_ps);
+				if(d_DPT[id*1340+1309]>min_tm-10)
 					plus=0;	
 			}
 			if(check_flag&&plus)
                         {
-                                if(thal(d_seq,circle,i,0,2,d_numSeq,id,d_DPT,d_ps)>min_tm-10)  
+                                thal(d_seq,circle,i,0,2,d_numSeq,id,d_DPT,d_ps);
+				if(d_DPT[id*1340+1309]>min_tm-10)  
                                         plus=0;
                         }
 			if(check_flag&&plus)
-                        {                
-                                if(thal(d_seq,circle,i,0,4,d_numSeq,id,d_DPT,d_ps)>min_tm-10)
+                        {
+                                thal(d_seq,circle,i,0,4,d_numSeq,id,d_DPT,d_ps);
+				if(d_DPT[id*1340+1309]>min_tm-10)
                                         plus=0;         
                         }
 			if(plus)
@@ -2751,17 +2750,20 @@ __global__ void candidate_primer(char *d_seq,int *d_pos,int *d_len,int *d_rev_le
 		//secondary structure      
                         if(check_flag&&minus)
                         {                
-                                if(thal(d_seq,circle,i,1,1,d_numSeq,id,d_DPT,d_ps)>min_tm-10)
+                                thal(d_seq,circle,i,1,1,d_numSeq,id,d_DPT,d_ps);
+				if(d_DPT[id*1340+1309]>min_tm-10)
                                         minus=0;         
                         }           
                         if(check_flag&&minus)
                         {
-                                if(thal(d_seq,circle,i,1,2,d_numSeq,id,d_DPT,d_ps)>min_tm-10)
+                                thal(d_seq,circle,i,1,2,d_numSeq,id,d_DPT,d_ps);
+				if(d_DPT[id*1340+1309]>min_tm-10)
                                         minus=0;
                         }                
                         if(check_flag&&minus)
                         {
-                                if(thal(d_seq,circle,i,1,4,d_numSeq,id,d_DPT,d_ps)>min_tm-10)
+                                thal(d_seq,circle,i,1,4,d_numSeq,id,d_DPT,d_ps);
+				if(d_DPT[id*1340+1309]>min_tm-10)
                                         minus=0;
                         }
                         if(minus)
@@ -3147,7 +3149,7 @@ main(int argc, char **argv)
 		cudaMemcpyToSymbol(parameter,H_parameter,(5730+2*NumL[0]+2*NumL[1])*sizeof(double));
 
 		cudaMalloc((void **)&d_numSeq,54*thread*block*sizeof(char));
-		cudaMalloc((void **)&d_DPT,1302*thread*block*sizeof(double));
+		cudaMalloc((void **)&d_DPT,1340*thread*block*sizeof(double));
 		cudaMalloc((void **)&d_ps,50*thread*block*sizeof(int));
 	}
 
@@ -3256,7 +3258,6 @@ main(int argc, char **argv)
 	end=time(NULL);
 	printf("It takes %d seconds to prepare.\n",(int)difftime(end,start));
 	start=time(NULL);
-
 	if(flag[5]==1)
         {
 		cudaMemset(d_pos,'\0',length*sizeof(int));
