@@ -952,7 +952,7 @@ __device__ void maxTM2(int i,int j,int length,double *d_DPT,char *d_numSeq,int i
 	}
 }
 
-__device__ void calc_bulge_internal2(int i,int j,int ii,int jj,double *EntropyEnthalpy,int traceback,int length,double *d_DPT,char *d_numSeq,int id)
+__device__ void calc_bulge_internal2(int i,int j,int ii,int jj,int pos,int traceback,int length,double *d_DPT,char *d_numSeq,int id)
 {
 	int loopSize1,loopSize2,loopSize;
 	double T1,T2,S,H;
@@ -963,8 +963,8 @@ __device__ void calc_bulge_internal2(int i,int j,int ii,int jj,double *EntropyEn
 	loopSize2=j-jj-1;
 	if(loopSize1+loopSize2>30)
 	{
-		EntropyEnthalpy[0]=-1.0;
-		EntropyEnthalpy[1]=1.0*INFINITY;
+		d_DPT[id*1340+pos]=-1.0;
+		d_DPT[id*1340+pos+1]=1.0*INFINITY;
 		return;
 	}
 
@@ -993,8 +993,8 @@ __device__ void calc_bulge_internal2(int i,int j,int ii,int jj,double *EntropyEn
 			T2=(d_DPT[id*1340+(i-1)*(length-1)+j-1]+d_DPT[id*1340+1302])/((d_DPT[id*1340+625+(i-1)*(length-1)+j-1])+d_DPT[id*1340+1303]+d_DPT[id*1340+1304]);
 			if((T1>T2)||((traceback&&T1>=T2)||traceback==1))
 			{
-				EntropyEnthalpy[0]=S;
-				EntropyEnthalpy[1]=H;
+				d_DPT[id*1340+pos]=S;
+				d_DPT[id*1340+pos+1]=H;
 			}
 		}
 		else
@@ -1015,8 +1015,8 @@ __device__ void calc_bulge_internal2(int i,int j,int ii,int jj,double *EntropyEn
 			T2=(d_DPT[id*1340+(i-1)*(length-1)+j-1]+d_DPT[id*1340+1302])/(d_DPT[id*1340+625+(i-1)*(length-1)+j-1]+d_DPT[id*1340+1303]+d_DPT[id*1340+1304]);
 			if((T1>T2)||((traceback&&T1>=T2)||(traceback==1)))
 			{
-				EntropyEnthalpy[0]=S;
-				EntropyEnthalpy[1]=H;
+				d_DPT[id*1340+pos]=S;
+				d_DPT[id*1340+pos+1]=H;
 			}
 		}
 	}
@@ -1040,8 +1040,8 @@ __device__ void calc_bulge_internal2(int i,int j,int ii,int jj,double *EntropyEn
 		{
 			if((T1>T2)||((traceback&&T1>= T2)||traceback==1))
 			{
-				EntropyEnthalpy[0]=S;
-				EntropyEnthalpy[1]=H;
+				d_DPT[id*1340+pos]=S;
+				d_DPT[id*1340+pos+1]=H;
 			}
 		}
 		return;
@@ -1065,14 +1065,14 @@ __device__ void calc_bulge_internal2(int i,int j,int ii,int jj,double *EntropyEn
 		T2=(d_DPT[id*1340+(i-1)*(length-1)+j-1]+d_DPT[id*1340+1302])/((d_DPT[id*1340+625+(i-1)*(length-1)+j-1])+d_DPT[id*1340+1303]+d_DPT[id*1340+1304]);
 		if((T1>T2)||((traceback&&T1>=T2)||(traceback==1)))
 		{
-			EntropyEnthalpy[0]=S;
-			EntropyEnthalpy[1]=H;
+			d_DPT[id*1340+pos]=S;
+			d_DPT[id*1340+pos+1]=H;
 		}
 	}
 	return;
 }
 
-__device__ void CBI(int i,int j,double* EntropyEnthalpy,int traceback,int length,double *d_DPT,char *d_numSeq,int id)
+__device__ void CBI(int i,int j,int pos,int traceback,int length,double *d_DPT,char *d_numSeq,int id)
 {
 	int d,ii,jj;
 
@@ -1082,23 +1082,23 @@ __device__ void CBI(int i,int j,double* EntropyEnthalpy,int traceback,int length
 			jj=d+ii;
 			if(traceback==0)
 			{
-				EntropyEnthalpy[0]=-1.0;
-				EntropyEnthalpy[1]=1.0*INFINITY;
+				d_DPT[id*1340+pos]=-1.0;
+				d_DPT[id*1340+pos+1]=1.0*INFINITY;
 			}
 			if(fabs(d_DPT[id*1340+(ii-1)*(length-1)+jj-1])<999999999)
 			{
-				calc_bulge_internal2(i,j,ii,jj,EntropyEnthalpy,traceback,length,d_DPT,d_numSeq,id);
-				if(fabs(EntropyEnthalpy[1])<999999999)
+				calc_bulge_internal2(i,j,ii,jj,pos,traceback,length,d_DPT,d_numSeq,id);
+				if(fabs(d_DPT[id*1340+pos+1])<999999999)
 				{
-					if(EntropyEnthalpy[0] <-2500.0)
+					if(d_DPT[id*1340+pos] <-2500.0)
 					{
-						EntropyEnthalpy[0]=-3224.0;
-						EntropyEnthalpy[1]=0.0;
+						d_DPT[id*1340+pos+1]=-3224.0;
+						d_DPT[id*1340+pos+1]=0.0;
 					}
 					if(traceback==0)
 					{
-						d_DPT[id*1340+(i-1)*(length-1)+j-1]=EntropyEnthalpy[1];
-						d_DPT[id*1340+625+(i-1)*(length-1)+j-1]=EntropyEnthalpy[0];
+						d_DPT[id*1340+(i-1)*(length-1)+j-1]=d_DPT[id*1340+pos+1];
+						d_DPT[id*1340+625+(i-1)*(length-1)+j-1]=d_DPT[id*1340+pos];
 					}
 				}
 			}
@@ -1127,21 +1127,21 @@ __device__ int find_pos(char *ref,int ref_start,int start,int length,int num)
 	return -1;
 }
 
-__device__ void calc_hairpin(int i,int j,double *EntropyEnthalpy,int traceback,int length,double *d_DPT,char *d_numSeq,int id)
+__device__ void calc_hairpin(int i,int j,int pos_start,int traceback,int length,double *d_DPT,char *d_numSeq,int id)
 {
 	int pos,loopSize=j-i-1;
 	double T1,T2;
 	
 	if(loopSize < 3)
 	{
-		EntropyEnthalpy[0]=-1.0;
-		EntropyEnthalpy[1]=1.0*INFINITY;
+		d_DPT[id*1340+pos_start]=-1.0;
+		d_DPT[id*1340+pos_start+1]=1.0*INFINITY;
 		return;
 	}
 	if(i<=length&&length<j)
 	{
-		EntropyEnthalpy[0]=-1.0;
-		EntropyEnthalpy[1]=1.0*INFINITY;
+		d_DPT[id*1340+pos_start]=-1.0;
+		d_DPT[id*1340+pos_start+1]=1.0*INFINITY;
 		return;
 	}
 	else if(i>length)
@@ -1151,57 +1151,57 @@ __device__ void calc_hairpin(int i,int j,double *EntropyEnthalpy,int traceback,i
 	}
 	if(loopSize<=30)
 	{
-		EntropyEnthalpy[1]=parameter[3090+loopSize-1];
-		EntropyEnthalpy[0]=parameter[3000+loopSize-1];
+		d_DPT[id*1340+pos_start+1]=parameter[3090+loopSize-1];
+		d_DPT[id*1340+pos_start]=parameter[3000+loopSize-1];
 	}
 	else
 	{
-		EntropyEnthalpy[1]=parameter[3090+29];
-		EntropyEnthalpy[0]=parameter[3000+29];
+		d_DPT[id*1340+pos_start+1]=parameter[3090+29];
+		d_DPT[id*1340+pos_start]=parameter[3000+29];
 	}
 
 	if(loopSize>3) // for loops 4 bp and more in length, terminal mm are accounted
 	{
-		EntropyEnthalpy[1]+=parameter[5055+d_numSeq[id*54+i]*125+d_numSeq[id*54+i+1]*25+d_numSeq[id*54+j]*5+d_numSeq[id*54+j-1]];
-		EntropyEnthalpy[0]+=parameter[4430+d_numSeq[id*54+i]*125+d_numSeq[id*54+i+1]*25+d_numSeq[id*54+j]*5+d_numSeq[id*54+j-1]];
+		d_DPT[id*1340+pos_start+1]+=parameter[5055+d_numSeq[id*54+i]*125+d_numSeq[id*54+i+1]*25+d_numSeq[id*54+j]*5+d_numSeq[id*54+j-1]];
+		d_DPT[id*1340+pos_start]+=parameter[4430+d_numSeq[id*54+i]*125+d_numSeq[id*54+i+1]*25+d_numSeq[id*54+j]*5+d_numSeq[id*54+j-1]];
 	}
 	else if(loopSize == 3) // for loops 3 bp in length at-penalty is considered
 	{
-		EntropyEnthalpy[1]+=parameter[5705+d_numSeq[id*54+i]*5+d_numSeq[id*54+j]];
-		EntropyEnthalpy[0]+=parameter[5680+d_numSeq[id*54+i]*5+d_numSeq[id*54+j]];
+		d_DPT[id*1340+pos_start+1]+=parameter[5705+d_numSeq[id*54+i]*5+d_numSeq[id*54+j]];
+		d_DPT[id*1340+pos_start]+=parameter[5680+d_numSeq[id*54+i]*5+d_numSeq[id*54+j]];
 	}
 
 	if(loopSize==3) // closing AT-penalty (+), triloop bonus, hairpin of 3 (+) 
 	{
 		pos=find_pos(d_numSeq,(id*54+i),5*d_NumL[0],5,d_NumL[0]);
 		if(pos!=-1)
-			EntropyEnthalpy[1]+=parameter[5730+d_NumL[0]+pos];
+			d_DPT[id*1340+pos_start+1]+=parameter[5730+d_NumL[0]+pos];
 
 		pos=find_pos(d_numSeq,(id*54+i),0,5,d_NumL[0]);
 		if(pos!=-1)
-			EntropyEnthalpy[0]+=parameter[5730+pos];
+			d_DPT[id*1340+pos_start]+=parameter[5730+pos];
 	}
 	else if (loopSize == 4) // terminal mismatch, tetraloop bonus, hairpin of 4
 	{
 		pos=find_pos(d_numSeq,(id*54+i),10*d_NumL[0]+6*d_NumL[1],6,d_NumL[1]);
 		if(pos!=-1)
-			EntropyEnthalpy[1]+=parameter[5730+2*d_NumL[0]+d_NumL[1]+pos];
+			d_DPT[id*1340+pos_start+1]+=parameter[5730+2*d_NumL[0]+d_NumL[1]+pos];
 
 		pos=find_pos(d_numSeq,(id*54+i),10*d_NumL[0],6,d_NumL[1]);
 		if(pos!=-1)
-			EntropyEnthalpy[0]+=parameter[5730+2*d_NumL[0]+pos];
+			d_DPT[id*1340+pos_start]+=parameter[5730+2*d_NumL[0]+pos];
 	}
-	if(fabs(EntropyEnthalpy[1])>999999999)
+	if(fabs(d_DPT[id*1340+pos_start+1])>999999999)
 	{
-		EntropyEnthalpy[1] =1.0*INFINITY;
-		EntropyEnthalpy[0] = -1.0;
+		d_DPT[id*1340+pos_start+1] =1.0*INFINITY;
+		d_DPT[id*1340+pos_start] = -1.0;
 	}
-	T1 = (EntropyEnthalpy[1] +d_DPT[id*1340+1302]) / ((EntropyEnthalpy[0] +d_DPT[id*1340+1303]+ d_DPT[id*1340+1304]));
+	T1 = (d_DPT[id*1340+pos_start+1] +d_DPT[id*1340+1302]) / ((d_DPT[id*1340+pos_start] +d_DPT[id*1340+1303]+ d_DPT[id*1340+1304]));
 	T2 = (d_DPT[id*1340+(i-1)*(length-1)+j-1] +d_DPT[id*1340+1302]) / ((d_DPT[id*1340+625+(i-1)*(length-1)+j-1]) +d_DPT[id*1340+1303]+ d_DPT[id*1340+1304]);
 	if(T1 < T2 && traceback == 0)
 	{
-		EntropyEnthalpy[0] =d_DPT[id*1340+625+(i-1)*(length-1)+j-1];
-		EntropyEnthalpy[1] =d_DPT[id*1340+(i-1)*(length-1)+j-1];
+		d_DPT[id*1340+pos_start] =d_DPT[id*1340+625+(i-1)*(length-1)+j-1];
+		d_DPT[id*1340+pos_start+1] =d_DPT[id*1340+(i-1)*(length-1)+j-1];
 	}
 	return;
 }
@@ -1209,30 +1209,29 @@ __device__ void calc_hairpin(int i,int j,double *EntropyEnthalpy,int traceback,i
 __device__ void fillMatrix2(int length,double *d_DPT,char *d_numSeq,int id)
 {
 	int i, j;
-	double SH[2];
 
 	for (j = 2; j <= length; ++j)
 		for (i = j - 3 - 1; i >= 1; --i)
 		{
 			if (fabs(d_DPT[id*1340+(i-1)*(length-1)+j-1])<999999999)
 			{
-				SH[0] = -1.0;
-				SH[1] =1.0*INFINITY;
+				d_DPT[id*1340+1310] = -1.0;
+				d_DPT[id*1340+1311] =1.0*INFINITY;
 				maxTM2(i,j,length,d_DPT,d_numSeq,id);
-				CBI(i,j,SH,0,length,d_DPT,d_numSeq,id);
+				CBI(i,j,1310,0,length,d_DPT,d_numSeq,id);
 
-				SH[0] = -1.0;
-				SH[1] =1.0*INFINITY;
-				calc_hairpin(i, j, SH, 0,length,d_DPT,d_numSeq,id);
-				if(fabs(SH[1])<999999999)
+				d_DPT[id*1340+1310] = -1.0;
+				d_DPT[id*1340+1311]=1.0*INFINITY;
+				calc_hairpin(i,j,1310,0,length,d_DPT,d_numSeq,id);
+				if(fabs(d_DPT[id*1340+1311])<999999999)
 				{
-					if(SH[0] <-2500.0) /* to not give dH any value if dS is unreasonable */
+					if(d_DPT[id*1340+1310]<-2500.0) /* to not give dH any value if dS is unreasonable */
 					{
-						SH[0] =-3224.0;
-						SH[1] = 0.0;
+						d_DPT[id*1340+1310]=-3224.0;
+						d_DPT[id*1340+1311]= 0.0;
 					}
-					d_DPT[id*1340+625+(i-1)*(length-1)+j-1]= SH[0];
-					d_DPT[id*1340+(i-1)*(length-1)+j-1]= SH[1];
+					d_DPT[id*1340+625+(i-1)*(length-1)+j-1]=d_DPT[id*1340+1310];
+					d_DPT[id*1340+(i-1)*(length-1)+j-1]=d_DPT[id*1340+1311];
 				}
 			}
 		}
@@ -1485,7 +1484,7 @@ __device__ double END5_4(int i,int hs,int length,double *d_DPT,char *d_numSeq,in
 __device__ void calc_terminal_bp(double temp,int length,double *d_DPT,char *d_numSeq,int id)
 {
 	int i,max;
-	double T1,T2,T3,T4,T5,G,end5_11,end5_12,end5_21,end5_22,end5_31,end5_32,end5_41,end5_42;
+//back here
 	
 	d_DPT[id*1340+1250+0]=d_DPT[id*1340+1250+1]= -1.0;
 	d_DPT[id*1340+1276+0]=d_DPT[id*1340+1276+1]=1.0*INFINITY;
@@ -1500,21 +1499,21 @@ __device__ void calc_terminal_bp(double temp,int length,double *d_DPT,char *d_nu
 	for(i=2;i<=length;++i)
 	{
 		max=0;
-		T1=(d_DPT[id*1340+1276+i-1]+d_DPT[id*1340+1302])/(d_DPT[id*1340+1250+i-1]+d_DPT[id*1340+1303]+d_DPT[id*1340+1304]);
-		end5_11=END5_1(i,1,length,d_DPT,d_numSeq,id);
-		end5_12=END5_1(i,2,length,d_DPT,d_numSeq,id);
-		T2=(end5_11+d_DPT[id*1340+1302])/(end5_12+d_DPT[id*1340+1303]+d_DPT[id*1340+1304]);
-		end5_21=END5_2(i,1,length,d_DPT,d_numSeq,id);
-		end5_22=END5_2(i,2,length,d_DPT,d_numSeq,id);
-		T3=(end5_21+d_DPT[id*1340+1302])/(end5_22+d_DPT[id*1340+1303]+d_DPT[id*1340+1304]);
-		end5_31=END5_3(i,1,length,d_DPT,d_numSeq,id);
-		end5_32=END5_3(i,2,length,d_DPT,d_numSeq,id);
-		T4=(end5_31+d_DPT[id*1340+1302])/(end5_32+d_DPT[id*1340+1303]+d_DPT[id*1340+1304]);
-		end5_41=END5_4(i,1,length,d_DPT,d_numSeq,id);
-		end5_42=END5_4(i,2,length,d_DPT,d_numSeq,id);
-		T5=(end5_41+d_DPT[id*1340+1302])/(end5_42+d_DPT[id*1340+1303]+d_DPT[id*1340+1304]);
+		d_DPT[id*1340+1310]=(d_DPT[id*1340+1276+i-1]+d_DPT[id*1340+1302])/(d_DPT[id*1340+1250+i-1]+d_DPT[id*1340+1303]+d_DPT[id*1340+1304]);
+		d_DPT[id*1340+1315]=END5_1(i,1,length,d_DPT,d_numSeq,id);
+		d_DPT[id*1340+1316]=END5_1(i,2,length,d_DPT,d_numSeq,id);
+		d_DPT[id*1340+1311]=(d_DPT[id*1340+1315]+d_DPT[id*1340+1302])/(d_DPT[id*1340+1316]+d_DPT[id*1340+1303]+d_DPT[id*1340+1304]);
+		d_DPT[id*1340+1317]=END5_2(i,1,length,d_DPT,d_numSeq,id);
+		d_DPT[id*1340+1318]=END5_2(i,2,length,d_DPT,d_numSeq,id);
+		d_DPT[id*1340+1312]=(d_DPT[id*1340+1317]+d_DPT[id*1340+1302])/(d_DPT[id*1340+1318]+d_DPT[id*1340+1303]+d_DPT[id*1340+1304]);
+		d_DPT[id*1340+1319]=END5_3(i,1,length,d_DPT,d_numSeq,id);
+		d_DPT[id*1340+1320]=END5_3(i,2,length,d_DPT,d_numSeq,id);
+		d_DPT[id*1340+1313]=(d_DPT[id*1340+1319]+d_DPT[id*1340+1302])/(d_DPT[id*1340+1320]+d_DPT[id*1340+1303]+d_DPT[id*1340+1304]);
+		d_DPT[id*1340+1321]=END5_4(i,1,length,d_DPT,d_numSeq,id);
+		d_DPT[id*1340+1322]=END5_4(i,2,length,d_DPT,d_numSeq,id);
+		d_DPT[id*1340+1314]=(d_DPT[id*1340+1321]+d_DPT[id*1340+1302])/(d_DPT[id*1340+1322]+d_DPT[id*1340+1303]+d_DPT[id*1340+1304]);
 
-		max=max5(T1,T2,T3,T4,T5);
+		max=max5(d_DPT[id*1340+1310],d_DPT[id*1340+1311],d_DPT[id*1340+1312],d_DPT[id*1340+1313],d_DPT[id*1340+1314]);
 		switch(max)
 		{
 			case 1:
@@ -1522,11 +1521,10 @@ __device__ void calc_terminal_bp(double temp,int length,double *d_DPT,char *d_nu
 				d_DPT[id*1340+1276+i]=d_DPT[id*1340+1276+i-1];
 				break;
 			case 2:
-				G=end5_11-temp*end5_12;
-				if(G<0.0)
+				if(d_DPT[id*1340+1315]<temp*d_DPT[id*1340+1316])
 				{
-					d_DPT[id*1340+1250+i]=end5_12;
-					d_DPT[id*1340+1276+i]=end5_11;
+					d_DPT[id*1340+1250+i]=d_DPT[id*1340+1316];
+					d_DPT[id*1340+1276+i]=d_DPT[id*1340+1315];
 				}
 				else
 				{
@@ -1535,11 +1533,10 @@ __device__ void calc_terminal_bp(double temp,int length,double *d_DPT,char *d_nu
 				}
 				break;
 			case 3:
-				G=end5_21-temp*end5_22;
-				if(G<0.0)
+				if(d_DPT[id*1340+1317]<temp*d_DPT[id*1340+1318])
 				{
-					d_DPT[id*1340+1250+i]=end5_22;
-					d_DPT[id*1340+1276+i]=end5_21;
+					d_DPT[id*1340+1250+i]=d_DPT[id*1340+1318];
+					d_DPT[id*1340+1276+i]=d_DPT[id*1340+1317];
 				}
 				else
 				{
@@ -1548,11 +1545,10 @@ __device__ void calc_terminal_bp(double temp,int length,double *d_DPT,char *d_nu
 				}
 				break;
 			case 4:
-				G=end5_31-temp*end5_32;
-				if(G<0.0)
+				if(d_DPT[id*1340+1319]<temp*d_DPT[id*1340+1320])
 				{
-					d_DPT[id*1340+1250+i]=end5_32;
-					d_DPT[id*1340+1276+i]=end5_31;
+					d_DPT[id*1340+1250+i]=d_DPT[id*1340+1320];
+					d_DPT[id*1340+1276+i]=d_DPT[id*1340+1319];
 				}
 				else
 				{
@@ -1561,11 +1557,10 @@ __device__ void calc_terminal_bp(double temp,int length,double *d_DPT,char *d_nu
 				}
 				break;
 			case 5:
-				G=end5_41-temp*end5_42;
-				if(G<0.0)
+				if(d_DPT[id*1340+1321]<temp*d_DPT[id*1340+1322])
 				{
-					d_DPT[id*1340+1250+i]=end5_42;
-					d_DPT[id*1340+1276+i]=end5_41;
+					d_DPT[id*1340+1250+i]=d_DPT[id*1340+1322];
+					d_DPT[id*1340+1276+i]=d_DPT[id*1340+1321];
 				}
 				else
 				{
@@ -1605,7 +1600,6 @@ __device__ int equal(double a,double b)
 __device__ void tracebacku(int *d_ps,int length,double *d_DPT,char *d_numSeq,int id)
 {
 	int i,j,store[50],total,now,ii,jj,k,d,done;
-	double SH1[2],SH2[2],EntropyEnthalpy[2];
 
         total=newpush(store,length,0,1,0,0);
         now=0;
@@ -1684,28 +1678,27 @@ __device__ void tracebacku(int *d_ps,int length,double *d_DPT,char *d_numSeq,int
                 {
                         d_ps[id*50+i-1]=j;
                         d_ps[id*50+j-1]=i;
-                        SH1[0]=-1.0;
-                        SH1[1]=1.0*INFINITY;
-                        calc_hairpin(i,j,SH1,1,length,d_DPT,d_numSeq,id);
+                        d_DPT[id*1340+1310]=-1.0;
+                        d_DPT[id*1340+1311]=1.0*INFINITY;
+                        calc_hairpin(i,j,1310,1,length,d_DPT,d_numSeq,id);
 
-                        SH2[0]=-1.0;
-                        SH2[1]=1.0*INFINITY;
-                        CBI(i,j,SH2,2,length,d_DPT,d_numSeq,id);
+                        d_DPT[id*1340+1312]=-1.0;
+                        d_DPT[id*1340+1313]=1.0*INFINITY;
+                        CBI(i,j,1312,2,length,d_DPT,d_numSeq,id);
 
                         if (equal(d_DPT[id*1340+625+(i-1)*(length-1)+j-1],Ss(i,j,2,length,d_numSeq,id)+d_DPT[id*1340+625+i*(length-1)+j-2])&&equal(d_DPT[id*1340+(i-1)*(length-1)+j-1],Hs(i,j,2,length,d_numSeq,id)+d_DPT[id*1340+i*(length-1)+j-2]))
                                 total=newpush(store,i+1,j-1,0,total,now+1);
-                        else if(equal(d_DPT[id*1340+625+(i-1)*(length-1)+j-1],SH1[0])&&equal(d_DPT[id*1340+(i-1)*(length-1)+j-1],SH1[1]));
-                        else if(equal(d_DPT[id*1340+625+(i-1)*(length-1)+j-1],SH2[0])&&equal(d_DPT[id*1340+(i-1)*(length-1)+j-1],SH2[1]))
+                        else if(equal(d_DPT[id*1340+625+(i-1)*(length-1)+j-1],d_DPT[id*1340+1312])&&equal(d_DPT[id*1340+(i-1)*(length-1)+j-1],d_DPT[id*1340+1313]))
                         {
                                 for (done=0,d=j-i-3;d>=4&&d>=j-i-32&&!done;--d)
                                         for (ii=i+1;ii<j-d;++ii)
                                         {
                                                 jj=d+ii;
-                                                EntropyEnthalpy[0]=-1.0;
-                                                EntropyEnthalpy[1]=1.0*INFINITY;
-                                                calc_bulge_internal2(i,j,ii,jj,EntropyEnthalpy,1,length,d_DPT,d_numSeq,id);
+                                                d_DPT[id*1340+1314]=-1.0;
+                                                d_DPT[id*1340+1315]=1.0*INFINITY;
+                                                calc_bulge_internal2(i,j,ii,jj,1314,1,length,d_DPT,d_numSeq,id);
 
-                                                if (equal(d_DPT[id*1340+625+(i-1)*(length-1)+j-1],EntropyEnthalpy[0]+d_DPT[id*1340+625+(ii-1)*(length-1)+jj-1])&&equal(d_DPT[id*1340+(i-1)*(length-1)+j-1],EntropyEnthalpy[1]+d_DPT[id*1340+(ii-1)*(length-1)+jj-1]))
+                                                if (equal(d_DPT[id*1340+625+(i-1)*(length-1)+j-1],d_DPT[id*1340+1314]+d_DPT[id*1340+625+(ii-1)*(length-1)+jj-1])&&equal(d_DPT[id*1340+(i-1)*(length-1)+j-1],d_DPT[id*1340+1315]+d_DPT[id*1340+(ii-1)*(length-1)+jj-1]))
                                                 {
                                                         total=newpush(store,ii,jj,0,total,now+1);
                                                         ++done;
