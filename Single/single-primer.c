@@ -898,7 +898,7 @@ void maxTM2(int i,int j,double stackEntropies[],double stackEnthalpies[],double 
 	}
 }
 
-void calc_bulge_internal2(int i,int j,int ii,int jj,double *EntropyEnthalpy,int traceback,double stackEntropies[],double stackEnthalpies[],double stackint2Entropies[],double stackint2Enthalpies[],double interiorLoopEntropies[],double bulgeLoopEntropies[],double interiorLoopEnthalpies[],double bulgeLoopEnthalpies[],double tstackEntropies[],double tstackEnthalpies[],double atpS[],double atpH[],double Initdouble[0],int Initint[],double enthalpyDPT[],double entropyDPT[],char numSeq1[],char numSeq2[])
+void calc_bulge_internal2(int i,int j,int ii,int jj,double *EntropyEnthalpy,int traceback,double stackEntropies[],double stackEnthalpies[],double stackint2Entropies[],double stackint2Enthalpies[],double interiorLoopEntropies[],double bulgeLoopEntropies[],double interiorLoopEnthalpies[],double bulgeLoopEnthalpies[],double tstackEntropies[],double tstackEnthalpies[],double atpS[],double atpH[],double Initdouble[],int Initint[],double enthalpyDPT[],double entropyDPT[],char numSeq1[],char numSeq2[])
 {
 	int loopSize1,loopSize2,loopSize;
 	double T1,T2,S,H;
@@ -1876,33 +1876,13 @@ void maxTM(int i,int j,double stackEntropies[],double stackEnthalpies[],double I
 
 void calc_bulge_internal(int i,int j,int ii,int jj,double* EntropyEnthalpy,int traceback,double stackEntropies[],double stackEnthalpies[],double stackint2Entropies[],double stackint2Enthalpies[],double interiorLoopEntropies[],double bulgeLoopEntropies[],double interiorLoopEnthalpies[],double bulgeLoopEnthalpies[],double tstackEntropies[],double tstackEnthalpies[],double atpS[],double atpH[],double Initdouble[],int Initint[],double enthalpyDPT[],double entropyDPT[],char numSeq1[],char numSeq2[])
 {
-	int loopSize1,loopSize2,loopSize,N,N_loop;
+	int loopSize1,loopSize2,loopSize;
 	double T1,T2,S,H;
 
 	S=-3224.0;
 	H=0;
 	loopSize1=ii-i-1;
 	loopSize2=jj-j-1;
-	if(ii<jj)
-	{
-		N=i;
-		N_loop=N;
-		if(loopSize1>2)
-			N_loop-=(loopSize1-2);
-		if(loopSize2>2)
-			N_loop-=(loopSize2-2);
-	}
-	else
-	{
-		N=j;
-		N_loop=2*jj;
-		if(loopSize1>2)
-			N_loop-=(loopSize1-2);
-		if(loopSize2>2)
-			N_loop-=(loopSize2-2);
-		N_loop=(N_loop/2)-1;
-	}
-
 	loopSize=loopSize1+loopSize2-1;
 	if((loopSize1==0&&loopSize2>0)||(loopSize2==0&&loopSize1>0))// only bulges have to be considered
 	{
