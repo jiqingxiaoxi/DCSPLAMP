@@ -2470,6 +2470,7 @@ void usage()
         printf("    -par  <string>:  the directory of storing parameter files used to check the tendency of two primers binding, default is Par/\n");
         printf("    -high/-low:      design candidate single primers in high/low GC region, high: the GC content>=45%%; low: the GC content <=45%%.\n");
         printf("    -loop:           design LAMP primer with loop primers\n");
+	printf("    -fast:           design LAMP primer set fastly, but the system couldn't guarantee check all candidate LAMP primer sets\n");
         printf("    -h/-help:        usage\n");
 }
 
@@ -2500,19 +2501,132 @@ void generate_primer(char *seq,char primer[],int start,int length,int flag) //fl
         }
 }
 
+int check_same(struct Primer *one[],struct Primer *two[],struct Primer *p_F3,struct Primer *p_F2,struct Primer *p_F1c,struct Primer *p_B1c,struct Primer *p_B2,struct Primer *p_B3)
+{
+	int i;
+	for(i=0;i<10;i++)
+	{
+		if(one[i]==NULL)
+			return 0;
+		if(one[i]==p_F3)
+		{
+			if(two[i]==p_F2)
+				return 1;
+			if(two[i]==p_F1c)
+				return 1;
+			if(two[i]==p_B1c)
+				return 1;
+			if(two[i]==p_B2)
+				return 1;
+			if(two[i]==p_B3)
+				return 1;
+		}
+		else if(one[i]==p_F2)
+		{
+			if(two[i]==p_F1c)
+                                return 1;
+                        if(two[i]==p_B1c)
+                                return 1;
+                        if(two[i]==p_B2)
+                                return 1;
+                        if(two[i]==p_B3)
+                                return 1;
+		}
+		else if(one[i]==p_F1c)
+		{
+			if(two[i]==p_B1c)
+                                return 1;
+                        if(two[i]==p_B2)
+                                return 1;
+                        if(two[i]==p_B3)
+                                return 1;
+		}
+		else if(one[i]==p_B1c)
+		{
+			if(two[i]==p_B2) 
+                                return 1;
+                        if(two[i]==p_B3)
+                                return 1;
+		}
+		else if(one[i]==p_B2)
+		{
+			if(two[i]==p_B3)
+                                return 1;
+		}
+	}
+	return 0;
+}
+
+int add_same(struct Primer *one[],struct Primer *two[],struct Primer *p_F3,struct Primer *p_F2,struct Primer *p_F1c,struct Primer *p_B1c,struct Primer *p_B2,struct Primer *p_B3,int error[],int replace)
+{
+	if(error[0]==0)
+	{
+		one[replace]=p_F3;
+		if(error[1]==1)
+			two[replace]=p_F2;
+		else if(error[1]==2)
+			two[replace]=p_F1c;
+		else if(error[1]==3)
+			two[replace]=p_B1c;
+		else if(error[1]==4)
+			two[replace]=p_B2;
+		else
+			two[replace]=p_B3;
+	}
+	else if(error[0]==1)
+	{
+		one[replace]=p_F2;
+		if(error[1]==2)
+                        two[replace]=p_F1c;
+                else if(error[1]==3)
+                        two[replace]=p_B1c;
+                else if(error[1]==4)
+                        two[replace]=p_B2;
+                else
+                        two[replace]=p_B3;
+	}
+	else if(error[0]==2)
+        {
+                one[replace]=p_F1c;
+		if(error[1]==3)
+                        two[replace]=p_B1c;
+                else if(error[1]==4)
+                        two[replace]=p_B2;
+                else
+                        two[replace]=p_B3;
+        }
+	else if(error[0]==3)
+        {
+		one[replace]=p_B1c;
+		if(error[1]==4)
+                        two[replace]=p_B2;
+                else
+                        two[replace]=p_B3;
+        }
+	else
+        {
+                one[replace]=p_B2;
+		two[replace]=p_B3;
+        }
+	replace++;
+	if(replace==10)
+		replace=0;
+	return replace;
+}
+
 main(int argc,char **argv)
 {
 	double stackEntropies[625],stackEnthalpies[625],stackint2Entropies[625],stackint2Enthalpies[625],dangleEntropies3[125],dangleEnthalpies3[125],dangleEntropies5[125],dangleEnthalpies5[125];
         double hairpinLoopEntropies[30],interiorLoopEntropies[30],bulgeLoopEntropies[30],hairpinLoopEnthalpies[30],interiorLoopEnthalpies[30],bulgeLoopEnthalpies[30],tstackEntropies[625],tstackEnthalpies[625],tstack2Entropies[625],tstack2Enthalpies[625];
         double *triloopEntropies2,*triloopEnthalpies2,*tetraloopEntropies2,*tetraloopEnthalpies2,atpS[25],atpH[25];
-	int i,j,*result,new,*best_par,*record,expect,flag[12],common_num[1],turn,success,numTriloops,numTetraloops,max_loop,min_loop;
+	int i,j,*result,new,*best_par,expect,flag[13],common_num[1],turn,success,numTriloops,numTetraloops,max_loop,min_loop,error[2],replace;
 	char *output,*prefix,*store_path,*path_fa,*inner,*outer,*loop,*par_path;
 	char *temp,*seq,F3[26],F2[26],F1c[26],B1c[26],B2[26],B3[26],LF[26],LB[26],*triloopEntropies1,*triloopEnthalpies1,*tetraloopEntropies1,*tetraloopEnthalpies1;
 	FILE *fp;
-	struct Primer *headL,*headS,*headLoop,*p_F3,*p_F2,*p_F1c,*p_B1c,*p_B2,*p_B3,*result_Loop[2];
+	struct Primer *headL,*headS,*headLoop,*p_F3,*p_F2,*p_F1c,*p_B1c,*p_B2,*p_B3,*result_Loop[2],*one[10],*two[10];
 	struct Node *p_node,*p_temp;
 	struct INFO *headList,*p_list;
-	time_t start,end;
+	time_t start,end,begin;
 	
 	struct Primer *read_par();
 	struct INFO *read_list();
@@ -2527,7 +2641,8 @@ main(int argc,char **argv)
 	int design_loop();
 
 	start=time(NULL);
-        for(i=0;i<=11;i++)
+	begin=start;
+        for(i=0;i<13;i++)
         {
                 flag[i]=0;
         }
@@ -2631,6 +2746,11 @@ main(int argc,char **argv)
                         flag[10]=1;
                         i++;
                 }
+		else if(strcmp(argv[i],"-fast")==0)
+		{
+			flag[12]=1;
+			i++;
+		}
                 else if(strcmp(argv[i],"-h")==0 || strcmp(argv[i],"-help")==0)
                 {
                         usage();
@@ -2910,34 +3030,40 @@ main(int argc,char **argv)
 	}
 
 	if(flag[5])
-	{
 		result=(int *)malloc(common_num[0]*sizeof(int));
-		record=(int *)malloc(expect*(common_num[0]+1)*sizeof(int));
-		for(i=0;i<expect*(1+common_num[0]);i++)
-			record[i]=0;
-	}
-	best_par=(int *)malloc(expect*16*sizeof(int)); //include LF/LB
-	for(i=0;i<expect*16;i++)    
+	best_par=(int *)malloc(expect*sizeof(int)); //include LF/LB
+	for(i=0;i<expect;i++)
+                best_par[i]=-1;
+	fp=fopen(output,"w");
+        if(fp==NULL)
         {
-                best_par[i]=0;
+                printf("Error: can't create the %s file!\n",output);
+                exit(1);
         }
 	end=time(NULL);
-	printf("The prepare time is %0.1f seconds!\n",difftime(end,start));
+	printf("It takes %0.0f seconds to prepare data.\n",difftime(end,start));
 
 //design LAMP primers
 	start=time(NULL);
+	if(flag[12]==0)
+	{
+		for(i=0;i<10;i++)
+		{
+			one[i]=NULL;
+			two[i]=NULL;
+		}
+		replace=0;
+	}
 	turn=0;
 	for(j=common_num[0];j>=1;j--)
 	{
-		if(turn>=expect)
-			break;
+		if(common_num[0]>1)
+			printf("Running: expect common number is %d.\n",j);
         	for(p_F3=headS;p_F3;p_F3=p_F3->next)   //F3
         	{
 			if(flag[10]&&(p_F3->pos+200)<min_loop)
 				continue;
 			if(flag[10]&&(p_F3->pos-200)>max_loop)
-				break;
-			if(turn>=expect)
 				break;
 			if(p_F3->total<j)
 				continue;
@@ -2947,81 +3073,115 @@ main(int argc,char **argv)
 			if(success==0)
 				continue;
 			new=0;  //whether find a new primer, if find, adjust F3 position
-	                for(p_F2=p_F3->self;p_F2;p_F2=p_F2->next)  //F2
-                	{
-				if(new==1)
-                                        break;
-				if(p_F2->total<j)
-                                        continue;
-				if(p_F2->plus==0)
+			for(p_B3=p_F3->self;p_B3;p_B3=p_B3->next)  //B3
+			{
+				if(p_B3->total<j)
 					continue;
-	                        if(p_F2->pos-(p_F3->pos+p_F3->len)>20)
-	                                break;
-	                        for(p_F1c=p_F2->notloop;p_F1c;p_F1c=p_F1c->next)   //F1c
-                        	{
-					if(new==1)
+				if(p_B3->minus==0)
+					continue;
+				if(p_B3->pos-p_F3->pos<133)
+					continue;
+				if(p_B3->pos-p_F3->pos>250)
+					break;
+			//check_gc
+				success=check_gc(seq,p_F3->pos,(p_B3->pos+p_B3->len),flag[8]);
+				if(success==0)
+					continue;
+	                	for(p_F2=p_F3->self;p_F2;p_F2=p_F2->next)  //F2
+                		{
+					if(p_F2->total<j)
+                        	                continue;
+					if(p_F2->plus==0)
+						continue;
+					if(p_B3->pos-p_F2->pos>205)
+						continue;
+					if(p_B3->pos-p_F2->pos<115)
 						break;
-					if(p_F1c->total<j)
-						continue;
-					if(p_F1c->minus==0)
-						continue;
-					if(p_F1c->pos-p_F2->pos-1<40)
-						continue;
-	                                if(p_F1c->pos-p_F2->pos-1>60)
-                                        	break;
-                                	for(p_B1c=p_F1c->self;p_B1c;p_B1c=p_B1c->next)   //B1c
-                                	{
-						if(new==1)
-                                                        break;
-                                                if(p_B1c->total<j)
-                                                        continue;
-						if(p_B1c->plus==0)
+	                	        if(p_F2->pos-(p_F3->pos+p_F3->len)>20)
+	                	                break;
+	                	        for(p_F1c=p_F2->notloop;p_F1c;p_F1c=p_F1c->next)   //F1c
+                        		{
+						if(p_F1c->total<j)
 							continue;
-	                                        if(p_B1c->pos-p_F1c->pos>85)
-                                                	break;
-                                        	for(p_B2=p_B1c->notloop;p_B2;p_B2=p_B2->next)   //B2
-                                        	{
-							if(new==1)
+						if(p_F1c->minus==0)
+							continue;
+						if(p_B3->pos-p_F1c->pos>165)
+							continue;
+						if(p_B3->pos-p_F1c->pos<55)
+							break;
+						if(p_F1c->pos-p_F2->pos-1<40)
+							continue;
+	                	                if(p_F1c->pos-p_F2->pos-1>60)
+                        	                	break;
+                        	        	for(p_B1c=p_F1c->self;p_B1c;p_B1c=p_B1c->next)   //B1c
+                        	        	{
+                        	                        if(p_B1c->total<j)
+                        	                                continue;
+							if(p_B1c->plus==0)
+								continue;
+							if(p_B3->pos-p_B1c->pos>110)
+								continue;
+							if(p_B3->pos-p_B1c->pos<53)
 								break;
-							if(p_B2->total<j)
-								continue;
-							if(p_B2->minus==0)
-								continue;
-							if((p_B2->pos+p_B2->len-1)-(p_B1c->pos+p_B1c->len-1)-1<40)
-								continue;
-	                                                if((p_B2->pos+p_B2->len-1)-(p_B1c->pos+p_B1c->len-1)-1>60)
-                                                        	break;
-                                                	if(p_B2->pos+p_B2->len-1-p_F2->pos-1<120)
-                                                        	continue;
-                                                	if(p_B2->pos+p_B2->len-1-p_F2->pos-1>180)
-                                                        	break;
+	                	                        if(p_B1c->pos-p_F1c->pos>85)
+                        	                        	break;
+                        	                	for(p_B2=p_B1c->notloop;p_B2;p_B2=p_B2->next)   //B2
+                        	                	{
+								if(p_B2->total<j)
+									continue;
+								if(p_B2->minus==0)
+									continue;
+								if((p_B2->pos+p_B2->len-1)-(p_B1c->pos+p_B1c->len-1)-1<40)
+									continue;
+	                	                                if((p_B2->pos+p_B2->len-1)-(p_B1c->pos+p_B1c->len-1)-1>60)
+                        	                                	break;
+                        	                        	if(p_B2->pos+p_B2->len-1-p_F2->pos-1<120)
+                        	                                	continue;
+                                	                	if(p_B2->pos+p_B2->len-1-p_F2->pos-1>180)
+                                	                        	break;
 						//check whether has enough positions for loop
-							if(flag[10]&&((p_F1c->pos-p_F2->pos-p_F2->len)<18)&&(p_B2->pos-p_B1c->pos-p_B1c->len<18))
-								continue;
-                                                	for(p_B3=p_B2->self;p_B3;p_B3=p_B3->next)  //B3
-                                                	{
-								if(p_B3->total<j)
-                                                                        continue;
-								if(p_B3->minus==0)
+								if(flag[10]&&((p_F1c->pos-p_F2->pos-p_F2->len)<18)&&(p_B2->pos-p_B1c->pos-p_B1c->len<18))
 									continue;
-	                                                        if(p_B3->pos-(p_B2->pos+p_B2->len)>20)
-                                                                	break;
-							//primer GC and target GC
-								success=check_gc(seq,p_F3->pos,(p_B3->pos+p_B3->len),flag[8]);
-								if(success==0)
+							//B3
+								if(p_B3->pos<p_B2->pos+p_B2->len)
+									break;
+								if(p_B3->pos-(p_B2->pos+p_B2->len)>20)
 									continue;
+                                                                if(flag[12])
+                                                                        new=1;
+								else
+								{
+									success=check_same(one,two,p_F3,p_F2,p_F1c,p_B1c,p_B2,p_B3);
+									if(success)
+									{
+										if(new)
+											break;
+										else
+											continue;
+									}
+								}
                                                         //check uniq and common
 								if(flag[6])
 								{
 									success=check_uniq(p_F3,p_F2,p_F1c,p_B1c,p_B2,p_B3);
 									if(success==0)
-										continue;
+									{
+										if(new)
+											break;
+										else
+											continue;
+									}
 								}
 								if(flag[5])
 								{
-	                                                        	success=check_common(p_F3,p_F2,p_F1c,p_B1c,p_B2,p_B3,result,common_num[0]);
+									success=check_common(p_F3,p_F2,p_F1c,p_B1c,p_B2,p_B3,result,common_num[0]);
 									if(success!=j)
-										continue;
+									{
+										if(new)
+											break;
+										else
+											continue;
+									}
 								}
 							//check second structure
 								if(flag[7])
@@ -3032,106 +3192,103 @@ main(int argc,char **argv)
 									generate_primer(seq,B1c,p_B1c->pos,p_B1c->len,0);
 									generate_primer(seq,B2,p_B2->pos,p_B2->len,1);
 									generate_primer(seq,B3,p_B3->pos,p_B3->len,1);
-									success=check_structure(F3,F2,F1c,B1c,B2,B3,flag[8],stackEntropies,stackEnthalpies,stackint2Entropies,stackint2Enthalpies,dangleEntropies3,dangleEnthalpies3,dangleEntropies5,dangleEnthalpies5,hairpinLoopEntropies,interiorLoopEntropies,bulgeLoopEntropies,hairpinLoopEnthalpies,interiorLoopEnthalpies,bulgeLoopEnthalpies,tstackEntropies,tstackEnthalpies,tstack2Entropies,tstack2Enthalpies,triloopEntropies1,triloopEnthalpies1,tetraloopEntropies1,tetraloopEnthalpies1,triloopEntropies2,triloopEnthalpies2,tetraloopEntropies2,tetraloopEnthalpies2,numTriloops,numTetraloops,atpS,atpH);
+									success=check_structure(F3,F2,F1c,B1c,B2,B3,flag[8],stackEntropies,stackEnthalpies,stackint2Entropies,stackint2Enthalpies,dangleEntropies3,dangleEnthalpies3,dangleEntropies5,dangleEnthalpies5,hairpinLoopEntropies,interiorLoopEntropies,bulgeLoopEntropies,hairpinLoopEnthalpies,interiorLoopEnthalpies,bulgeLoopEnthalpies,tstackEntropies,tstackEnthalpies,tstack2Entropies,tstack2Enthalpies,triloopEntropies1,triloopEnthalpies1,tetraloopEntropies1,tetraloopEnthalpies1,triloopEntropies2,triloopEnthalpies2,tetraloopEntropies2,tetraloopEnthalpies2,numTriloops,numTetraloops,atpS,atpH,error);
 									if(success==0)
-										continue;
+									{
+										replace=add_same(one,two,p_F3,p_F2,p_F1c,p_B1c,p_B2,p_B3,error,replace);
+										if(new)
+											break;
+										else
+											continue;
+									}
 								}
 							//design loop
 								if(flag[10])
 								{
 									success=design_loop(p_F3,p_F2,p_F2->loop,p_F1c,p_B1c,p_B1c->loop,p_B2,p_B3,result_Loop,result,flag,common_num[0],seq,stackEntropies,stackEnthalpies,stackint2Entropies,stackint2Enthalpies,dangleEntropies3,dangleEnthalpies3,dangleEntropies5,dangleEnthalpies5,hairpinLoopEntropies,interiorLoopEntropies,bulgeLoopEntropies,hairpinLoopEnthalpies,interiorLoopEnthalpies,bulgeLoopEnthalpies,tstackEntropies,tstackEnthalpies,tstack2Entropies,tstack2Enthalpies,triloopEntropies1,triloopEnthalpies1,tetraloopEntropies1,tetraloopEnthalpies1,triloopEntropies2,triloopEnthalpies2,tetraloopEntropies2,tetraloopEnthalpies2,numTriloops,numTetraloops,atpS,atpH);
 									if(success==0)
-										continue;
-									add(p_F3,p_F2,p_F1c,p_B1c,p_B2,p_B3,result_Loop[0],result_Loop[1],best_par,turn);
+									{
+										if(new)
+											break;
+										else
+											continue;
+									}
 								}
-								else
-									add(p_F3,p_F2,p_F1c,p_B1c,p_B2,p_B3,NULL,NULL,best_par,turn);
+								best_par[turn]=p_F3->pos;
 
-								if(flag[5])
-								{
-									for(i=0;i<common_num[0];i++)
-										record[turn*(common_num[0]+1)+i]=result[i];
-									record[turn*(common_num[0]+1)+i]=j;
-								}
-								new=1;
+							//output
 								turn++;
+								fprintf(fp,"The %d LAMP primers:\n",turn);
+								fprintf(fp,"  F3: pos:%d,length:%d bp, primer(5'-3'):%s\n",p_F3->pos,p_F3->len,F3);
+								fprintf(fp,"  F2: pos:%d,length:%d bp, primer(5'-3'):%s\n",p_F2->pos,p_F2->len,F2);
+								fprintf(fp,"  F1c: pos:%d,length:%d bp, primer(5'-3'):%s\n",p_F1c->pos,p_F1c->len,F1c);
+								fprintf(fp,"  B1c: pos:%d,length:%d bp, primer(5'-3'):%s\n",p_B1c->pos,p_B1c->len,B1c);
+								fprintf(fp,"  B2: pos:%d,length:%d bp, primer(5'-3'):%s\n",p_B2->pos,p_B2->len,B2);
+								fprintf(fp,"  B3: pos:%d,length:%d bp, primer(5'-3'):%s\n",p_B3->pos,p_B3->len,B3);
+								if(flag[10])
+								{
+									if(result_Loop[0]==NULL)
+										fprintf(fp,"  LF: NULL\n");
+									else
+									{
+										generate_primer(seq,LF,result_Loop[0]->pos,result_Loop[0]->len,1);
+										fprintf(fp,"  LF: pos:%d,length:%d bp, primer(5'-3'):%s\n",result_Loop[0]->pos,result_Loop[0]->len,LF);
+									}
+									if(result_Loop[1]==NULL)
+										fprintf(fp,"  LB: NULL\n");
+									else
+									{
+										generate_primer(seq,LB,result_Loop[1]->pos,result_Loop[1]->len,0);
+										fprintf(fp,"  LB: pos:%d,length:%d bp, primer(5'-3'):%s\n",result_Loop[1]->pos,result_Loop[1]->len,LB);
+									}
+								}
+                						if(flag[5])
+								{
+									fprintf(fp,"  This set of LAMP primers could be used in %d genomes, there are: ",j);
+									p_list=headList;
+									success=0;
+									for(i=0;i<common_num[0];i++)
+									{
+										if(result[i]==0)
+											continue;
+										while(p_list)
+										{
+											if(p_list->turn==i)
+												break;
+											else
+												p_list=p_list->next;
+										}
+										if(success==0)
+											fprintf(fp,"%s",p_list->name);
+										else
+											fprintf(fp,", %s",p_list->name);
+										success++;
+									}
+									fprintf(fp,"\n");
+								}
+								end=time(NULL);
+								printf("It takes %0.0f seconds to design the %d-th LAMP primer set successfully.\n",difftime(end,start),turn);
+								start=time(NULL);
+								new=1;
 								break;
-							} //B3
-                                                }  //B2
-                                        } //B1c
-                                } //F1c
-                        }  //F2
-                }  //F3
-        }
-	end=time(NULL);
-	printf("the time for design is %0.1f seconds!\n",difftime(end,start));
-
-	fp=fopen(output,"w");
-        if(fp==NULL)
-        {
-                printf("Error: can't create the %s file!\n",output);
-                exit(1);
-        }
-        
-        for(i=0;i<expect;i++)
-        {
-		if(best_par[i*16+1]==0)
-			break;
-		turn=i+1;
-		fprintf(fp,"The %d LAMP primers:\n",turn);
-		generate_primer(seq,F3,best_par[i*16],best_par[i*16+1],0);
-		fprintf(fp,"  F3: pos:%d,length:%d bp, primer(5'-3'):%s\n",best_par[i*16],best_par[i*16+1],F3);
-		generate_primer(seq,F2,best_par[i*16+2],best_par[i*16+3],0);
-		fprintf(fp,"  F2: pos:%d,length:%d bp, primer(5'-3'):%s\n",best_par[i*16+2],best_par[i*16+3],F2);
-		generate_primer(seq,F1c,best_par[i*16+4],best_par[i*16+5],1);
-		fprintf(fp,"  F1c: pos:%d,length:%d bp, primer(5'-3'):%s\n",best_par[i*16+4],best_par[i*16+5],F1c);
-		generate_primer(seq,B1c,best_par[i*16+6],best_par[i*16+7],0);
-		fprintf(fp,"  B1c: pos:%d,length:%d bp, primer(5'-3'):%s\n",best_par[i*16+6],best_par[i*16+7],B1c);
-		generate_primer(seq,B2,best_par[i*16+8],best_par[i*16+9],1);
-		fprintf(fp,"  B2: pos:%d,length:%d bp, primer(5'-3'):%s\n",best_par[i*16+8],best_par[i*16+9],B2);
-		generate_primer(seq,B3,best_par[i*16+10],best_par[i*16+11],1);
-		fprintf(fp,"  B3: pos:%d,length:%d bp, primer(5'-3'):%s\n",best_par[i*16+10],best_par[i*16+11],B3);
-		if(flag[10])
-		{
-			if(best_par[i*16+13]==0)
-				fprintf(fp,"  LF: NULL\n");
-			else
-			{
-				generate_primer(seq,LF,best_par[i*16+12],best_par[i*16+13],1);
-				fprintf(fp,"  LF: pos:%d,length:%d bp, primer(5'-3'):%s\n",best_par[i*16+12],best_par[i*16+13],LF);
-			}
-			if(best_par[i*16+15]==0)
-                                fprintf(fp,"  LB: NULL\n");
-                        else
-			{
-				generate_primer(seq,LB,best_par[i*16+14],best_par[i*16+15],0);
-                                fprintf(fp,"  LB: pos:%d,length:%d bp, primer(5'-3'):%s\n",best_par[i*16+14],best_par[i*16+15],LB);
-			}
-		}
-		if(flag[5])
-		{
-			turn=0;
-			fprintf(fp,"  This set of LAMP primers could be used in %d genomes, there are: ",record[i*(common_num[0]+1)+common_num[0]]);
-			p_list=headList;
-			for(j=0;j<common_num[0];j++)
-			{
-				if(record[i*(common_num[0]+1)+j]==0)
-					continue;
-				while(p_list)
-				{
-					if(p_list->turn==j)
+							} //B2
+							if(turn>=expect||new)
+								break;
+                                                }  //B1c
+						if(turn>=expect||new)
+							break;
+                                        } //F1c
+					if(turn>=expect||new)
 						break;
-					else
-						p_list=p_list->next;
-				}
-				if(turn==0)
-					fprintf(fp,"%s",p_list->name);
-				else
-					fprintf(fp,", %s",p_list->name);
-				turn++;
-			}
-			fprintf(fp,"\n");
-		}
+                                } //F2
+				if(turn>=expect||new)
+					break;
+                        }  //B3
+			if(turn>=expect)
+				break;
+                }  //F3
+		if(turn>=expect)
+			break;
         }
 	fclose(fp);
 	free(best_par);
@@ -3195,7 +3352,6 @@ main(int argc,char **argv)
 			free(headList);
 			headList=p_list;
 		}
-		free(record);
 		free(result);
 	}
 
@@ -3238,13 +3394,112 @@ main(int argc,char **argv)
                 	headLoop=p_F3;
         	}
 	}
+	end=time(NULL);
+	printf("It takes %0.0f seconds to free memory.\n",difftime(end,start));
+        printf("\nIt takes total %0.0f seconds to finish this design.\n",difftime(end,begin));
+}
+
+void merge(int *store,int *temp,int *data,int start,int end,int middle)
+{
+        int i,j,k;
+        i=start;
+        j=middle+1;
+        k=start;
+        while(i<=middle&&j<=end)
+        {
+                if(data[store[i]*6]<data[store[j]*6])
+                {
+                        temp[k]=store[i];
+                        k++;
+                        i++;
+                        continue;
+                }
+                if(data[store[j]*6]<data[store[i]*6])
+                {
+                        temp[k]=store[j];
+                        k++;
+                        j++;
+                        continue;
+                }
+        //len
+                if(data[store[i]*6+1]<data[store[j]*6+1])
+                {
+                        temp[k]=store[i];
+                        k++;
+                        i++;
+                        continue;
+                }
+                if(data[store[j]*6+1]<data[store[i]*6+1])
+                {
+                        temp[k]=store[j];
+                        k++;
+                        j++;
+                        continue;
+                }
+        //gi
+                if(data[store[i]*6+2]<data[store[j]*6+2])
+                {
+                        temp[k]=store[i];
+                        k++;
+                        i++;
+                        continue;
+                }
+                if(data[store[j]*6+2]<data[store[i]*6+2])
+                {
+                        temp[k]=store[j];
+                        k++;
+                        j++;
+                        continue;
+                }
+        //position
+                if(data[store[i]*6+3]<data[store[j]*6+3])
+                {
+                        temp[k]=store[i];
+                        k++;
+                        i++;
+                }
+                else
+                {
+                        temp[k]=store[j];
+                        k++;
+                        j++;
+                        continue;
+                }
+        }
+        while(i<=middle)
+        {
+                temp[k]=store[i];
+                k++;
+                i++;
+        }
+        while(j<=end)
+        {
+                temp[k]=store[j];
+                k++;
+                j++;
+        }
+        for(i=start;i<=end;i++)
+                store[i]=temp[i];
+}
+
+void sort_merge(int *store,int *temp,int *data,int start,int end)
+{
+        int middle;
+
+        if(start<end)
+        {
+                middle=(start+end)/2;
+                sort_merge(store,temp,data,start,middle);
+                sort_merge(store,temp,data,(middle+1),end);
+                merge(store,temp,data,start,end,middle);
+        }
 }
 
 ////function read primer informatin and align information 
 struct Primer *read_par(char *path,int common_flag,int special_flag)
 {
-	char *in;
-	int pos,len,gi,position,plus,minus,size,i,flag;
+	char *in,line[100];
+	int pos,len,gi,position,plus,minus,size,i,flag,total,*store,*temp,*data;
 	struct Primer *new_primer,*p_primer,*head;
 	struct Node *new_node,*p_node;
 	FILE *fp;
@@ -3318,43 +3573,82 @@ struct Primer *read_par(char *path,int common_flag,int special_flag)
         	        printf("Error: can't open the %s file!\n",in);
         	        exit(1);
         	}
+		
+		total=0;
+		while(fgets(line,100,fp)!=NULL)
+			total++;
+		rewind(fp);
+		store=(int *)malloc(total*sizeof(int));
+		temp=(int *)malloc(total*sizeof(int));
+		data=(int *)malloc(6*total*sizeof(int));
+		total=0;
+		while(fscanf(fp,"%d\t%d\t%d\t%d\t%d\t%d\n",&pos,&len,&gi,&position,&plus,&minus)!=EOF)
+		{
+			data[6*total]=pos;
+			data[6*total+1]=len;
+			data[6*total+2]=gi;
+			data[6*total+3]=position;
+			data[6*total+4]=plus;
+			data[6*total+5]=minus;
+			store[total]=total;
+			total++;
+		}
+		fclose(fp);
+		sort_merge(store,temp,data,0,(total-1));
 
 		p_primer=head;
 		size=sizeof(struct Node);
-        	while(fscanf(fp,"%d\t%d\t%d\t%d\t%d\t%d\n",&pos,&len,&gi,&position,&plus,&minus)!=EOF)
-        	{
-			new_node=(struct Node *)malloc(size);
-			new_node->pos=position;
-			new_node->gi=gi;
-			new_node->plus=plus;
-			new_node->minus=minus;
-
-	//find the primer
-			flag=0;
-			while((p_primer->pos!=pos||p_primer->len!=len)&&flag<2)
+		flag=0;
+		i=0;
+		while(p_primer&&i<total)
+		{
+		//pos
+			if(data[store[i]*6]<p_primer->pos)
 			{
-				if((p_primer->next==NULL)||(p_primer->pos>pos))
-				{
-					flag++;
-					p_primer=head;
-				}
-				else
-				{
-					p_primer=p_primer->next;
-				}
-			}
-			if(flag==2)
-			{
-				printf("Warning: the single primer(pos is %d, length is %d) is not in %s!\n",pos,len,path);
-				free(new_node);
+				i++;
 				continue;
-			} 
-			p_node=p_primer->common;
-			p_primer->common=new_node;
-			new_node->next=p_node;
+			}
+			if(data[store[i]*6]>p_primer->pos)
+			{
+				p_primer=p_primer->next;
+				flag=0;
+				continue;
+			}
+		//len
+			if(data[store[i]*6+1]<p_primer->len)
+                        {
+                                i++;
+                                continue;
+                        }
+                        if(data[store[i]*6+1]>p_primer->len)
+                        {
+                                p_primer=p_primer->next;
+				flag=0;
+                                continue;
+                        }
+			new_node=(struct Node *)malloc(size);
+			new_node->gi=data[store[i]*6+2];
+			new_node->pos=data[store[i]*6+3];
+			new_node->plus=data[store[i]*6+4];
+			new_node->minus=data[store[i]*6+5];
+                        new_node->next=NULL;
+			if(flag==0)
+			{
+				flag++;
+				p_primer->common=new_node;
+				p_node=new_node;
+			}
+			else
+			{
+                        	p_node->next=new_node;
+				p_node=new_node;
+			}
+			i++;
         	}
-        	fclose(fp);
 		free(in);
+		free(data);
+		free(store);
+		free(temp);
 	}
 //paramter for special
 	if(special_flag==1)
@@ -3376,40 +3670,81 @@ struct Primer *read_par(char *path,int common_flag,int special_flag)
         	        printf("Error: can't open the %s file!\n",in);
         	        exit(1);
         	}
-	
-        	p_primer=head;
-		while(fscanf(fp,"%d\t%d\t%d\t%d\t%d\t%d\n",&pos,&len,&gi,&position,&plus,&minus)!=EOF)
-	        {
-	                new_node=(struct Node *)malloc(size);
-	                new_node->pos=position;
-	                new_node->gi=gi;
-	                new_node->plus=plus;
-	                new_node->minus=minus;
-	
-			//find the primer
-			flag=0;
-                	while((p_primer->pos!=pos||p_primer->len!=len)&&flag<2)
-                	{
-                	        if((p_primer->next==NULL)||(p_primer->pos>pos))
-                	        {
-					flag++;
-                        	        p_primer=head;
-                        	}
-                        	else
-                        	        p_primer=p_primer->next;
-                	}
-			if(flag==2)
-			{
-                                printf("Warning: the single primer(pos is %d, length is %d) is not in %s!\n",pos,len,path);
-                                free(new_node);
+		total=0;
+                while(fgets(line,100,fp)!=NULL)
+                        total++;
+                rewind(fp);
+                store=(int *)malloc(total*sizeof(int));
+                temp=(int *)malloc(total*sizeof(int));
+                data=(int *)malloc(6*total*sizeof(int));
+                total=0;
+                while(fscanf(fp,"%d\t%d\t%d\t%d\t%d\t%d\n",&pos,&len,&gi,&position,&plus,&minus)!=EOF)
+                {
+                        data[6*total]=pos;
+                        data[6*total+1]=len;
+                        data[6*total+2]=gi;
+                        data[6*total+3]=position;
+                        data[6*total+4]=plus;
+                        data[6*total+5]=minus;
+                        store[total]=total;
+                        total++;
+                }
+                fclose(fp);
+                sort_merge(store,temp,data,0,(total-1));
+
+                p_primer=head;
+                size=sizeof(struct Node);
+                flag=0;
+		i=0;
+                while(p_primer&&i<total)
+                {
+                //pos
+                        if(data[store[i]*6]<p_primer->pos)
+                        {
+                                i++;
                                 continue;
                         }
-			p_node=p_primer->special;
-			p_primer->special=new_node;
-                	new_node->next=p_node;
-		}
-		fclose(fp);
+                        if(data[store[i]*6]>p_primer->pos)
+                        {
+                                p_primer=p_primer->next;
+				flag=0;
+                                continue;
+                        }
+                //len
+                        if(data[store[i]*6+1]<p_primer->len)
+                        {
+                                i++;
+                                continue;
+                        }
+                        if(data[store[i]*6+1]>p_primer->len)
+                        {
+                                p_primer=p_primer->next;
+				flag=0;
+                                continue;
+                        }
+                        new_node=(struct Node *)malloc(size);
+                        new_node->gi=data[store[i]*6+2];
+                        new_node->pos=data[store[i]*6+3];
+                        new_node->plus=data[store[i]*6+4];
+                        new_node->minus=data[store[i]*6+5];
+                        new_node->next=NULL;
+			if(flag==0)
+			{
+				flag++;
+				p_primer->special=new_node;
+				p_node=new_node;
+			}
+			else
+			{
+                        	p_node->next=new_node;
+                        	p_node=new_node;
+			}
+                        i++;
+                }
 		free(in);
+                free(data);
+                free(store);
+                free(temp);
 	}
 	return head;
 }
@@ -3516,46 +3851,127 @@ int check_common(struct Primer *F3,struct Primer *F2,struct Primer *F1c,struct P
 {
         int dis,num,i;
 	struct Node *c_F3,*c_F2,*c_F1c,*c_B1c,*c_B2,*c_B3;
+	struct Node *b_F2,*b_F1c,*b_B1c,*b_B2,*b_B3;
 
 	for(i=0;i<common;i++)
 		result[i]=0;
 //plus
+	b_F2=F2->common;
+        b_F1c=F1c->common;
+        b_B1c=B1c->common;
+        b_B2=B2->common;
+        b_B3=B3->common;
 	for(c_F3=F3->common;c_F3;c_F3=c_F3->next)
 	{
 		if(c_F3->plus!=1)
 			continue;
 		if(result[c_F3->gi])
 			continue;
-		for(c_F2=F2->common;c_F2;c_F2=c_F2->next)
+		for(c_F2=b_F2;c_F2;c_F2=c_F2->next)
 		{
-			if(c_F2->gi!=c_F3->gi)
-				continue;
-			if(c_F2->plus!=1)
-				continue;
-			for(c_F1c=F1c->common;c_F1c;c_F1c=c_F1c->next)
+			if(c_F2->gi<c_F3->gi)
 			{
-				if(c_F1c->gi!=c_F3->gi)
-					continue;
-				if(c_F1c->minus!=1)
-					continue;
-				for(c_B1c=B1c->common;c_B1c;c_B1c=c_B1c->next)
+				b_F2=c_F2->next;
+				continue;
+			}
+			if(c_F2->gi>c_F3->gi)
+				break;
+			if(c_F2->plus!=1)
+			{
+				b_F2=c_F2->next;
+				continue;
+			}
+			if(c_F2->pos<c_F3->pos)
+			{
+				b_F2=c_F2->next;
+				continue;
+			}
+			if(c_F2->pos-c_F3->pos>300)
+				break;
+			for(c_F1c=b_F1c;c_F1c;c_F1c=c_F1c->next)
+			{
+				if(c_F1c->gi<c_F3->gi)
 				{
-					if(c_B1c->gi!=c_F3->gi)
-						continue;
-					if(c_B1c->plus!=1)
-						continue;
-					for(c_B2=B2->common;c_B2;c_B2=c_B2->next)
+					b_F1c=c_F1c->next;
+					continue;
+				}
+				if(c_F1c->gi>c_F3->gi)
+					break;
+				if(c_F1c->minus!=1)
+				{
+					b_F1c=c_F1c->next;
+					continue;
+				}
+				if(c_F1c->pos<c_F3->pos)
+				{
+					b_F1c=c_F1c->next;
+					continue;
+				}
+				if(c_F1c->pos-c_F3->pos>300)
+					break;
+				for(c_B1c=b_B1c;c_B1c;c_B1c=c_B1c->next)
+				{
+					if(c_B1c->gi<c_F3->gi)
 					{
-						if(c_B2->gi!=c_F3->gi)
-							continue;
-						if(c_B2->minus!=1)
-							continue;
-						for(c_B3=B3->common;c_B3;c_B3=c_B3->next)
+						b_B1c=c_B1c->next;
+						continue;
+					}
+					if(c_B1c->gi>c_F3->gi)
+						break;
+					if(c_B1c->plus!=1)
+					{
+						b_B1c=c_B1c->next;
+						continue;
+					}
+					if(c_B1c->pos<c_F3->pos)
+					{
+						b_B1c=c_B1c->next;
+						continue;
+					}
+					if(c_B1c->pos-c_F3->pos>300)
+						break;
+					for(c_B2=b_B2;c_B2;c_B2=c_B2->next)
+					{
+						if(c_B2->gi<c_F3->gi)
 						{
-							if(c_B3->gi!=c_F3->gi)
+							b_B2=c_B2->next;
+							continue;
+						}
+						if(c_B2->gi>c_F3->gi)
+							break;
+						if(c_B2->minus!=1)
+						{
+							b_B2=c_B2->next;
+							continue;
+						}
+						if(c_B2->pos<c_F3->pos)
+						{
+							b_B2=c_B2->next;
+							continue;
+						}
+						if(c_B2->pos-c_F3->pos>300)
+							break;
+						for(c_B3=b_B3;c_B3;c_B3=c_B3->next)
+						{
+							if(c_B3->gi<c_F3->gi)
+							{
+								b_B3=c_B3->next;
 								continue;
+							}
+							if(c_B3->gi>c_F3->gi)
+								break;
 							if(c_B3->minus!=1)
+							{
+								b_B3=c_B3->next;
 								continue;
+							}
+							if(c_B3->pos<c_F3->pos)
+							{
+								b_B3=c_B3->next;
+								continue;
+							}
+							if(c_B3->pos-c_F3->pos>300)
+								break;
 						//F3-F2 
         						dis=c_F2->pos-(c_F3->pos+F3->len-1)-1;
 						        if(dis<0)
@@ -3598,6 +4014,11 @@ int check_common(struct Primer *F3,struct Primer *F2,struct Primer *F1c,struct P
 		}
 	}
 //minus
+	b_F2=F2->common;
+        b_F1c=F1c->common;
+        b_B1c=B1c->common;
+        b_B2=B2->common;
+        b_B3=B3->common;
         for(c_F3=F3->common;c_F3;c_F3=c_F3->next)
         {
                 if(c_F3->minus!=1)
@@ -3605,36 +4026,111 @@ int check_common(struct Primer *F3,struct Primer *F2,struct Primer *F1c,struct P
                 if(result[c_F3->gi])
                         continue;  //this GI can common
 
-                for(c_F2=F2->common;c_F2;c_F2=c_F2->next)
+                for(c_F2=b_F2;c_F2;c_F2=c_F2->next)
                 {
-                        if(c_F2->gi!=c_F3->gi)
-                                continue;
-                        if(c_F2->minus!=1)
-                                continue;
-                        for(c_F1c=F1c->common;c_F1c;c_F1c=c_F1c->next)
+			if(c_F2->gi<c_F3->gi)
                         {
-                                if(c_F1c->gi!=c_F3->gi)
-                                        continue;
-                                if(c_F1c->plus!=1)
-                                        continue;
-                                for(c_B1c=B1c->common;c_B1c;c_B1c=c_B1c->next)
+                                b_F2=c_F2->next;
+                                continue;
+                        }
+                        if(c_F2->gi>c_F3->gi)
+                                break;
+                        if(c_F2->minus!=1)
+			{
+				b_F2=c_F2->next;
+                                continue;
+			}
+			if(c_F2->pos>c_F3->pos)
+				break;
+			if(c_F2->pos-c_F3->pos<-300)
+			{
+				b_F2=c_F2->next;
+				continue;
+			}
+                        for(c_F1c=b_F1c;c_F1c;c_F1c=c_F1c->next)
+                        {
+				if(c_F1c->gi<c_F3->gi)
                                 {
-                                        if(c_B1c->gi!=c_F3->gi)
-                                                continue;
-                                        if(c_B1c->minus!=1)
-                                                continue;
-                                        for(c_B2=B2->common;c_B2;c_B2=c_B2->next)
+                                        b_F1c=c_F1c->next;
+                                        continue;
+                                }
+                                if(c_F1c->gi>c_F3->gi)
+                                        break;
+                                if(c_F1c->plus!=1)
+				{
+					b_F1c=c_F1c->next;
+                                        continue;
+				}
+				if(c_F1c->pos>c_F3->pos)
+					break;
+				if(c_F1c->pos-c_F3->pos<-300)
+				{
+					b_F1c=c_F1c->next;
+					continue;
+				}
+                                for(c_B1c=b_B1c;c_B1c;c_B1c=c_B1c->next)
+                                {
+					if(c_B1c->gi<c_F3->gi)
                                         {
-                                                if(c_B2->gi!=c_F3->gi)
-                                                        continue;
-                                                if(c_B2->plus!=1)
-                                                        continue;
-                                                for(c_B3=B3->common;c_B3;c_B3=c_B3->next)
+                                                b_B1c=c_B1c->next;
+                                                continue;
+                                        }
+                                        if(c_B1c->gi>c_F3->gi)
+                                                break;
+                                        if(c_B1c->minus!=1)
+					{
+						b_B1c=c_B1c->next;
+                                                continue;
+					}
+					if(c_B1c->pos>c_F3->pos)
+						break;
+					if(c_B1c->pos-c_F3->pos<-300)
+					{
+                                                b_B1c=c_B1c->next;
+                                                continue;
+                                        }
+                                        for(c_B2=b_B2;c_B2;c_B2=c_B2->next)
+                                        {
+						if(c_B2->gi<c_F3->gi)
                                                 {
-                                                        if(c_B3->gi!=c_F3->gi)
+                                                        b_B2=c_B2->next;
+                                                        continue;
+                                                }
+                                                if(c_B2->gi>c_F3->gi)
+                                                        break;
+                                                if(c_B2->plus!=1)
+						{
+							b_B2=c_B2->next;
+                                                        continue;
+						}
+						if(c_B2->pos>c_F3->pos)
+							break;
+						if(c_B2->pos-c_F3->pos<-300)
+						{
+                                                        b_B2=c_B2->next;
+                                                        continue;
+                                                }
+                                                for(c_B3=b_B3;c_B3;c_B3=c_B3->next)
+                                                {
+							if(c_B3->gi<c_F3->gi)
+                                                        {
+                                                                b_B3=c_B3->next;
                                                                 continue;
+                                                        }
+                                                        if(c_B3->gi>c_F3->gi)
+                                                                break;
                                                         if(c_B3->plus!=1)
+							{
+								b_B3=c_B3->next;
                                                                 continue;
+							}
+							if(c_B3->pos>c_F3->pos)
+								break;
+							if(c_B3->pos-c_F3->pos<-300)
+							{
+                                                                b_B3=c_B3->next;
+                                                                continue;
+                                                        }
                                                 //F3-F2 
                                                         dis=c_F3->pos-(c_F2->pos+F2->len-1)-1;
                                                         if(dis<0)
@@ -3710,7 +4206,7 @@ void reverse(char seq[],char rev[],int length)
         rev[i]='\0';
 }
 
-int check_structure(char F3[],char F2[],char F1c[],char B1c[],char B2[],char B3[],int flag,double stackEntropies[],double stackEnthalpies[],double stackint2Entropies[],double stackint2Enthalpies[],double dangleEntropies3[],double dangleEnthalpies3[],double dangleEntropies5[],double dangleEnthalpies5[],double hairpinLoopEntropies[],double interiorLoopEntropies[],double bulgeLoopEntropies[],double hairpinLoopEnthalpies[],double interiorLoopEnthalpies[],double bulgeLoopEnthalpies[],double tstackEntropies[],double tstackEnthalpies[],double tstack2Entropies[],double tstack2Enthalpies[],char *triloopEntropies1,char *triloopEnthalpies1,char *tetraloopEntropies1,char *tetraloopEnthalpies1,double *triloopEntropies2,double *triloopEnthalpies2,double *tetraloopEntropies2,double *tetraloopEnthalpies2,int numTriloops,int numTetraloops,double atpS[],double atpH[])
+int check_structure(char F3[],char F2[],char F1c[],char B1c[],char B2[],char B3[],int flag,double stackEntropies[],double stackEnthalpies[],double stackint2Entropies[],double stackint2Enthalpies[],double dangleEntropies3[],double dangleEnthalpies3[],double dangleEntropies5[],double dangleEnthalpies5[],double hairpinLoopEntropies[],double interiorLoopEntropies[],double bulgeLoopEntropies[],double hairpinLoopEnthalpies[],double interiorLoopEnthalpies[],double bulgeLoopEnthalpies[],double tstackEntropies[],double tstackEnthalpies[],double tstack2Entropies[],double tstack2Enthalpies[],char *triloopEntropies1,char *triloopEnthalpies1,char *tetraloopEntropies1,char *tetraloopEnthalpies1,double *triloopEntropies2,double *triloopEnthalpies2,double *tetraloopEntropies2,double *tetraloopEnthalpies2,int numTriloops,int numTetraloops,double atpS[],double atpH[],int error[])
 {
 	int i,j;
 	double TH;
@@ -3729,23 +4225,43 @@ int check_structure(char F3[],char F2[],char F1c[],char B1c[],char B2[],char B3[
 		{
 			TH=thal(list[i],list[j],stackEntropies,stackEnthalpies,stackint2Entropies,stackint2Enthalpies,dangleEntropies3,dangleEnthalpies3,dangleEntropies5,dangleEnthalpies5,hairpinLoopEntropies,interiorLoopEntropies,bulgeLoopEntropies,hairpinLoopEnthalpies,interiorLoopEnthalpies,bulgeLoopEnthalpies,tstackEntropies,tstackEnthalpies,tstack2Entropies,tstack2Enthalpies,triloopEntropies1,triloopEnthalpies1,tetraloopEntropies1,tetraloopEnthalpies1,triloopEntropies2,triloopEnthalpies2,tetraloopEntropies2,tetraloopEnthalpies2,numTriloops,numTetraloops,atpS,atpH,1);
 			if(TH>44+5*flag)
+			{
+				error[0]=i;
+				error[1]=j;
 				return 0;
+			}
 
 			TH=thal(list[i],list[j],stackEntropies,stackEnthalpies,stackint2Entropies,stackint2Enthalpies,dangleEntropies3,dangleEnthalpies3,dangleEntropies5,dangleEnthalpies5,hairpinLoopEntropies,interiorLoopEntropies,bulgeLoopEntropies,hairpinLoopEnthalpies,interiorLoopEnthalpies,bulgeLoopEnthalpies,tstackEntropies,tstackEnthalpies,tstack2Entropies,tstack2Enthalpies,triloopEntropies1,triloopEnthalpies1,tetraloopEntropies1,tetraloopEnthalpies1,triloopEntropies2,triloopEnthalpies2,tetraloopEntropies2,tetraloopEnthalpies2,numTriloops,numTetraloops,atpS,atpH,2);
 			if(TH>44+5*flag)
+			{
+				error[0]=i;
+				error[1]=j;
                                 return 0;
+			}
 			TH=thal(list[i],list[j],stackEntropies,stackEnthalpies,stackint2Entropies,stackint2Enthalpies,dangleEntropies3,dangleEnthalpies3,dangleEntropies5,dangleEnthalpies5,hairpinLoopEntropies,interiorLoopEntropies,bulgeLoopEntropies,hairpinLoopEnthalpies,interiorLoopEnthalpies,bulgeLoopEnthalpies,tstackEntropies,tstackEnthalpies,tstack2Entropies,tstack2Enthalpies,triloopEntropies1,triloopEnthalpies1,tetraloopEntropies1,tetraloopEnthalpies1,triloopEntropies2,triloopEnthalpies2,tetraloopEntropies2,tetraloopEnthalpies2,numTriloops,numTetraloops,atpS,atpH,3);
 			if(TH>44+5*flag)
+			{
+				error[0]=i;
+				error[1]=j;
                                 return 0;
+			}
 
 			reverse(list[j],rev1,strlen(list[j]));
 			reverse(list[i],rev2,strlen(list[i]));
 			TH=thal(rev1,rev2,stackEntropies,stackEnthalpies,stackint2Entropies,stackint2Enthalpies,dangleEntropies3,dangleEnthalpies3,dangleEntropies5,dangleEnthalpies5,hairpinLoopEntropies,interiorLoopEntropies,bulgeLoopEntropies,hairpinLoopEnthalpies,interiorLoopEnthalpies,bulgeLoopEnthalpies,tstackEntropies,tstackEnthalpies,tstack2Entropies,tstack2Enthalpies,triloopEntropies1,triloopEnthalpies1,tetraloopEntropies1,tetraloopEnthalpies1,triloopEntropies2,triloopEnthalpies2,tetraloopEntropies2,tetraloopEnthalpies2,numTriloops,numTetraloops,atpS,atpH,2);
 			if(TH>44+5*flag)
+			{
+				error[0]=i;
+				error[1]=j;
                                 return 0;
+			}
 			TH=thal(rev1,rev2,stackEntropies,stackEnthalpies,stackint2Entropies,stackint2Enthalpies,dangleEntropies3,dangleEnthalpies3,dangleEntropies5,dangleEnthalpies5,hairpinLoopEntropies,interiorLoopEntropies,bulgeLoopEntropies,hairpinLoopEnthalpies,interiorLoopEnthalpies,bulgeLoopEnthalpies,tstackEntropies,tstackEnthalpies,tstack2Entropies,tstack2Enthalpies,triloopEntropies1,triloopEnthalpies1,tetraloopEntropies1,tetraloopEnthalpies1,triloopEntropies2,triloopEnthalpies2,tetraloopEntropies2,tetraloopEnthalpies2,numTriloops,numTetraloops,atpS,atpH,3);
 			if(TH>44+5*flag)
+			{
+				error[0]=i;
+				error[1]=j;
                                 return 0;
+			}
 		}
 	}
 	return 1;
@@ -4286,9 +4802,9 @@ int check_add(int F3_pos,int *best_par,int expect)
 
 	for(i=0;i<expect;i++)
 	{
-		if(best_par[i*16+1]==0) //the empty record
+		if(best_par[i]==-1) //the empty record
 			return 1;
-		dis=best_par[i*16]-F3_pos;
+		dis=best_par[i]-F3_pos;
 		if(abs(dis)<300)
 			return 0;
 	}
@@ -4313,34 +4829,6 @@ int check_gc(char *seq,int start,int end,int flag)//p_F3->pos,(p_B3->pos+p_B3->l
 	return 0;
 }
 	
-//function: add new one and return the pos
-void add(struct Primer *F3,struct Primer *F2,struct Primer *F1c,struct Primer *B1c,struct Primer *B2,struct Primer *B3,struct Primer *LF,struct Primer *LB,int *best_par,int turn)
-{
-
-        best_par[turn*16]=F3->pos;
-        best_par[turn*16+1]=F3->len;
-        best_par[turn*16+2]=F2->pos;
-        best_par[turn*16+3]=F2->len;
-        best_par[turn*16+4]=F1c->pos;
-        best_par[turn*16+5]=F1c->len;
-        best_par[turn*16+6]=B1c->pos;
-        best_par[turn*16+7]=B1c->len;
-        best_par[turn*16+8]=B2->pos;
-        best_par[turn*16+9]=B2->len;
-        best_par[turn*16+10]=B3->pos;
-        best_par[turn*16+11]=B3->len;
-	if(LF!=NULL)
-	{
-		best_par[turn*16+12]=LF->pos;
-		best_par[turn*16+13]=LF->len;
-	}
-	if(LB!=NULL)
-	{
-		best_par[turn*16+14]=LB->pos;
-		best_par[turn*16+15]=LB->len;
-	}
-}
-
 ///how many GIs this primer can be used in, return the biggest common number
 void how_many(struct Primer *head,int common)
 {
@@ -4374,42 +4862,113 @@ void how_many(struct Primer *head,int common)
 int check_uniq(struct Primer *F3,struct Primer *F2,struct Primer *F1c,struct Primer *B1c,struct Primer *B2,struct Primer *B3)
 {
         struct Node *s_F3,*s_F2,*s_F1c,*s_B1c,*s_B2,*s_B3;
+	struct Node *b_F2,*b_F1c,*b_B1c,*b_B2,*b_B3;
 
 //plus
+	b_F2=F2->special;
+	b_F1c=F1c->special;
+	b_B1c=B1c->special;
+	b_B2=B2->special;
+	b_B3=B3->special;
         for(s_F3=F3->special;s_F3;s_F3=s_F3->next)
         {
                 if(s_F3->plus!=1)
                         continue;
-                for(s_F2=F2->special;s_F2;s_F2=s_F2->next)
+                for(s_F2=b_F2;s_F2;s_F2=s_F2->next)
                 {
-                        if(s_F2->gi!=s_F3->gi)
+			if(s_F2->gi<s_F3->gi)
+			{
+				b_F2=b_F2->next;
+				continue;
+			}
+                        if(s_F2->gi>s_F3->gi)
+                                break;
+			if(s_F2->pos<s_F3->pos)
+			{
+				b_F2=b_F2->next;
                                 continue;
+                        }
                         if(s_F2->plus!=1)
+			{
+				b_F2=b_F2->next;
                                 continue;
-                        for(s_F1c=F1c->special;s_F1c;s_F1c=s_F1c->next)
+			}
+                        for(s_F1c=b_F1c;s_F1c;s_F1c=s_F1c->next)
                         {
-                                if(s_F1c->gi!=s_F3->gi)
+                                if(s_F1c->gi<s_F3->gi)
+				{
+					b_F1c=b_F1c->next;
                                         continue;
+				}
+				if(s_F1c->gi>s_F3->gi)
+					break;
+				if(s_F1c->pos<s_F3->pos)
+				{
+                                        b_F1c=b_F1c->next;
+                                        continue;
+                                }
                                 if(s_F1c->minus!=1)
+				{
+					b_F1c=b_F1c->next;
                                         continue;
-                                for(s_B1c=B1c->special;s_B1c;s_B1c=s_B1c->next)
+				}
+                                for(s_B1c=b_B1c;s_B1c;s_B1c=s_B1c->next)
                                 {
-                                        if(s_B1c->gi!=s_F3->gi)
+                                        if(s_B1c->gi<s_F3->gi)
+					{
+						b_B1c=b_B1c->next;
                                                 continue;
+					}
+					if(s_B1c->gi>s_F3->gi)
+						break;
+					if(s_B1c->pos<s_F3->pos)
+					{
+						b_B1c=b_B1c->next;
+                                                continue;
+                                        }
                                         if(s_B1c->plus!=1)
+					{
+						b_B1c=b_B1c->next;
                                                 continue;
-                                        for(s_B2=B2->special;s_B2;s_B2=s_B2->next)
+					}
+                                        for(s_B2=b_B2;s_B2;s_B2=s_B2->next)
                                         {
-                                                if(s_B2->gi!=s_F3->gi)
+                                                if(s_B2->gi<s_F3->gi)
+						{
+							b_B2=b_B2->next;
                                                         continue;
+						}
+						if(s_B2->gi>s_F3->gi)
+							break;
+						if(s_B2->pos<s_F3->pos)
+						{
+							b_B2=b_B2->next;
+                                                        continue;
+                                                }
                                                 if(s_B2->minus!=1)
+						{
+							b_B2=b_B2->next;
                                                         continue;
-                                                for(s_B3=B3->special;s_B3;s_B3=s_B3->next)
+						}
+                                                for(s_B3=b_B3;s_B3;s_B3=s_B3->next)
                                                 {
-                                                        if(s_B3->gi!=s_F3->gi)
+                                                        if(s_B3->gi<s_F3->gi)
+							{
+								b_B3=b_B3->next;
                                                                 continue;
+							}
+							if(s_B3->gi>s_F3->gi)
+								break;
+							if(s_B3->pos<s_F3->pos)
+							{
+                                                                b_B3=b_B3->next;
+                                                                continue;
+                                                        }
                                                         if(s_B3->minus!=1)
+							{
+								b_B3=b_B3->next;
                                                                 continue;
+							}
                                                 //F3-F2 
                                                         if(s_F2->pos<s_F3->pos)
                                                                 continue;
@@ -4436,40 +4995,95 @@ int check_uniq(struct Primer *F3,struct Primer *F2,struct Primer *F1c,struct Pri
                 }
         }
 //minus
+	b_F2=F2->special;
+	b_F1c=F1c->special;
+	b_B1c=B1c->special;
+	b_B2=B2->special;
+	b_B3=B3->special;
         for(s_F3=F3->special;s_F3;s_F3=s_F3->next)
         {
                 if(s_F3->minus!=1)
                         continue;
-                for(s_F2=F2->special;s_F2;s_F2=s_F2->next)
+                for(s_F2=b_F2;s_F2;s_F2=s_F2->next)
                 {
-                        if(s_F2->gi!=s_F3->gi)
+                        if(s_F2->gi<s_F3->gi)
+			{
+				b_F2=b_F2->next;
                                 continue;
+			}
+			if(s_F2->gi>s_F3->gi)
+				break;
+			if(s_F2->pos>s_F3->pos)
+				break;
                         if(s_F2->minus!=1)
+			{
+				b_F2=b_F2->next;
                                 continue;
-                        for(s_F1c=F1c->special;s_F1c;s_F1c=s_F1c->next)
+			}
+                        for(s_F1c=b_F1c;s_F1c;s_F1c=s_F1c->next)
                         {
-                                if(s_F1c->gi!=s_F3->gi)
+                                if(s_F1c->gi<s_F3->gi)
+				{
+					b_F1c=b_F1c->next;
                                         continue;
+				}
+				if(s_F1c->gi>s_F3->gi)
+					break;
+				if(s_F1c->pos>s_F3->pos)
+					break;
                                 if(s_F1c->plus!=1)
+				{
+					b_F1c=b_F1c->next;
                                         continue;
-                                for(s_B1c=B1c->special;s_B1c;s_B1c=s_B1c->next)
+				}
+                                for(s_B1c=b_B1c;s_B1c;s_B1c=s_B1c->next)
                                 {
-                                        if(s_B1c->gi!=s_F3->gi)
+                                        if(s_B1c->gi<s_F3->gi)
+					{
+						b_B1c=b_B1c->next;
                                                 continue;
+					}
+					if(s_B1c->gi>s_F3->gi)
+						break;
+					if(s_B1c->pos>s_F3->pos)
+						break;
                                         if(s_B1c->minus!=1)
+					{
+						b_B1c=b_B1c->next;
                                                 continue;
-                                        for(s_B2=B2->special;s_B2;s_B2=s_B2->next)
+					}
+                                        for(s_B2=b_B2;s_B2;s_B2=s_B2->next)
                                         {
-                                                if(s_B2->gi!=s_F3->gi)
+                                                if(s_B2->gi<s_F3->gi)
+						{
+							b_B2=b_B2->next;
                                                         continue;
+						}
+						if(s_B2->gi>s_F3->gi)
+							break;
+						if(s_B2->pos>s_F3->pos)
+							break;
                                                 if(s_B2->plus!=1)
+						{
+							b_B2=b_B2->next;
                                                         continue;
-                                                for(s_B3=B3->special;s_B3;s_B3=s_B3->next)
+						}
+                                                for(s_B3=b_B3;s_B3;s_B3=s_B3->next)
                                                 {
-                                                        if(s_B3->gi!=s_F3->gi)
+                                                        if(s_B3->gi<s_F3->gi)
+							{
+								b_B3=b_B3->next;
                                                                 continue;
+							}
+							if(s_B3->gi>s_F3->gi)
+								break;
+							if(s_B3->pos>s_F3->pos)
+								break;
                                                         if(s_B3->plus!=1)
+							{
+								b_B3=b_B3->next;
                                                                 continue;
+							}
                                                 //F3-F2 
                                                         if(s_F3->pos<s_F2->pos)
                                                                 continue;
