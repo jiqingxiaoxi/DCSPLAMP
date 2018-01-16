@@ -8,7 +8,7 @@
 #include<cuda.h>
 #include<cuda_runtime.h>
 
-__constant__ int const_int[19];
+__constant__ int const_int[20];
 __constant__ double parameter[5730];
 
 char str2int_CPU(char c)
@@ -691,16 +691,16 @@ __device__ void Ss(int i,int j,int k,int *d_ps,char *d_numSeq,int id,double para
 			d_DPT[id*1264+1263]=-1.0;
 			return;
 		}
-		if(i==d_ps[id*64+50]||j==d_ps[id*64+51]+1)
+		if(i==d_ps[id*81+50]||j==d_ps[id*81+51]+1)
 		{
 			d_DPT[id*1264+1263]=-1.0;
 			return;
 		}
 
-		if(i>d_ps[id*64+50])
-			i-=d_ps[id*64+50];
-		if(j>d_ps[id*64+51])
-			j-=d_ps[id*64+51];
+		if(i>d_ps[id*81+50])
+			i-=d_ps[id*81+50];
+		if(j>d_ps[id*81+51])
+			j-=d_ps[id*81+51];
 		d_DPT[id*1264+1263]=parameter[d_numSeq[id*54+i]*125+d_numSeq[id*54+i+1]*25+d_numSeq[id*54+27+j]*5+d_numSeq[id*54+27+j-1]];
 	}
 	else
@@ -716,53 +716,54 @@ __device__ void Hs(int i,int j,int k,int *d_ps,char *d_numSeq,int id,double para
 			d_DPT[id*1264+1263]=1.0*INFINITY;
 			return;
 		}
-		if(i==d_ps[id*64+50]||j==d_ps[id*64+51]+1)
+		if(i==d_ps[id*81+50]||j==d_ps[id*81+51]+1)
 		{
 			d_DPT[id*1264+1263]=1.0*INFINITY;
 			return;
 		}
 
-		if(i>d_ps[id*64+50])
-			i-=d_ps[id*64+50];
-		if(j>d_ps[id*64+51])
-			j-=d_ps[id*64+51];
+		if(i>d_ps[id*81+50])
+			i-=d_ps[id*81+50];
+		if(j>d_ps[id*81+51])
+			j-=d_ps[id*81+51];
 		if(fabs(parameter[625+d_numSeq[id*54+i]*125+d_numSeq[id*54+i+1]*25+d_numSeq[id*54+27+j]*5+d_numSeq[id*54+27+j-1]])<999999999)
 			d_DPT[id*1264+1263]=parameter[625+d_numSeq[id*54+i]*125+d_numSeq[id*54+i+1]*25+d_numSeq[id*54+27+j]*5+d_numSeq[id*54+27+j-1]];
 		else
 			d_DPT[id*1264+1263]=1.0*INFINITY;
 	}
 	else
+
 		d_DPT[id*1264+1263]=parameter[625+d_numSeq[id*54+i]*125+d_numSeq[id*54+i+1]*25+d_numSeq[id*54+27+j]*5+d_numSeq[id*54+27+j+1]];
 }
 
 __device__ void equal(double a,double b,int *d_ps,int id)
 {
 	if(fabs(a)>999999999||fabs(b)>999999999)
-		d_ps[id*64+62]=0;
+		d_ps[id*81+62]=0;
 	else
 	{
 		if(fabs(a-b)<1e-5)
-			d_ps[id*64+62]=1;
+			d_ps[id*81+62]=1;
 		else
-			d_ps[id*64+62]=0;
+			d_ps[id*81+62]=0;
 	}
 }
 
 __device__ void initMatrix(int *d_ps,double *d_DPT,int id,char *d_numSeq)
 {
-	for(d_ps[id*64+54]=1;d_ps[id*64+54]<=d_ps[id*64+50];++d_ps[id*64+54])
+	for(d_ps[id*81+54]=1;d_ps[id*81+54]<=d_ps[id*81+50];++d_ps[id*81+54])
 	{
-		for(d_ps[id*64+55]=1;d_ps[id*64+55]<=d_ps[id*64+51];++d_ps[id*64+55])
+		for(d_ps[id*81+55]=1;d_ps[id*81+55]<=d_ps[id*81+51];++d_ps[id*81+55])
 		{
-			if(d_numSeq[id*54+d_ps[id*64+54]]+d_numSeq[id*54+27+d_ps[id*64+55]]!=3)
+			if(d_numSeq[id*54+d_ps[id*81+54]]+d_numSeq[id*54+27+d_ps[id*81+55]]!=3)
 			{
-				d_DPT[id*1264+(d_ps[id*64+54]-1)*d_ps[id*64+51]+d_ps[id*64+55]-1]=1.0*INFINITY;
-				d_DPT[id*1264+625+(d_ps[id*64+54]-1)*d_ps[id*64+51]+d_ps[id*64+55]-1]=-1.0;
+				d_DPT[id*1264+(d_ps[id*81+54]-1)*d_ps[id*81+51]+d_ps[id*81+55]-1]=1.0*INFINITY;
+				d_DPT[id*1264+625+(d_ps[id*81+54]-1)*d_ps[id*81+51]+d_ps[id*81+55]-1]=-1.0;
 			}
 			else
 			{
-				d_DPT[id*1264+(d_ps[id*64+54]-1)*d_ps[id*64+51]+d_ps[id*64+55]-1]=0.0;
-				d_DPT[id*1264+625+(d_ps[id*64+54]-1)*d_ps[id*64+51]+d_ps[id*64+55]-1]=-3224.0;
+				d_DPT[id*1264+(d_ps[id*81+54]-1)*d_ps[id*81+51]+d_ps[id*81+55]-1]=0.0;
+				d_DPT[id*1264+625+(d_ps[id*81+54]-1)*d_ps[id*81+51]+d_ps[id*81+55]-1]=-3224.0;
 			}
 		}
 	}
@@ -772,8 +773,8 @@ __device__ void LSH(int i,int j,int *d_ps,double *d_DPT,int id,char *d_numSeq,do
 {
 	if(d_numSeq[id*54+i]+d_numSeq[id*54+27+j]!=3)
 	{
-		d_DPT[id*1264+625+(i-1)*d_ps[id*64+51]+j-1]=-1.0;
-		d_DPT[id*1264+(i-1)*d_ps[id*64+51]+j-1]=1.0*INFINITY;
+		d_DPT[id*1264+625+(i-1)*d_ps[id*81+51]+j-1]=-1.0;
+		d_DPT[id*1264+(i-1)*d_ps[id*81+51]+j-1]=1.0*INFINITY;
 		return;
 	}
 
@@ -893,17 +894,17 @@ __device__ void LSH(int i,int j,int *d_ps,double *d_DPT,int id,char *d_numSeq,do
 
 __device__ void maxTM(int i,int j,int *d_ps,double *d_DPT,int id,char *d_numSeq,double parameter[])
 {
-	d_DPT[id*1264+1259]=d_DPT[id*1264+625+(i-1)*d_ps[id*64+51]+j-1];
-	d_DPT[id*1264+1261]=d_DPT[id*1264+(i-1)*d_ps[id*64+51]+j-1];
+	d_DPT[id*1264+1259]=d_DPT[id*1264+625+(i-1)*d_ps[id*81+51]+j-1];
+	d_DPT[id*1264+1261]=d_DPT[id*1264+(i-1)*d_ps[id*81+51]+j-1];
 	d_DPT[id*1264+1257]=(d_DPT[id*1264+1261]+200)/(d_DPT[id*1264+1259]-5.7+d_DPT[id*1264+1252]); // at current position 
-	if(fabs(d_DPT[id*1264+(i-2)*d_ps[id*64+51]+j-2])<999999999)
+	if(fabs(d_DPT[id*1264+(i-2)*d_ps[id*81+51]+j-2])<999999999)
 	{
 		Hs(i-1,j-1,1,d_ps,d_numSeq,id,parameter,d_DPT);
 		if(fabs(d_DPT[id*1264+1263])<999999999)
 		{
-			d_DPT[id*1264+1262]=(d_DPT[id*1264+(i-2)*d_ps[id*64+51]+j-2]+d_DPT[id*1264+1263]);
+			d_DPT[id*1264+1262]=(d_DPT[id*1264+(i-2)*d_ps[id*81+51]+j-2]+d_DPT[id*1264+1263]);
 			Ss(i-1,j-1,1,d_ps,d_numSeq,id,parameter,d_DPT);
-			d_DPT[id*1264+1260]=(d_DPT[id*1264+625+(i-2)*d_ps[id*64+51]+j-2]+d_DPT[id*1264+1263]);
+			d_DPT[id*1264+1260]=(d_DPT[id*1264+625+(i-2)*d_ps[id*81+51]+j-2]+d_DPT[id*1264+1263]);
 		}
 	}
 	else
@@ -927,13 +928,13 @@ __device__ void maxTM(int i,int j,int *d_ps,double *d_DPT,int id,char *d_numSeq,
 	}
 	if((d_DPT[id*1264+1258]>d_DPT[id*1264+1257])||(d_DPT[id*1264+1259]>0&&d_DPT[id*1264+1261]>0)) // T1 on suurem 
 	{
-		d_DPT[id*1264+625+(i-1)*d_ps[id*64+51]+j-1]=d_DPT[id*1264+1260];
-		d_DPT[id*1264+(i-1)*d_ps[id*64+51]+j-1]=d_DPT[id*1264+1262];
+		d_DPT[id*1264+625+(i-1)*d_ps[id*81+51]+j-1]=d_DPT[id*1264+1260];
+		d_DPT[id*1264+(i-1)*d_ps[id*81+51]+j-1]=d_DPT[id*1264+1262];
 	}
 	else if(d_DPT[id*1264+1257]>=d_DPT[id*1264+1258])
 	{
-		d_DPT[id*1264+625+(i-1)*d_ps[id*64+51]+j-1]=d_DPT[id*1264+1259];
-		d_DPT[id*1264+(i-1)*d_ps[id*64+51]+j-1]=d_DPT[id*1264+1261];
+		d_DPT[id*1264+625+(i-1)*d_ps[id*81+51]+j-1]=d_DPT[id*1264+1259];
+		d_DPT[id*1264+(i-1)*d_ps[id*81+51]+j-1]=d_DPT[id*1264+1261];
 	}
 }
 
@@ -941,20 +942,20 @@ __device__ void calc_bulge_internal(int i,int j,int ii,int jj,int traceback,int 
 {
 	d_DPT[id*1264+1259]=-3224.0;
 	d_DPT[id*1264+1260]=0;
-	d_ps[id*64+59]=ii-i-1;
-	d_ps[id*64+60]=jj-j-1;
-	d_ps[id*64+61]=d_ps[id*64+59]+d_ps[id*64+60]-1;
-	if((d_ps[id*64+59]==0&&d_ps[id*64+60]>0)||(d_ps[id*64+60]==0&&d_ps[id*64+59]>0))// only bulges have to be considered
+	d_ps[id*81+59]=ii-i-1;
+	d_ps[id*81+60]=jj-j-1;
+	d_ps[id*81+61]=d_ps[id*81+59]+d_ps[id*81+60]-1;
+	if((d_ps[id*81+59]==0&&d_ps[id*81+60]>0)||(d_ps[id*81+60]==0&&d_ps[id*81+59]>0))// only bulges have to be considered
 	{
-		if(d_ps[id*64+60]==1||d_ps[id*64+59]==1) // bulge loop of size one is treated differently the intervening nn-pair must be added
+		if(d_ps[id*81+60]==1||d_ps[id*81+59]==1) // bulge loop of size one is treated differently the intervening nn-pair must be added
 		{
-			if((d_ps[id*64+60]==1&&d_ps[id*64+59]==0)||(d_ps[id*64+60]==0&&d_ps[id*64+59]==1))
+			if((d_ps[id*81+60]==1&&d_ps[id*81+59]==0)||(d_ps[id*81+60]==0&&d_ps[id*81+59]==1))
 			{
-				d_DPT[id*1264+1260]=parameter[3150+d_ps[id*64+61]]+parameter[625+d_numSeq[id*54+i]*125+d_numSeq[id*54+ii]*25+d_numSeq[id*54+27+j]*5+d_numSeq[id*54+27+jj]];
-				d_DPT[id*1264+1259]=parameter[3060+d_ps[id*64+61]]+parameter[d_numSeq[id*54+i]*125+d_numSeq[id*54+ii]*25+d_numSeq[id*54+27+j]*5+d_numSeq[id*54+27+jj]];
+				d_DPT[id*1264+1260]=parameter[3150+d_ps[id*81+61]]+parameter[625+d_numSeq[id*54+i]*125+d_numSeq[id*54+ii]*25+d_numSeq[id*54+27+j]*5+d_numSeq[id*54+27+jj]];
+				d_DPT[id*1264+1259]=parameter[3060+d_ps[id*81+61]]+parameter[d_numSeq[id*54+i]*125+d_numSeq[id*54+ii]*25+d_numSeq[id*54+27+j]*5+d_numSeq[id*54+27+jj]];
 			}
-			d_DPT[id*1264+1260]+=d_DPT[id*1264+(i-1)*d_ps[id*64+51]+j-1];
-			d_DPT[id*1264+1259]+=d_DPT[id*1264+625+(i-1)*d_ps[id*64+51]+j-1];
+			d_DPT[id*1264+1260]+=d_DPT[id*1264+(i-1)*d_ps[id*81+51]+j-1];
+			d_DPT[id*1264+1259]+=d_DPT[id*1264+625+(i-1)*d_ps[id*81+51]+j-1];
 			if(fabs(d_DPT[id*1264+1260])>999999999)
 			{
 				d_DPT[id*1264+1260]=1.0*INFINITY;
@@ -962,7 +963,7 @@ __device__ void calc_bulge_internal(int i,int j,int ii,int jj,int traceback,int 
 			}
 
 			d_DPT[id*1264+1257]=(d_DPT[id*1264+1260]+200)/((d_DPT[id*1264+1259]-5.7)+d_DPT[id*1264+1252]);
-			d_DPT[id*1264+1258]=(d_DPT[id*1264+(ii-1)*d_ps[id*64+51]+jj-1]+200)/((d_DPT[id*1264+625+(ii-1)*d_ps[id*64+51]+jj-1])-5.7+d_DPT[id*1264+1252]);
+			d_DPT[id*1264+1258]=(d_DPT[id*1264+(ii-1)*d_ps[id*81+51]+jj-1]+200)/((d_DPT[id*1264+625+(ii-1)*d_ps[id*81+51]+jj-1])-5.7+d_DPT[id*1264+1252]);
 			if((d_DPT[id*1264+1257]>d_DPT[id*1264+1258])||((traceback&&d_DPT[id*1264+1257]>=d_DPT[id*1264+1258])||(traceback==1)))
 			{
 				d_DPT[id*1264+1255]=d_DPT[id*1264+1259];
@@ -971,18 +972,18 @@ __device__ void calc_bulge_internal(int i,int j,int ii,int jj,int traceback,int 
 		}
 		else // we have _not_ implemented Jacobson-Stockaymayer equation; the maximum bulgeloop size is 30
 		{
-			d_DPT[id*1264+1260]=parameter[3150+d_ps[id*64+61]]+parameter[5705+d_numSeq[id*54+i]*5+d_numSeq[id*54+27+j]]+parameter[5705+d_numSeq[id*54+ii]*5+d_numSeq[id*54+27+jj]];
-			d_DPT[id*1264+1260]+=d_DPT[id*1264+(i-1)*d_ps[id*64+51]+j-1];
+			d_DPT[id*1264+1260]=parameter[3150+d_ps[id*81+61]]+parameter[5705+d_numSeq[id*54+i]*5+d_numSeq[id*54+27+j]]+parameter[5705+d_numSeq[id*54+ii]*5+d_numSeq[id*54+27+jj]];
+			d_DPT[id*1264+1260]+=d_DPT[id*1264+(i-1)*d_ps[id*81+51]+j-1];
 
-			d_DPT[id*1264+1259]=parameter[3060+d_ps[id*64+61]]+parameter[5680+d_numSeq[id*54+i]*5+d_numSeq[id*54+27+j]]+parameter[5680+d_numSeq[id*54+ii]*5+d_numSeq[id*54+27+jj]];
-			d_DPT[id*1264+1259]+=d_DPT[id*1264+625+(i-1)*d_ps[id*64+51]+j-1];
+			d_DPT[id*1264+1259]=parameter[3060+d_ps[id*81+61]]+parameter[5680+d_numSeq[id*54+i]*5+d_numSeq[id*54+27+j]]+parameter[5680+d_numSeq[id*54+ii]*5+d_numSeq[id*54+27+jj]];
+			d_DPT[id*1264+1259]+=d_DPT[id*1264+625+(i-1)*d_ps[id*81+51]+j-1];
 			if(fabs(d_DPT[id*1264+1260])>999999999)
 			{
 				d_DPT[id*1264+1260]=1.0*INFINITY;
 				d_DPT[id*1264+1259]=-1.0;
 			}
 			d_DPT[id*1264+1257]=(d_DPT[id*1264+1260]+200)/((d_DPT[id*1264+1259]-5.7)+d_DPT[id*1264+1252]);
-			d_DPT[id*1264+1258]=(d_DPT[id*1264+(ii-1)*d_ps[id*64+51]+jj-1]+200)/(d_DPT[id*1264+625+(ii-1)*d_ps[id*64+51]+jj-1]-5.7+d_DPT[id*1264+1252]);
+			d_DPT[id*1264+1258]=(d_DPT[id*1264+(ii-1)*d_ps[id*81+51]+jj-1]+200)/(d_DPT[id*1264+625+(ii-1)*d_ps[id*81+51]+jj-1]-5.7+d_DPT[id*1264+1252]);
 			if((d_DPT[id*1264+1257]>d_DPT[id*1264+1258])||((traceback&&d_DPT[id*1264+1257]>=d_DPT[id*1264+1258])||(traceback==1)))
 			{
 				d_DPT[id*1264+1255]=d_DPT[id*1264+1259];
@@ -990,20 +991,20 @@ __device__ void calc_bulge_internal(int i,int j,int ii,int jj,int traceback,int 
 			}
 		}
 	}
-	else if(d_ps[id*64+59]==1&&d_ps[id*64+60]==1)
+	else if(d_ps[id*81+59]==1&&d_ps[id*81+60]==1)
 	{
 		d_DPT[id*1264+1259]=parameter[1250+d_numSeq[id*54+i]*125+d_numSeq[id*54+i+1]*25+d_numSeq[id*54+27+j]*5+d_numSeq[id*54+27+j+1]]+parameter[1250+d_numSeq[id*54+27+jj]*125+d_numSeq[id*54+27+jj-1]*25+d_numSeq[id*54+ii]*5+d_numSeq[id*54+ii-1]];
-		d_DPT[id*1264+1259]+=d_DPT[id*1264+625+(i-1)*d_ps[id*64+51]+j-1];
+		d_DPT[id*1264+1259]+=d_DPT[id*1264+625+(i-1)*d_ps[id*81+51]+j-1];
 
 		d_DPT[id*1264+1260]=parameter[1875+d_numSeq[id*54+i]*125+d_numSeq[id*54+i+1]*25+d_numSeq[id*54+27+j]*5+d_numSeq[id*54+27+j+1]]+parameter[1875+d_numSeq[id*54+27+jj]*125+d_numSeq[id*54+27+jj-1]*25+d_numSeq[id*54+ii]*5+d_numSeq[id*54+ii-1]];
-		d_DPT[id*1264+1260]+=d_DPT[id*1264+(i-1)*d_ps[id*64+51]+j-1];
+		d_DPT[id*1264+1260]+=d_DPT[id*1264+(i-1)*d_ps[id*81+51]+j-1];
 		if(fabs(d_DPT[id*1264+1260])>999999999)
 		{
 			d_DPT[id*1264+1260]=1.0*INFINITY;
 			d_DPT[id*1264+1259]=-1.0;
 		}
 		d_DPT[id*1264+1257]=(d_DPT[id*1264+1260]+200)/((d_DPT[id*1264+1259]-5.7)+d_DPT[id*1264+1252]);
-		d_DPT[id*1264+1258]=(d_DPT[id*1264+(ii-1)*d_ps[id*64+51]+jj-1]+200)/(d_DPT[id*1264+625+(ii-1)*d_ps[id*64+51]+jj-1]-5.7+d_DPT[id*1264+1252]);
+		d_DPT[id*1264+1258]=(d_DPT[id*1264+(ii-1)*d_ps[id*81+51]+jj-1]+200)/(d_DPT[id*1264+625+(ii-1)*d_ps[id*81+51]+jj-1]-5.7+d_DPT[id*1264+1252]);
 		if((d_DPT[id*1264+1257]-d_DPT[id*1264+1258]>=0.000001)||traceback==1)
 		{
 			if((d_DPT[id*1264+1257]>d_DPT[id*1264+1258])||(traceback&&d_DPT[id*1264+1257]>=d_DPT[id*1264+1258]))
@@ -1016,18 +1017,18 @@ __device__ void calc_bulge_internal(int i,int j,int ii,int jj,int traceback,int 
 	}
 	else // only internal loops
 	{
-		d_DPT[id*1264+1260]=parameter[3120+d_ps[id*64+61]]+parameter[3805+d_numSeq[id*54+i]*125+d_numSeq[id*54+i+1]*25+d_numSeq[id*54+27+j]*5+d_numSeq[id*54+27+j+1]]+parameter[3805+d_numSeq[id*54+27+jj]*125+d_numSeq[id*54+27+jj-1]*25+d_numSeq[id*54+ii]*5+d_numSeq[id*54+ii-1]];
-		d_DPT[id*1264+1260]+=d_DPT[id*1264+(i-1)*d_ps[id*64+51]+j-1];
+		d_DPT[id*1264+1260]=parameter[3120+d_ps[id*81+61]]+parameter[3805+d_numSeq[id*54+i]*125+d_numSeq[id*54+i+1]*25+d_numSeq[id*54+27+j]*5+d_numSeq[id*54+27+j+1]]+parameter[3805+d_numSeq[id*54+27+jj]*125+d_numSeq[id*54+27+jj-1]*25+d_numSeq[id*54+ii]*5+d_numSeq[id*54+ii-1]];
+		d_DPT[id*1264+1260]+=d_DPT[id*1264+(i-1)*d_ps[id*81+51]+j-1];
 
-		d_DPT[id*1264+1259]=parameter[3030+d_ps[id*64+61]]+parameter[3180+d_numSeq[id*54+i]*125+d_numSeq[id*54+i+1]*25+d_numSeq[id*54+27+j]*5+d_numSeq[id*54+27+j+1]]+parameter[3180+d_numSeq[id*54+27+jj]*125+d_numSeq[id*54+27+jj-1]*25+d_numSeq[id*54+ii]*5+d_numSeq[id*54+ii-1]]+(-300/310.15*abs(d_ps[id*64+59]-d_ps[id*64+60]));
-		d_DPT[id*1264+1259]+=d_DPT[id*1264+625+(i-1)*d_ps[id*64+51]+j-1];
+		d_DPT[id*1264+1259]=parameter[3030+d_ps[id*81+61]]+parameter[3180+d_numSeq[id*54+i]*125+d_numSeq[id*54+i+1]*25+d_numSeq[id*54+27+j]*5+d_numSeq[id*54+27+j+1]]+parameter[3180+d_numSeq[id*54+27+jj]*125+d_numSeq[id*54+27+jj-1]*25+d_numSeq[id*54+ii]*5+d_numSeq[id*54+ii-1]]+(-300/310.15*abs(d_ps[id*81+59]-d_ps[id*81+60]));
+		d_DPT[id*1264+1259]+=d_DPT[id*1264+625+(i-1)*d_ps[id*81+51]+j-1];
 		if(fabs(d_DPT[id*1264+1260])>999999999)
 		{
 			d_DPT[id*1264+1260]=1.0*INFINITY;
 			d_DPT[id*1264+1259]=-1.0;
 		}
 		d_DPT[id*1264+1257]=(d_DPT[id*1264+1260]+200)/((d_DPT[id*1264+1259]-5.7)+d_DPT[id*1264+1252]);
-		d_DPT[id*1264+1258]=(d_DPT[id*1264+(ii-1)*d_ps[id*64+51]+jj-1]+200)/((d_DPT[id*1264+625+(ii-1)*d_ps[id*64+51]+jj-1])-5.7+d_DPT[id*1264+1252]);
+		d_DPT[id*1264+1258]=(d_DPT[id*1264+(ii-1)*d_ps[id*81+51]+jj-1]+200)/((d_DPT[id*1264+625+(ii-1)*d_ps[id*81+51]+jj-1])-5.7+d_DPT[id*1264+1252]);
 		if((d_DPT[id*1264+1257]>d_DPT[id*1264+1258])||((traceback&&d_DPT[id*1264+1257]>=d_DPT[id*1264+1258])||(traceback==1)))
 		{
 			d_DPT[id*1264+1255]=d_DPT[id*1264+1259];
@@ -1039,42 +1040,41 @@ __device__ void calc_bulge_internal(int i,int j,int ii,int jj,int traceback,int 
 
 __device__ void fillMatrix(int *d_ps,double *d_DPT,int id,char *d_numSeq)
 {
-	int i;
-
-	for(i=1;i<=d_ps[id*64+50];i++)
+	for(d_ps[id*81+57]=1;d_ps[id*81+57]<=d_ps[id*81+50];d_ps[id*81+57]++)
 	{
-		for(d_ps[id*64+58]=1;d_ps[id*64+58]<=d_ps[id*64+51];d_ps[id*64+58]++)
+		for(d_ps[id*81+58]=1;d_ps[id*81+58]<=d_ps[id*81+51];d_ps[id*81+58]++)
 		{
-			if(fabs(d_DPT[id*1264+(i-1)*d_ps[id*64+51]+d_ps[id*64+58]-1])<999999999)
+			if(fabs(d_DPT[id*1264+(d_ps[id*81+57]-1)*d_ps[id*81+51]+d_ps[id*81+58]-1])<999999999)
 			{
 				d_DPT[id*1264+1255]=-1.0;
 				d_DPT[id*1264+1256]=1.0*INFINITY;
-				LSH(i,d_ps[id*64+58],d_ps,d_DPT,id,d_numSeq,parameter);
+				LSH(d_ps[id*81+57],d_ps[id*81+58],d_ps,d_DPT,id,d_numSeq,parameter);
 
 				if(fabs(d_DPT[id*1264+1256])<999999999)
 				{
-					d_DPT[id*1264+625+(i-1)*d_ps[id*64+51]+d_ps[id*64+58]-1]=d_DPT[id*1264+1255];
-					d_DPT[id*1264+(i-1)*d_ps[id*64+51]+d_ps[id*64+58]-1]=d_DPT[id*1264+1256];
+					d_DPT[id*1264+625+(d_ps[id*81+57]-1)*d_ps[id*81+51]+d_ps[id*81+58]-1]=d_DPT[id*1264+1255];
+					d_DPT[id*1264+(d_ps[id*81+57]-1)*d_ps[id*81+51]+d_ps[id*81+58]-1]=d_DPT[id*1264+1256];
 				}
-				if(i>1&&d_ps[id*64+58]>1)
+				if(d_ps[id*81+57]>1&&d_ps[id*81+58]>1)
 				{
-					maxTM(i,d_ps[id*64+58],d_ps,d_DPT,id,d_numSeq,parameter);
-					for(d_ps[id*64+54]=3;d_ps[id*64+54]<=32;d_ps[id*64+54]++)
+					maxTM(d_ps[id*81+57],d_ps[id*81+58],d_ps,d_DPT,id,d_numSeq,parameter);
+					for(d_ps[id*81+54]=3;d_ps[id*81+54]<=32;d_ps[id*81+54]++)
 					{
-						d_ps[id*64+55]=i-1;
-						d_ps[id*64+56]=0-d_ps[id*64+55]-d_ps[id*64+54]+d_ps[id*64+58]+i;
-						if(d_ps[id*64+56]<1)
+						d_ps[id*81+56]=1-d_ps[id*81+54]+d_ps[id*81+58];
+						if(d_ps[id*81+56]<1)
 						{
-							d_ps[id*64+55]-=abs(d_ps[id*64+56]-1);
-							d_ps[id*64+56]=1;
+							d_ps[id*81+55]=d_ps[id*81+57]-1+d_ps[id*81+56]-1;
+							d_ps[id*81+56]=1;
 						}
-						for(;d_ps[id*64+55]>0&&d_ps[id*64+56]<d_ps[id*64+58];d_ps[id*64+55]--,d_ps[id*64+56]++)
+						else
+							d_ps[id*81+55]=d_ps[id*81+57]-1;
+						for(;d_ps[id*81+55]>0&&d_ps[id*81+56]<d_ps[id*81+58];d_ps[id*81+55]--,d_ps[id*81+56]++)
 						{
-							if(fabs(d_DPT[id*1264+(d_ps[id*64+55]-1)*d_ps[id*64+51]+d_ps[id*64+56]-1])<999999999)
+							if(fabs(d_DPT[id*1264+(d_ps[id*81+55]-1)*d_ps[id*81+51]+d_ps[id*81+56]-1])<999999999)
 							{
 								d_DPT[id*1264+1255]=-1.0;
 								d_DPT[id*1264+1256]=1.0*INFINITY;
-								calc_bulge_internal(d_ps[id*64+55],d_ps[id*64+56],i,d_ps[id*64+58],0,d_ps,d_DPT,id,d_numSeq,parameter);
+								calc_bulge_internal(d_ps[id*81+55],d_ps[id*81+56],d_ps[id*81+57],d_ps[id*81+58],0,d_ps,d_DPT,id,d_numSeq,parameter);
 
 								if(d_DPT[id*1264+1255]<-2500.0)
 								{
@@ -1083,8 +1083,8 @@ __device__ void fillMatrix(int *d_ps,double *d_DPT,int id,char *d_numSeq)
 								}
 								if(fabs(d_DPT[id*1264+1256])<999999999)
 								{
-									d_DPT[id*1264+(i-1)*d_ps[id*64+51]+d_ps[id*64+58]-1]=d_DPT[id*1264+1256];
-									d_DPT[id*1264+625+(i-1)*d_ps[id*64+51]+d_ps[id*64+58]-1]=d_DPT[id*1264+1255];
+									d_DPT[id*1264+(d_ps[id*81+57]-1)*d_ps[id*81+51]+d_ps[id*81+58]-1]=d_DPT[id*1264+1256];
+									d_DPT[id*1264+625+(d_ps[id*81+57]-1)*d_ps[id*81+51]+d_ps[id*81+58]-1]=d_DPT[id*1264+1255];
 								}
 							}
 						}
@@ -1219,60 +1219,60 @@ __device__ void RSH(int i,int j,double *d_DPT,char *d_numSeq,int id)
 
 __device__ void traceback(int i,int j,int *d_ps,double *d_DPT,int id,char *d_numSeq)
 {
-	d_ps[id*64+i-1]=j;
-	d_ps[id*64+25+j-1]=i;
+	d_ps[id*81+i-1]=j;
+	d_ps[id*81+25+j-1]=i;
 	while(1)
 	{
 		d_DPT[id*1264+1255]=-1.0;
 		d_DPT[id*1264+1256]=1.0*INFINITY;
 		LSH(i,j,d_ps,d_DPT,id,d_numSeq,parameter);
-		equal(d_DPT[id*1264+625+(i-1)*d_ps[id*64+51]+j-1],d_DPT[id*1264+1255],d_ps,id);
-		if(d_ps[id*64+62]==1)
+		equal(d_DPT[id*1264+625+(i-1)*d_ps[id*81+51]+j-1],d_DPT[id*1264+1255],d_ps,id);
+		if(d_ps[id*81+62]==1)
 		{
-			equal(d_DPT[id*1264+(i-1)*d_ps[id*64+51]+j-1],d_DPT[id*1264+1256],d_ps,id);
-			if(d_ps[id*64+62]==1)
+			equal(d_DPT[id*1264+(i-1)*d_ps[id*81+51]+j-1],d_DPT[id*1264+1256],d_ps,id);
+			if(d_ps[id*81+62]==1)
 				break;
 		}
 
-		d_ps[id*64+57]=0;
+		d_ps[id*81+57]=0;
 		if(i>1&&j>1)
 		{
 			Ss(i-1,j-1,1,d_ps,d_numSeq,id,parameter,d_DPT);
-			equal(d_DPT[id*1264+625+(i-1)*d_ps[id*64+51]+j-1],d_DPT[id*1264+1263]+d_DPT[id*1264+625+(i-2)*d_ps[id*64+51]+j-2],d_ps,id);
-			if(d_ps[id*64+62]==1)
+			equal(d_DPT[id*1264+625+(i-1)*d_ps[id*81+51]+j-1],d_DPT[id*1264+1263]+d_DPT[id*1264+625+(i-2)*d_ps[id*81+51]+j-2],d_ps,id);
+			if(d_ps[id*81+62]==1)
 			{
 				i=i-1;
 				j=j-1;
-				d_ps[id*64+i-1]=j;
-				d_ps[id*64+25+j-1]=i;
-				d_ps[id*64+57]=1;
+				d_ps[id*81+i-1]=j;
+				d_ps[id*81+25+j-1]=i;
+				d_ps[id*81+57]=1;
 			}
 		}
-		for(d_ps[id*64+54]=3;!d_ps[id*64+57]&&d_ps[id*64+54]<=32;++d_ps[id*64+54])
+		for(d_ps[id*81+54]=3;!d_ps[id*81+57]&&d_ps[id*81+54]<=32;++d_ps[id*81+54])
 		{
-			d_ps[id*64+55]=i-1;
-			d_ps[id*64+56]=-d_ps[id*64+55]-d_ps[id*64+54]+(j+i);
-			if(d_ps[id*64+56]<1)
+			d_ps[id*81+55]=i-1;
+			d_ps[id*81+56]=-d_ps[id*81+55]-d_ps[id*81+54]+(j+i);
+			if(d_ps[id*81+56]<1)
 			{
-				d_ps[id*64+55]-=abs(d_ps[id*64+56]-1);
-				d_ps[id*64+56]=1;
+				d_ps[id*81+55]-=abs(d_ps[id*81+56]-1);
+				d_ps[id*81+56]=1;
 			}
-			for(;!d_ps[id*64+57]&&d_ps[id*64+55]>0&&d_ps[id*64+56]<j;--d_ps[id*64+55],++d_ps[id*64+56])
+			for(;!d_ps[id*81+57]&&d_ps[id*81+55]>0&&d_ps[id*81+56]<j;--d_ps[id*81+55],++d_ps[id*81+56])
 			{
 				d_DPT[id*1264+1255]=-1.0;
 				d_DPT[id*1264+1256]=1.0*INFINITY;
-				calc_bulge_internal(d_ps[id*64+55],d_ps[id*64+56],i,j,1,d_ps,d_DPT,id,d_numSeq,parameter);
-				equal(d_DPT[id*1264+625+(i-1)*d_ps[id*64+51]+j-1],d_DPT[id*1264+1255],d_ps,id);
-				if(d_ps[id*64+62]==1)
+				calc_bulge_internal(d_ps[id*81+55],d_ps[id*81+56],i,j,1,d_ps,d_DPT,id,d_numSeq,parameter);
+				equal(d_DPT[id*1264+625+(i-1)*d_ps[id*81+51]+j-1],d_DPT[id*1264+1255],d_ps,id);
+				if(d_ps[id*81+62]==1)
 				{
-					equal(d_DPT[id*1264+(i-1)*d_ps[id*64+51]+j-1],d_DPT[id*1264+1256],d_ps,id);
-					if(d_ps[id*64+62]==1)
+					equal(d_DPT[id*1264+(i-1)*d_ps[id*81+51]+j-1],d_DPT[id*1264+1256],d_ps,id);
+					if(d_ps[id*81+62]==1)
 					{
-						i=d_ps[id*64+55];
-						j=d_ps[id*64+56];
-						d_ps[id*64+i-1]=j;
-						d_ps[id*64+25+j-1]=i;
-						d_ps[id*64+57]=1;
+						i=d_ps[id*81+55];
+						j=d_ps[id*81+56];
+						d_ps[id*81+i-1]=j;
+						d_ps[id*81+25+j-1]=i;
+						d_ps[id*81+57]=1;
 						break;
 					}
 				}
@@ -1287,43 +1287,43 @@ __device__ void drawDimer(int *d_ps,int id,double H,double S,double *d_DPT)
                 d_DPT[id*1264+1263]=0.0;
         else
         {
-                d_ps[id*64+55]=0;
-                for(d_ps[id*64+54]=0;d_ps[id*64+54]<d_ps[id*64+50];d_ps[id*64+54]++)
+                d_ps[id*81+55]=0;
+                for(d_ps[id*81+54]=0;d_ps[id*81+54]<d_ps[id*81+50];d_ps[id*81+54]++)
                 {
-                        if(d_ps[id*64+d_ps[id*64+54]]>0)
-                                ++d_ps[id*64+55];
+                        if(d_ps[id*81+d_ps[id*81+54]]>0)
+                                ++d_ps[id*81+55];
                 }
-                for(d_ps[id*64+54]=0;d_ps[id*64+54]<d_ps[id*64+51];d_ps[id*64+54]++)
+                for(d_ps[id*81+54]=0;d_ps[id*81+54]<d_ps[id*81+51];d_ps[id*81+54]++)
                 {
-                        if(d_ps[id*64+25+d_ps[id*64+54]]>0)
-                                ++d_ps[id*64+55];
+                        if(d_ps[id*81+25+d_ps[id*81+54]]>0)
+                                ++d_ps[id*81+55];
                 }
-                d_ps[id*64+55]=(d_ps[id*64+55]/2)-1;
-                d_DPT[id*1264+1263]=(H/(S+(d_ps[id*64+55]*-0.51986)+d_DPT[id*1264+1252])-273.15);
+                d_ps[id*81+55]=(d_ps[id*81+55]/2)-1;
+                d_DPT[id*1264+1263]=(H/(S+(d_ps[id*81+55]*-0.51986)+d_DPT[id*1264+1252])-273.15);
         }
 }
 
 __device__ void symmetry_thermo(char *d_seq,int start,int length,int *d_ps,int id)
 {
-	d_ps[id*64+54]=0;
+	d_ps[id*81+54]=0;
 	if(length%2==1)
-		d_ps[id*64+62]=0;
+		d_ps[id*81+62]=0;
 	else
 	{
-		d_ps[id*64+62]=1;
-		while(d_ps[id*64+54]<length/2)
+		d_ps[id*81+62]=1;
+		while(d_ps[id*81+54]<length/2)
 		{
-			if((d_seq[d_ps[id*64+54]+start]=='A'&&d_seq[start+length-1-d_ps[id*64+54]]!='T')||(d_seq[d_ps[id*64+54]+start]=='T'&&d_seq[start+length-1-d_ps[id*64+54]]!='A')||(d_seq[start+length-1-d_ps[id*64+54]]=='A'&&d_seq[d_ps[id*64+54]+start]!='T')||(d_seq[start+length-1-d_ps[id*64+54]]=='T'&&d_seq[d_ps[id*64+54]+start]!='A'))
+			if((d_seq[d_ps[id*81+54]+start]=='A'&&d_seq[start+length-1-d_ps[id*81+54]]!='T')||(d_seq[d_ps[id*81+54]+start]=='T'&&d_seq[start+length-1-d_ps[id*81+54]]!='A')||(d_seq[start+length-1-d_ps[id*81+54]]=='A'&&d_seq[d_ps[id*81+54]+start]!='T')||(d_seq[start+length-1-d_ps[id*81+54]]=='T'&&d_seq[d_ps[id*81+54]+start]!='A'))
 			{
-				d_ps[id*64+62]=0;
+				d_ps[id*81+62]=0;
 				break;
 			}
-			if((d_seq[d_ps[id*64+54]+start]=='C'&&d_seq[start+length-1-d_ps[id*64+54]]!='G')||(d_seq[d_ps[id*64+54]+start]=='G'&&d_seq[start+length-1-d_ps[id*64+54]]!='C')||(d_seq[start+length-1-d_ps[id*64+54]]=='C'&&d_seq[d_ps[id*64+54]+start]!='G')||(d_seq[start+length-1-d_ps[id*64+54]]=='G'&&d_seq[d_ps[id*64+54]+start]!='C'))
+			if((d_seq[d_ps[id*81+54]+start]=='C'&&d_seq[start+length-1-d_ps[id*81+54]]!='G')||(d_seq[d_ps[id*81+54]+start]=='G'&&d_seq[start+length-1-d_ps[id*81+54]]!='C')||(d_seq[start+length-1-d_ps[id*81+54]]=='C'&&d_seq[d_ps[id*81+54]+start]!='G')||(d_seq[start+length-1-d_ps[id*81+54]]=='G'&&d_seq[d_ps[id*81+54]+start]!='C'))
 			{
-				d_ps[id*64+62]=0;
+				d_ps[id*81+62]=0;
 				break;
 			}
-			d_ps[id*64+54]++;
+			d_ps[id*81+54]++;
 		}
 	}
 }
@@ -1334,12 +1334,12 @@ __device__ void thal(char *d_seq,int *d_primer,int one_turn,int two_turn,int one
 
 /*** INIT values for unimolecular and bimolecular structures ***/
 	symmetry_thermo(d_seq,d_primer[one_turn*10],d_primer[one_turn*10+1],d_ps,id);
-	if(d_ps[id*64+62]==0)
+	if(d_ps[id*81+62]==0)
 		d_DPT[id*1264+1252]=1.9872* log(38/4000000000.0);
 	else
 	{
 		symmetry_thermo(d_seq,d_primer[two_turn*10],d_primer[two_turn*10+1],d_ps,id);
-		if(d_ps[id*64+62]==1)
+		if(d_ps[id*81+62]==1)
 			d_DPT[id*1264+1252]=1.9872* log(38/1000000000.0);
 		else
 			d_DPT[id*1264+1252]=1.9872* log(38/4000000000.0);
@@ -1347,112 +1347,112 @@ __device__ void thal(char *d_seq,int *d_primer,int one_turn,int two_turn,int one
 /* convert nucleotides to numbers */
 	if(type==1 || type==2)
 	{
-		d_ps[id*64+50]=d_primer[one_turn*10+1];
-		d_ps[id*64+51]=d_primer[two_turn*10+1];
+		d_ps[id*81+50]=d_primer[one_turn*10+1];
+		d_ps[id*81+51]=d_primer[two_turn*10+1];
 		if(one_flag==0) //plus
 		{
-	 		for(i=1;i<=d_ps[id*64+50];++i)
+	 		for(i=1;i<=d_ps[id*81+50];++i)
 				str2int(d_seq[d_primer[one_turn*10]+i-1],d_numSeq,(id*54+i));
 		}
 		else
 		{
-			for(i=1;i<=d_ps[id*64+50];++i)
+			for(i=1;i<=d_ps[id*81+50];++i)
 				str2int_rev(d_seq[d_primer[one_turn*10]+d_primer[one_turn*10+1]-i],d_numSeq,(id*54+i));
 		}
 
 		if(two_flag==0)
 		{
-			for(i=1;i<=d_ps[id*64+51];++i)
+			for(i=1;i<=d_ps[id*81+51];++i)
 				str2int(d_seq[d_primer[two_turn*10]+d_primer[two_turn*10+1]-i],d_numSeq,(id*54+27+i));
 		}
 		else
 		{
-			for(i=1;i<=d_ps[id*64+51];++i)
+			for(i=1;i<=d_ps[id*81+51];++i)
 				str2int_rev(d_seq[d_primer[two_turn*10]+i-1],d_numSeq,(id*54+27+i));
 		}
 	}
 	else if(type==3)
 	{
-		d_ps[id*64+50]=d_primer[two_turn*10+1];
-		d_ps[id*64+51]=d_primer[one_turn*10+1];
+		d_ps[id*81+50]=d_primer[two_turn*10+1];
+		d_ps[id*81+51]=d_primer[one_turn*10+1];
 		if(two_flag==0)
 		{
-			for(i=1;i<=d_ps[id*64+50];++i)
+			for(i=1;i<=d_ps[id*81+50];++i)
 				str2int(d_seq[d_primer[two_turn*10]+i-1],d_numSeq,(id*54+i));
 		}
 		else
 		{
-			for(i=1;i<=d_ps[id*64+50];++i)
+			for(i=1;i<=d_ps[id*81+50];++i)
 				str2int_rev(d_seq[d_primer[two_turn*10]+d_primer[two_turn*10+1]-i],d_numSeq,(id*54+i));
 		}
 		if(one_flag==0)
 		{
-			for(i=1;i<=d_ps[id*64+51];++i)
+			for(i=1;i<=d_ps[id*81+51];++i)
 				str2int(d_seq[d_primer[one_turn*10]+d_primer[one_turn*10+1]-i],d_numSeq,(id*54+27+i));
 		}
 		else
 		{
-			for(i=1;i<=d_ps[id*64+51];++i)
+			for(i=1;i<=d_ps[id*81+51];++i)
 				str2int_rev(d_seq[d_primer[one_turn*10]+i-1],d_numSeq,(id*54+27+i));
 		}
 	}
-	d_numSeq[id*54+0]=d_numSeq[id*54+d_ps[id*64+50]+1]=d_numSeq[id*54+27+0]=d_numSeq[id*54+27+d_ps[id*64+51]+1]=4; /* mark as N-s */
+	d_numSeq[id*54+0]=d_numSeq[id*54+d_ps[id*81+50]+1]=d_numSeq[id*54+27+0]=d_numSeq[id*54+27+d_ps[id*81+51]+1]=4; /* mark as N-s */
 
 	initMatrix(d_ps,d_DPT,id,d_numSeq);
 	fillMatrix(d_ps,d_DPT,id,d_numSeq);
 
 	d_DPT[id*1264+1253]=-1.0*INFINITY;
 /* calculate terminal basepairs */
-	d_ps[id*64+52]=d_ps[id*64+53]=0;
+	d_ps[id*81+52]=d_ps[id*81+53]=0;
 	if(type==1)
-		for (i=1;i<=d_ps[id*64+50];i++)
+		for (i=1;i<=d_ps[id*81+50];i++)
 		{
-			for (j=1;j<=d_ps[id*64+51];j++)
+			for (j=1;j<=d_ps[id*81+51];j++)
 			{
 				RSH(i,j,d_DPT,d_numSeq,id);
 				d_DPT[id*1264+1250]=d_DPT[id*1264+1250]+0.000001; /* this adding is done for compiler, optimization -O2 vs -O0 */
 				d_DPT[id*1264+1251]=d_DPT[id*1264+1251]+0.000001;
-				d_DPT[id*1264+1254]=((d_DPT[id*1264+(i-1)*d_ps[id*64+51]+j-1]+d_DPT[id*1264+1251]+200)/((d_DPT[id*1264+625+(i-1)*d_ps[id*64+51]+j-1])+d_DPT[id*1264+1250]-5.7+d_DPT[id*1264+1252]))-273.15;
-				if(d_DPT[id*1264+1254]>d_DPT[id*1264+1253]&&((d_DPT[id*1264+625+(i-1)*d_ps[id*64+51]+j-1]+d_DPT[id*1264+1250])<0&&(d_DPT[id*1264+1251]+d_DPT[id*1264+(i-1)*d_ps[id*64+51]+j-1])<0))
+				d_DPT[id*1264+1254]=((d_DPT[id*1264+(i-1)*d_ps[id*81+51]+j-1]+d_DPT[id*1264+1251]+200)/((d_DPT[id*1264+625+(i-1)*d_ps[id*81+51]+j-1])+d_DPT[id*1264+1250]-5.7+d_DPT[id*1264+1252]))-273.15;
+				if(d_DPT[id*1264+1254]>d_DPT[id*1264+1253]&&((d_DPT[id*1264+625+(i-1)*d_ps[id*81+51]+j-1]+d_DPT[id*1264+1250])<0&&(d_DPT[id*1264+1251]+d_DPT[id*1264+(i-1)*d_ps[id*81+51]+j-1])<0))
 				{
 					d_DPT[id*1264+1253]=d_DPT[id*1264+1254];
-					d_ps[id*64+52]=i;
-					d_ps[id*64+53]=j;
+					d_ps[id*81+52]=i;
+					d_ps[id*81+53]=j;
 				}
 			}
 		}
 	if(type==2||type==3)
 	{
 	 //THAL_END1
-		d_ps[id*64+53]=0;
-		d_ps[id*64+52]=d_ps[id*64+50];
-		i=d_ps[id*64+50];
+		d_ps[id*81+53]=0;
+		d_ps[id*81+52]=d_ps[id*81+50];
+		i=d_ps[id*81+50];
 		d_DPT[id*1264+1253]=-1.0*INFINITY;
-		for (j=1;j<=d_ps[id*64+51];++j)
+		for (j=1;j<=d_ps[id*81+51];++j)
 		{
 			RSH(i,j,d_DPT,d_numSeq,id);
 			d_DPT[id*1264+1250]=d_DPT[id*1264+1250]+0.000001; // this adding is done for compiler, optimization -O2 vs -O0,that compiler could understand that SH is changed in this cycle 
 			d_DPT[id*1264+1251]=d_DPT[id*1264+1251]+0.000001;
-			d_DPT[id*1264+1254]=((d_DPT[id*1264+(i-1)*d_ps[id*64+51]+j-1]+d_DPT[id*1264+1251]+200)/((d_DPT[id*1264+625+(i-1)*d_ps[id*64+51]+j-1])+d_DPT[id*1264+1250]-5.7+d_DPT[id*1264+1252]))-273.15;
-			if (d_DPT[id*1264+1254]>d_DPT[id*1264+1253]&&((d_DPT[id*1264+1250]+d_DPT[id*1264+625+(i-1)*d_ps[id*64+51]+j-1])<0&&(d_DPT[id*1264+1251]+d_DPT[id*1264+(i-1)*d_ps[id*64+51]+j-1])<0))
+			d_DPT[id*1264+1254]=((d_DPT[id*1264+(i-1)*d_ps[id*81+51]+j-1]+d_DPT[id*1264+1251]+200)/((d_DPT[id*1264+625+(i-1)*d_ps[id*81+51]+j-1])+d_DPT[id*1264+1250]-5.7+d_DPT[id*1264+1252]))-273.15;
+			if (d_DPT[id*1264+1254]>d_DPT[id*1264+1253]&&((d_DPT[id*1264+1250]+d_DPT[id*1264+625+(i-1)*d_ps[id*81+51]+j-1])<0&&(d_DPT[id*1264+1251]+d_DPT[id*1264+(i-1)*d_ps[id*81+51]+j-1])<0))
 			{
 				d_DPT[id*1264+1253]=d_DPT[id*1264+1254];
-				d_ps[id*64+53]=j;
+				d_ps[id*81+53]=j;
 			}
 		}
 	}
 	if(fabs(d_DPT[id*1264+1253])>999999999)
-		d_ps[id*64+52]=d_ps[id*64+53]=1;
-	RSH(d_ps[id*64+52],d_ps[id*64+53],d_DPT,d_numSeq,id);
+		d_ps[id*81+52]=d_ps[id*81+53]=1;
+	RSH(d_ps[id*81+52],d_ps[id*81+53],d_DPT,d_numSeq,id);
  // tracebacking 
-	for (i=0;i<d_ps[id*64+50];++i)
-		d_ps[id*64+i]=0;
-	for (j=0;j<d_ps[id*64+51];++j)
-		d_ps[id*64+25+j] = 0;
-	if(fabs(d_DPT[id*1264+(d_ps[id*64+52]-1)*d_ps[id*64+51]+d_ps[id*64+53]-1])<999999999)
+	for (i=0;i<d_ps[id*81+50];++i)
+		d_ps[id*81+i]=0;
+	for (j=0;j<d_ps[id*81+51];++j)
+		d_ps[id*81+25+j] = 0;
+	if(fabs(d_DPT[id*1264+(d_ps[id*81+52]-1)*d_ps[id*81+51]+d_ps[id*81+53]-1])<999999999)
 	{
-		traceback(d_ps[id*64+52],d_ps[id*64+53],d_ps,d_DPT,id,d_numSeq);
-		drawDimer(d_ps,id,(d_DPT[id*1264+(d_ps[id*64+52]-1)*d_ps[id*64+51]+d_ps[id*64+53]-1]+d_DPT[id*1264+1251]+200),(d_DPT[id*1264+625+(d_ps[id*64+52]-1)*d_ps[id*64+51]+d_ps[id*64+53]-1]+d_DPT[id*1264+1250]-5.7),d_DPT);
+		traceback(d_ps[id*81+52],d_ps[id*81+53],d_ps,d_DPT,id,d_numSeq);
+		drawDimer(d_ps,id,(d_DPT[id*1264+(d_ps[id*81+52]-1)*d_ps[id*81+51]+d_ps[id*81+53]-1]+d_DPT[id*1264+1251]+200),(d_DPT[id*1264+625+(d_ps[id*81+52]-1)*d_ps[id*81+51]+d_ps[id*81+53]-1]+d_DPT[id*1264+1250]-5.7),d_DPT);
 		d_DPT[id*1264+1263]=(int)(100*d_DPT[id*1264+1263]+0.5)/100.0;
 	}
 	else
@@ -1527,54 +1527,50 @@ void generate_primer(char *seq,char primer[],int start,int length,int flag)
 	primer[length]='\0';
 }
 
-__device__ void check_structure(char *d_seq,int *d_primer,int turn[],int ID_thread,int id,double *d_DPT,int *d_ps,char *d_numSeq,double *d_out,int sub[])
+__device__ void check_structure(char *d_seq,int *d_primer,int turn[],int ID_thread,int id,double *d_DPT,int *d_ps,char *d_numSeq)
 {
-	for(sub[ID_thread*10]=0;sub[ID_thread*10]<7;sub[ID_thread*10]++)
+	for(d_ps[id*81+64]=0;d_ps[id*81+64]<7;d_ps[id*81+64]++)
 	{
-		for(sub[ID_thread*10+1]=sub[ID_thread*10]+1;sub[ID_thread*10+1]<8;sub[ID_thread*10+1]++)
+		for(d_ps[id*81+65]=d_ps[id*81+64]+1;d_ps[id*81+65]<8;d_ps[id*81+65]++)
 		{
-			if((sub[ID_thread*10]==2||sub[ID_thread*10]==5||sub[ID_thread*10+1]==2||sub[ID_thread*10+1]==5)&&(turn[ID_thread*8+2]==-1&&turn[ID_thread*8+5]==-1))
+			if((d_ps[id*81+64]==2||d_ps[id*81+64]==5||d_ps[id*81+65]==2||d_ps[id*81+65]==5)&&(turn[ID_thread*8+2]==-1&&turn[ID_thread*8+5]==-1))
 				continue;  //without-loop
-			if(turn[ID_thread*8+sub[ID_thread*10]]==-1||turn[ID_thread*8+sub[ID_thread*10+1]]==-1)
+			if(turn[ID_thread*8+d_ps[id*81+64]]==-1||turn[ID_thread*8+d_ps[id*81+65]]==-1)
 				continue; //when loop, don't have loop
-		if(sub[ID_thread*10]!=3||sub[ID_thread*10+1]!=4)
-			continue;
-			thal(d_seq,d_primer,turn[ID_thread*8+sub[ID_thread*10]],turn[ID_thread*8+sub[ID_thread*10+1]],const_int[11+sub[ID_thread*10]],const_int[11+sub[ID_thread*10+1]],1,d_DPT,id,d_ps,d_numSeq);
+			thal(d_seq,d_primer,turn[ID_thread*8+d_ps[id*81+64]],turn[ID_thread*8+d_ps[id*81+65]],const_int[11+d_ps[id*81+64]],const_int[11+d_ps[id*81+65]],1,d_DPT,id,d_ps,d_numSeq);
 			if(d_DPT[id*1264+1263]>44+5*const_int[9])
 			{
-				sub[ID_thread*10+2]=0;
+				d_ps[id*81+66]=0;
                                 return;
 			}
-		d_out[2*id]=d_DPT[id*1264+1263];
-			thal(d_seq,d_primer,turn[ID_thread*8+sub[ID_thread*10]],turn[ID_thread*8+sub[ID_thread*10+1]],const_int[11+sub[ID_thread*10]],const_int[11+sub[ID_thread*10+1]],2,d_DPT,id,d_ps,d_numSeq);
+			thal(d_seq,d_primer,turn[ID_thread*8+d_ps[id*81+64]],turn[ID_thread*8+d_ps[id*81+65]],const_int[11+d_ps[id*81+64]],const_int[11+d_ps[id*81+65]],2,d_DPT,id,d_ps,d_numSeq);
                         if(d_DPT[id*1264+1263]>44+5*const_int[9])
 			{
-				sub[ID_thread*10+2]=0;
+				d_ps[id*81+66]=0;
                                 return;
 			}
-		d_out[2*id+1]=d_DPT[id*1264+1263];
-			thal(d_seq,d_primer,turn[ID_thread*8+sub[ID_thread*10]],turn[ID_thread*8+sub[ID_thread*10+1]],const_int[11+sub[ID_thread*10]],const_int[11+sub[ID_thread*10+1]],3,d_DPT,id,d_ps,d_numSeq);
+			thal(d_seq,d_primer,turn[ID_thread*8+d_ps[id*81+64]],turn[ID_thread*8+d_ps[id*81+65]],const_int[11+d_ps[id*81+64]],const_int[11+d_ps[id*81+65]],3,d_DPT,id,d_ps,d_numSeq);
                         if(d_DPT[id*1264+1263]>44+5*const_int[9])
 			{
-				sub[ID_thread*10+2]=0;
+				d_ps[id*81+66]=0;
                                 return;
 			}
 
-			thal(d_seq,d_primer,turn[ID_thread*8+sub[ID_thread*10+1]],turn[ID_thread*8+sub[ID_thread*10]],(1-const_int[11+sub[ID_thread*10+1]]),(1-const_int[11+sub[ID_thread*10]]),2,d_DPT,id,d_ps,d_numSeq);
+			thal(d_seq,d_primer,turn[ID_thread*8+d_ps[id*81+65]],turn[ID_thread*8+d_ps[id*81+64]],(1-const_int[11+d_ps[id*81+65]]),(1-const_int[11+d_ps[id*81+64]]),2,d_DPT,id,d_ps,d_numSeq);
                         if(d_DPT[id*1264+1263]>44+5*const_int[9])
 			{
-				sub[ID_thread*10+2]=0;
+				d_ps[id*81+66]=0;
                                 return;
 			}
-                        thal(d_seq,d_primer,turn[ID_thread*8+sub[ID_thread*10+1]],turn[ID_thread*8+sub[ID_thread*10]],(1-const_int[11+sub[ID_thread*10+1]]),(1-const_int[11+sub[ID_thread*10]]),3,d_DPT,id,d_ps,d_numSeq);
+                        thal(d_seq,d_primer,turn[ID_thread*8+d_ps[id*81+65]],turn[ID_thread*8+d_ps[id*81+64]],(1-const_int[11+d_ps[id*81+65]]),(1-const_int[11+d_ps[id*81+64]]),3,d_DPT,id,d_ps,d_numSeq);
                         if(d_DPT[id*1264+1263]>44+5*const_int[9])
 			{
-				sub[ID_thread*10+2]=0;
+				d_ps[id*81+66]=0;
                                 return;
 			}
 		}
 	}
-	sub[ID_thread*10+2]=1;
+	d_ps[id*81+66]=1;
 }
 
 void how_many(struct Primer *head,int common)
@@ -1631,11 +1627,107 @@ int file_size2(char* filename)
         return size;
 }
 
+void merge(int *store,int *temp,int *data,int start,int end,int middle)
+{
+        int i,j,k;
+        i=start;
+        j=middle+1;
+        k=start;
+        while(i<=middle&&j<=end)
+        {
+                if(data[store[i]*5]<data[store[j]*5])
+                {
+                        temp[k]=store[i];
+                        k++;
+                        i++;
+                        continue;
+                }
+                if(data[store[j]*5]<data[store[i]*5])
+                {
+                        temp[k]=store[j];
+                        k++;
+                        j++;
+                        continue;
+                }
+        //len
+                if(data[store[i]*5+1]<data[store[j]*5+1])
+                {
+                        temp[k]=store[i];
+                        k++;
+                        i++;
+                        continue;
+                }
+                if(data[store[j]*5+1]<data[store[i]*5+1])
+                {
+                        temp[k]=store[j];
+                        k++;
+                        j++;
+                        continue;
+                }
+        //gi
+                if(data[store[i]*5+2]<data[store[j]*5+2])
+                {
+                        temp[k]=store[i];
+                        k++;
+                        i++;
+                        continue;
+                }
+                if(data[store[j]*5+2]<data[store[i]*5+2])
+                {
+                        temp[k]=store[j];
+                        k++;
+                        j++;
+                        continue;
+                }
+        //position
+                if(data[store[i]*5+3]<data[store[j]*5+3])
+                {
+                        temp[k]=store[i];
+                        k++;
+                        i++;
+                }
+                else
+                {
+                        temp[k]=store[j];
+                        k++;
+                        j++;
+                        continue;
+                }
+        }
+        while(i<=middle)
+        {
+                temp[k]=store[i];
+                k++;
+                i++;
+        }
+        while(j<=end)
+        {
+                temp[k]=store[j];
+                k++;
+                j++;
+        }
+        for(i=start;i<=end;i++)
+                store[i]=temp[i];
+}
+
+void sort_merge(int *store,int *temp,int *data,int start,int end)
+{
+        int middle;
+
+        if(start<end)
+        {
+                middle=(start+end)/2;
+                sort_merge(store,temp,data,start,middle);
+                sort_merge(store,temp,data,(middle+1),end);
+                merge(store,temp,data,start,end,middle);
+        }
+}
+
 ////function read primer informatin and align information 
 struct Primer *read_par(char *path,int common_flag,int special_flag)
 {
-        char *in;
-        int pos,len,gi,position,plus,minus,size,i,flag;
+        char *in,line[100];
+        int pos,len,gi,position,plus,minus,size,i,flag,total,*store,*temp,*data;
         struct Primer *new_primer,*p_primer,*head;
         struct Node *new_node,*p_node;
         FILE *fp;
@@ -1716,50 +1808,88 @@ struct Primer *read_par(char *path,int common_flag,int special_flag)
                         exit(1);
                 }
 
-                p_primer=head;
-                size=sizeof(struct Node);
+		total=0;
+                while(fgets(line,100,fp)!=NULL)
+                        total++;
+                rewind(fp);
+                store=(int *)malloc(total*sizeof(int));
+                temp=(int *)malloc(total*sizeof(int));
+                data=(int *)malloc(5*total*sizeof(int));
+                total=0;
                 while(fscanf(fp,"%d\t%d\t%d\t%d\t%d\t%d\n",&pos,&len,&gi,&position,&plus,&minus)!=EOF)
                 {
-                        new_node=(struct Node *)malloc(size);
-                        new_node->pos=position;
-                        new_node->gi=gi;
+                        data[5*total]=pos;
+                        data[5*total+1]=len;
+                        data[5*total+2]=gi;
+                        data[5*total+3]=position;
 			if(plus)
-			{
-				if(minus)
-					new_node->strand=3;
-				else
-					new_node->strand=1;
-			}
-			else
-	                        new_node->strand=2;
-
-        //find the primer
-                        flag=0;
-                        while((p_primer->pos!=pos||p_primer->len!=len)&&flag<2)
                         {
-                                if((p_primer->next==NULL)||(p_primer->pos>pos))
-                                {
-                                        flag++;
-                                        p_primer=head;
-                                }
+                                if(minus)
+                                        data[5*total+4]=3;
                                 else
-                                {
-                                        p_primer=p_primer->next;
-                                }
+					data[5*total+4]=1;
                         }
-                        if(flag==2)
-                        {
-                                printf("Warning: the single primer(pos is %d, length is %d) is not in %s!\n",pos,len,path);
-                                free(new_node);
-                                continue;
-                        } 
-                        p_node=p_primer->common;
-                        p_primer->common=new_node;
-			p_primer->total_common++;
-                        new_node->next=p_node;
+                        else
+                                data[5*total+4]=2;
+                        store[total]=total;
+                        total++;
                 }
                 fclose(fp);
+                sort_merge(store,temp,data,0,(total-1));
+
+                p_primer=head;
+                size=sizeof(struct Node);
+                flag=0;
+                i=0;
+                while(p_primer&&i<total)
+                {
+                //pos
+                        if(data[store[i]*5]<p_primer->pos)
+                        {
+                                i++;
+                                continue;
+                        }
+                        if(data[store[i]*5]>p_primer->pos)
+                        {
+                                p_primer=p_primer->next;
+                                flag=0;
+                                continue;
+                        }
+                //len
+                        if(data[store[i]*5+1]<p_primer->len)
+                        {
+                                i++;
+                                continue;
+                        }
+                        if(data[store[i]*5+1]>p_primer->len)
+                        {
+                                p_primer=p_primer->next;
+                                flag=0;
+                                continue;
+                        }
+                        new_node=(struct Node *)malloc(size);
+                        new_node->gi=data[store[i]*5+2];
+                        new_node->pos=data[store[i]*5+3];
+                        new_node->strand=data[store[i]*5+4];
+                        new_node->next=NULL;
+                        if(flag==0)
+                        {
+                                flag++;
+                                p_primer->common=new_node;
+                                p_node=new_node;
+                        }
+                        else
+                        {
+                                p_node->next=new_node;
+                                p_node=new_node;
+                        }
+			p_primer->total_common++;
+                        i++;
+                }
                 free(in);
+                free(data);
+                free(store);
+                free(temp);
         }
 //paramter for special
         if(special_flag==1)
@@ -1781,111 +1911,235 @@ struct Primer *read_par(char *path,int common_flag,int special_flag)
                         printf("Error: can't open the %s file!\n",in);
                         exit(1);
                 }
-        
-                p_primer=head;
+
+		total=0;
+                while(fgets(line,100,fp)!=NULL)
+                        total++;
+                rewind(fp);
+                store=(int *)malloc(total*sizeof(int));
+                temp=(int *)malloc(total*sizeof(int));
+                data=(int *)malloc(5*total*sizeof(int));
+                total=0;
                 while(fscanf(fp,"%d\t%d\t%d\t%d\t%d\t%d\n",&pos,&len,&gi,&position,&plus,&minus)!=EOF)
                 {
-                        new_node=(struct Node *)malloc(size);
-                        new_node->pos=position;
-                        new_node->gi=gi;
+                        data[5*total]=pos;
+                        data[5*total+1]=len;
+                        data[5*total+2]=gi;
+                        data[5*total+3]=position;
+                        data[5*total+4]=plus;
 			if(plus)
-			{
-				if(minus)
-					new_node->strand=3;
-				else
-					new_node->strand=1;
-			}
-			else
-	                        new_node->strand=2;
-        
-                        //find the primer
-                        flag=0;
-                        while((p_primer->pos!=pos||p_primer->len!=len)&&flag<2)
                         {
-                                if((p_primer->next==NULL)||(p_primer->pos>pos))
-                                {
-                                        flag++;
-                                        p_primer=head;
-                                }
+                                if(minus)
+                                        data[5*total+4]=3;
                                 else
-                                        p_primer=p_primer->next;
+                                        data[5*total+4]=1;
                         }
-                        if(flag==2)
-                        {
-                                printf("Warning: the single primer(pos is %d, length is %d) is not in %s!\n",pos,len,path);
-                                free(new_node);
-                                continue;
-                        }
-                        p_node=p_primer->special;
-                        p_primer->special=new_node;
-			p_primer->total_special++;
-                        new_node->next=p_node;
+                        else
+                                data[5*total+4]=2;
+                        store[total]=total;
+                        total++;
                 }
                 fclose(fp);
+                sort_merge(store,temp,data,0,(total-1));
+
+                p_primer=head;
+                size=sizeof(struct Node);
+                flag=0;
+                i=0;
+                while(p_primer&&i<total)
+                {
+                //pos
+                        if(data[store[i]*5]<p_primer->pos)
+                        {
+                                i++;
+                                continue;
+                        }
+                        if(data[store[i]*5]>p_primer->pos)
+                        {
+                                p_primer=p_primer->next;
+                                flag=0;
+                                continue;
+                        }
+                //len
+                        if(data[store[i]*5+1]<p_primer->len)
+                        {
+                                i++;
+                                continue;
+                        }
+                        if(data[store[i]*5+1]>p_primer->len)
+                        {
+                                p_primer=p_primer->next;
+                                flag=0;
+                                continue;
+                        }
+                        new_node=(struct Node *)malloc(size);
+                        new_node->gi=data[store[i]*5+2];
+                        new_node->pos=data[store[i]*5+3];
+                        new_node->strand=data[store[i]*5+4];
+                        new_node->next=NULL;
+                        if(flag==0)
+                        {
+                                flag++;
+                                p_primer->special=new_node;
+                                p_node=new_node;
+                        }
+                        else
+                        {
+                                p_node->next=new_node;
+                                p_node=new_node;
+                        }
+			p_primer->total_special++;
+                        i++;
+                }
                 free(in);
+                free(data);
+                free(store);
+                free(temp);
         }
         return head;
 }
 
 //check this LAMP primers are uniq or not
 //return=0: stop and return=1: go on
-__device__ void check_uniq(int *d_primer,int *d_info,int turn[],int ID_thread,int sub[])
+__device__ void check_uniq(int *d_primer,int *d_info,int turn[],int ID_thread,int id,int *d_ps)
 {
 //plus
-        for(sub[ID_thread*10]=d_primer[turn[ID_thread*8]*10+5];sub[ID_thread*10]<d_primer[turn[ID_thread*8]*10+6];sub[ID_thread*10]++)
+	d_ps[id*81+74]=d_primer[turn[ID_thread*8+1]*10+5]; //F2
+	d_ps[id*81+75]=d_primer[turn[ID_thread*8+3]*10+5]; //F1c
+	d_ps[id*81+76]=d_primer[turn[ID_thread*8+4]*10+5]; //B1c
+	d_ps[id*81+77]=d_primer[turn[ID_thread*8+6]*10+5];
+	d_ps[id*81+78]=d_primer[turn[ID_thread*8+7]*10+5];
+        for(d_ps[id*81+64]=d_primer[turn[ID_thread*8]*10+5];d_ps[id*81+64]<d_primer[turn[ID_thread*8]*10+6];d_ps[id*81+64]++)
         {
-                if((d_info[sub[ID_thread*10]*3+2]&1)!=1)
+                if((d_info[d_ps[id*81+64]*3+2]&1)!=1)
                         continue;
-		sub[ID_thread*10+6]=d_info[sub[ID_thread*10]*3];
-                for(sub[ID_thread*10+1]=d_primer[turn[ID_thread*8+1]*10+5];sub[ID_thread*10+1]<d_primer[turn[ID_thread*8+1]*10+6];sub[ID_thread*10+1]++)
+		d_ps[id*81+70]=d_info[d_ps[id*81+64]*3]; //gi
+                for(d_ps[id*81+65]=d_ps[id*81+74];d_ps[id*81+65]<d_primer[turn[ID_thread*8+1]*10+6];d_ps[id*81+65]++)
                 {
-			if(d_info[sub[ID_thread*10+1]*3]!=sub[ID_thread*10+6])
-                                continue;
-                        if((d_info[sub[ID_thread*10+1]*3+2]&1)!=1)
+		//check gi
+			if(d_info[d_ps[id*81+65]*3]<d_ps[id*81+70])
+			{
+				d_ps[id*81+74]++;
 				continue;
-                        for(sub[ID_thread*10+2]=d_primer[turn[ID_thread*8+3]*10+5];sub[ID_thread*10+2]<d_primer[turn[ID_thread*8+3]*10+6];sub[ID_thread*10+2]++) //F1c
+			}
+			if(d_info[d_ps[id*81+65]*3]>d_ps[id*81+70])
+				break;
+			if(d_info[d_ps[id*81+65]*3+1]<d_info[d_ps[id*81+64]*3+1])
+			{
+				d_ps[id*81+74]++;
+				continue;
+			}
+			if(d_info[d_ps[id*81+65]*3+1]-d_info[d_ps[id*81+64]*3+1]>1000)
+				break;
+                        if((d_info[d_ps[id*81+65]*3+2]&1)!=1)
+			{
+				d_ps[id*81+74]++;
+				continue;
+			}
+                        for(d_ps[id*81+66]=d_ps[id*81+75];d_ps[id*81+66]<d_primer[turn[ID_thread*8+3]*10+6];d_ps[id*81+66]++) //F1c
                         {
-                                if(d_info[sub[ID_thread*10+2]*3]!=sub[ID_thread*10+6])
+			//check
+				if(d_info[d_ps[id*81+66]*3]<d_ps[id*81+70])
+				{
+					d_ps[id*81+75]++;
+					continue;
+				}
+				if(d_info[d_ps[id*81+66]*3]>d_ps[id*81+70])
+					break;
+				if(d_info[d_ps[id*81+66]*3+1]<d_info[d_ps[id*81+64]*3+1])
+				{
+					d_ps[id*81+75]++;
                                         continue;
-                                if((d_info[sub[ID_thread*10+2]*3+2]&2)!=2)
+                                }
+				if(d_info[d_ps[id*81+66]*3+1]-d_info[d_ps[id*81+64]*3+1]>1000)
+					break;
+                                if((d_info[d_ps[id*81+66]*3+2]&2)!=2)
+				{
+					d_ps[id*81+75]++;
                                         continue;
-                                for(sub[ID_thread*10+3]=d_primer[turn[ID_thread*8+3]*10+5];sub[ID_thread*10+3]<d_primer[turn[ID_thread*8+3]*10+6];sub[ID_thread*10+3]++) //B1c
+				}
+                                for(d_ps[id*81+67]=d_ps[id*81+76];d_ps[id*81+67]<d_primer[turn[ID_thread*8+4]*10+6];d_ps[id*81+67]++) //B1c
                                 {
-                                        if(d_info[sub[ID_thread*10+3]*3]!=sub[ID_thread*10+6])
+					if(d_info[d_ps[id*81+67]*3]<d_ps[id*81+70])
+					{
+						d_ps[id*81+76]++;
+						continue;
+					}
+                                        if(d_info[d_ps[id*81+67]*3]>d_ps[id*81+70])
+						break;
+					if(d_info[d_ps[id*81+67]*3+1]<d_info[d_ps[id*81+64]*3+1])
+					{
+						d_ps[id*81+76]++;
                                                 continue;
-                                        if((d_info[sub[ID_thread*10+3]*3+2]&1)!=1)
+                                        }
+					if(d_info[d_ps[id*81+67]*3+1]-d_info[d_ps[id*81+64]*3+1]>1000)
+						break;
+                                        if((d_info[d_ps[id*81+67]*3+2]&1)!=1)
+					{
+						d_ps[id*81+76]++;
                                                 continue;
-                                        for(sub[ID_thread*10+4]=d_primer[turn[ID_thread*8+6]*10+5];sub[ID_thread*10+4]<d_primer[turn[ID_thread*8+6]*10+6];sub[ID_thread*10+4]++) //B2
+					}
+                                        for(d_ps[id*81+68]=d_ps[id*81+77];d_ps[id*81+68]<d_primer[turn[ID_thread*8+6]*10+6];d_ps[id*81+68]++) //B2
                                         {
-                                                if(d_info[sub[ID_thread*10+4]*3]!=sub[ID_thread*10+6])
+                                                if(d_info[d_ps[id*81+68]*3]<d_ps[id*81+70])
+						{
+							d_ps[id*81+77]++;
                                                         continue;
-                                                if((d_info[sub[ID_thread*10+4]*3+2]&2)!=2)
+						}
+						if(d_info[d_ps[id*81+68]*3]>d_ps[id*81+70])
+							break;
+						if(d_info[d_ps[id*81+68]*3+1]<d_info[d_ps[id*81+64]*3+1])
+						{
+							d_ps[id*81+77]++;
                                                         continue;
-                                                for(sub[ID_thread*10+5]=d_primer[turn[ID_thread*8+7]*10+5];sub[ID_thread*10+5]<d_primer[turn[ID_thread*8+7]*10+6];sub[ID_thread*10+5]++)
+                                                }
+						if(d_info[d_ps[id*81+68]*3+1]-d_info[d_ps[id*81+64]*3+1]>1000)
+							break;
+                                                if((d_info[d_ps[id*81+68]*3+2]&2)!=2)
+						{
+							d_ps[id*81+77]++;
+                                                        continue;
+						}
+                                                for(d_ps[id*81+69]=d_ps[id*81+78];d_ps[id*81+69]<d_primer[turn[ID_thread*8+7]*10+6];d_ps[id*81+69]++)
                                                 {
-                                                        if(d_info[sub[ID_thread*10+5]*3]!=sub[ID_thread*10+6])
+                                                        if(d_info[d_ps[id*81+69]*3]<d_ps[id*81+70])
+							{
+								d_ps[id*81+78]++;
                                                                 continue;
-                                                        if((d_info[sub[ID_thread*10+5]*3+2]&2)!=2)
+							}
+							if(d_info[d_ps[id*81+69]*3]>d_ps[id*81+70])
+								break;
+							if(d_info[d_ps[id*81+69]*3+1]<d_info[d_ps[id*81+64]*3+1])
+							{
+								d_ps[id*81+78]++;
                                                                 continue;
+                                                        }
+							if(d_info[d_ps[id*81+69]*3+1]-d_info[d_ps[id*81+64]*3+1]>1000)
+								break;
+                                                        if((d_info[d_ps[id*81+69]*3+2]&2)!=2)
+							{
+								d_ps[id*81+78]++;
+                                                                continue;
+							}
                                                 //F3-F2 
-                                                        if(d_info[sub[ID_thread*10+1]*3+1]<d_info[sub[ID_thread*10]*3+1])
+                                                        if(d_info[d_ps[id*81+65]*3+1]<d_info[d_ps[id*81+64]*3+1])
                                                                 continue;
                                                 //F2-F1c
-                                                        if(d_info[sub[ID_thread*10+2]*3+1]<d_info[sub[ID_thread*10+1]*3+1]+d_primer[turn[ID_thread*8+1]*10+1])
+                                                        if(d_info[d_ps[id*81+66]*3+1]<d_info[d_ps[id*81+65]*3+1]+d_primer[turn[ID_thread*8+1]*10+1])
                                                                 continue;
                                                 //F1c-B1c
-                                                        if(d_info[sub[ID_thread*10+3]*3+1]<d_info[sub[ID_thread*10+2]*3+1]+d_primer[turn[ID_thread*8+3]*10+1])
+                                                        if(d_info[d_ps[id*81+67]*3+1]<d_info[d_ps[id*81+66]*3+1]+d_primer[turn[ID_thread*8+3]*10+1])
                                                                 continue;
                                                 //B1c-B2
-                                                        if(d_info[sub[ID_thread*10+4]*3+1]<d_info[sub[ID_thread*10+3]*3+1]+d_primer[turn[ID_thread*8+3]*10+1])
+                                                        if(d_info[d_ps[id*81+68]*3+1]<d_info[d_ps[id*81+67]*3+1]+d_primer[turn[ID_thread*8+3]*10+1])
                                                                 continue;
                                                 //B2-B3
-                                                        if(d_info[sub[ID_thread*10+5]*3+1]<d_info[sub[ID_thread*10+4]*3+1])
+                                                        if(d_info[d_ps[id*81+69]*3+1]<d_info[d_ps[id*81+68]*3+1])
                                                                 continue;
                                                 //whole
-                                                        if(d_info[sub[ID_thread*10+5]*3+1]-d_info[sub[ID_thread*10]*3+1]>1000)
+                                                        if(d_info[d_ps[id*81+69]*3+1]-d_info[d_ps[id*81+64]*3+1]>1000)
                                                                 continue;
-                                                        sub[ID_thread*10+7]=0;
+                                                        d_ps[id*81+71]=0;
 							return;
                                                 }//B3
                                         }
@@ -1895,60 +2149,140 @@ __device__ void check_uniq(int *d_primer,int *d_info,int turn[],int ID_thread,in
         }
 
 //minus
-        for(sub[ID_thread*10]=d_primer[turn[ID_thread*8]*10+5];sub[ID_thread*10]<d_primer[turn[ID_thread*8]*10+6];sub[ID_thread*10]++)
+	d_ps[id*81+74]=d_primer[turn[ID_thread*8+1]*10+5]; //F2
+        d_ps[id*81+75]=d_primer[turn[ID_thread*8+3]*10+5]; //F1c
+        d_ps[id*81+76]=d_primer[turn[ID_thread*8+4]*10+5]; //B1c
+        d_ps[id*81+77]=d_primer[turn[ID_thread*8+6]*10+5];
+        d_ps[id*81+78]=d_primer[turn[ID_thread*8+7]*10+5];
+        for(d_ps[id*81+64]=d_primer[turn[ID_thread*8]*10+5];d_ps[id*81+64]<d_primer[turn[ID_thread*8]*10+6];d_ps[id*81+64]++)
         {
-                if((d_info[sub[ID_thread*10]*3+2]&2)!=2)
+                if((d_info[d_ps[id*81+64]*3+2]&2)!=2)
                         continue;
-		sub[ID_thread*10+6]=d_info[sub[ID_thread*10]*3];
-                for(sub[ID_thread*10+1]=d_primer[turn[ID_thread*8+1]*10+5];sub[ID_thread*10+1]<d_primer[turn[ID_thread*8+1]*10+6];sub[ID_thread*10+1]++)
+		d_ps[id*81+70]=d_info[d_ps[id*81+64]*3];
+                for(d_ps[id*81+65]=d_ps[id*81+74];d_ps[id*81+65]<d_primer[turn[ID_thread*8+1]*10+6];d_ps[id*81+65]++)
                 {
-                        if(d_info[sub[ID_thread*10+1]*3]!=sub[ID_thread*10+6])
-                                continue;
-                        if((d_info[sub[ID_thread*10+1]*3+2]&2)!=2)
-                                continue;
-                        for(sub[ID_thread*10+2]=d_primer[turn[ID_thread*8+3]*10+5];sub[ID_thread*10+2]<d_primer[turn[ID_thread*8+3]*10+6];sub[ID_thread*10+2]++)
+			if(d_info[d_ps[id*81+65]*3]<d_ps[id*81+70])
                         {
-                                if(d_info[sub[ID_thread*10+2]*3]!=sub[ID_thread*10+6])
-                                        continue;
-                                if((d_info[sub[ID_thread*10+2]*3+2]&1)!=1)
-                                        continue;
-                                for(sub[ID_thread*10+3]=d_primer[turn[ID_thread*8+3]*10+5];sub[ID_thread*10+3]<d_primer[turn[ID_thread*8+3]*10+6];sub[ID_thread*10+3]++)
+                                d_ps[id*81+74]++;
+                                continue;
+                        }
+                        if(d_info[d_ps[id*81+65]*3]>d_ps[id*81+70])
+                                break;
+                        if(d_info[d_ps[id*81+65]*3+1]>d_info[d_ps[id*81+64]*3+1])
+				break;
+			if(d_info[d_ps[id*81+65]*3+1]-d_info[d_ps[id*81+64]*3+1]<-1000)
+			{
+				d_ps[id*81+74]++;
+                                continue;
+                        }
+                        if((d_info[d_ps[id*81+65]*3+2]&2)!=2)
+			{
+				d_ps[id*81+74]++;
+                                continue;
+			}
+                        for(d_ps[id*81+66]=d_ps[id*81+75];d_ps[id*81+66]<d_primer[turn[ID_thread*8+3]*10+6];d_ps[id*81+66]++)
+                        {
+				if(d_info[d_ps[id*81+66]*3]<d_ps[id*81+70])
                                 {
-                                        if(d_info[sub[ID_thread*10+3]*3]!=sub[ID_thread*10+6])
-                                                continue;
-                                        if((d_info[sub[ID_thread*10+3]*3+2]&2)!=2)
-                                                continue;
-                                        for(sub[ID_thread*10+4]=d_primer[turn[ID_thread*8+6]*10];sub[ID_thread*10+4]<d_primer[turn[ID_thread*8+6]*10];sub[ID_thread*10+4]++)
+                                        d_ps[id*81+75]++;
+                                        continue;
+                                }
+                                if(d_info[d_ps[id*81+66]*3]>d_ps[id*81+70])
+                                        break;
+				if(d_info[d_ps[id*81+66]*3+1]-d_info[d_ps[id*81+64]*3+1]<-1000)
+				{
+                                        d_ps[id*81+75]++;
+                                        continue;
+                                }
+                                if(d_info[d_ps[id*81+66]*3+1]>d_info[d_ps[id*81+64]*3+1])
+					break;				
+                                if((d_info[d_ps[id*81+66]*3+2]&1)!=1)
+				{
+					d_ps[id*81+75]++;
+                                        continue;
+				}
+                                for(d_ps[id*81+67]=d_ps[id*81+76];d_ps[id*81+67]<d_primer[turn[ID_thread*8+4]*10+6];d_ps[id*81+67]++)
+                                {
+					if(d_info[d_ps[id*81+67]*3]<d_ps[id*81+70])
                                         {
-                                                if(d_info[sub[ID_thread*10+4]*3]!=sub[ID_thread*10+6])
-                                                        continue;
-                                                if((d_info[sub[ID_thread*10+4]*3+2]&1)!=1)
-                                                        continue;
-                                                for(sub[ID_thread*10+5]=d_primer[turn[ID_thread*8+7]*10+5];sub[ID_thread*10+5]<d_primer[turn[ID_thread*8+7]*10+6];sub[ID_thread*10+5]++)
+                                                d_ps[id*81+76]++;
+                                                continue;
+                                        }
+                                        if(d_info[d_ps[id*81+67]*3]>d_ps[id*81+70])
+                                                break;
+					if(d_info[d_ps[id*81+67]*3+1]-d_info[d_ps[id*81+64]*3+1]<-1000)
+					{
+                                                d_ps[id*81+76]++;
+                                                continue;
+                                        }
+                                        if(d_info[d_ps[id*81+67]*3+1]>d_info[d_ps[id*81+64]*3+1])
+						break;
+                                        if((d_info[d_ps[id*81+67]*3+2]&2)!=2)
+					{
+						d_ps[id*81+76]++;
+                                                continue;
+					}
+                                        for(d_ps[id*81+68]=d_ps[id*81+77];d_ps[id*81+68]<d_primer[turn[ID_thread*8+6]*10+6];d_ps[id*81+68]++)
+                                        {
+						if(d_info[d_ps[id*81+68]*3]<d_ps[id*81+70])
                                                 {
-                                                        if(d_info[sub[ID_thread*10+5]*3]!=sub[ID_thread*10+6])
+                                                        d_ps[id*81+77]++;
+                                                        continue;
+                                                }
+                                                if(d_info[d_ps[id*81+68]*3]>d_ps[id*81+70])
+                                                        break;
+						if(d_info[d_ps[id*81+68]*3+1]-d_info[d_ps[id*81+64]*3+1]<-1000)
+						{
+                                                        d_ps[id*81+77]++;
+                                                        continue;
+                                                }
+                                                if(d_info[d_ps[id*81+68]*3+1]>d_info[d_ps[id*81+64]*3+1])
+							break;
+                                                if((d_info[d_ps[id*81+68]*3+2]&1)!=1)
+						{
+							d_ps[id*81+77]++;
+                                                        continue;
+						}
+                                                for(d_ps[id*81+69]=d_ps[id*81+78];d_ps[id*81+69]<d_primer[turn[ID_thread*8+7]*10+6];d_ps[id*81+69]++)
+                                                {
+							if(d_info[d_ps[id*81+69]*3]<d_ps[id*81+70])
+                                                        {
+                                                                d_ps[id*81+78]++;
                                                                 continue;
-                                                        if((d_info[sub[ID_thread*10+5]*3+2]&1)!=1)
+                                                        }
+                                                        if(d_info[d_ps[id*81+69]*3]>d_ps[id*81+70])
+                                                                break;
+							if(d_info[d_ps[id*81+69]*3+1]-d_info[d_ps[id*81+64]*3+1]<-1000)
+							{
+                                                                d_ps[id*81+78]++;
                                                                 continue;
+                                                        }
+                                                        if(d_info[d_ps[id*81+69]*3+1]>d_info[d_ps[id*81+64]*3+1])
+								break;
+                                                        if((d_info[d_ps[id*81+69]*3+2]&1)!=1)
+							{
+								d_ps[id*81+78]++;
+                                                                continue;
+							}
                                                 //F3-F2 
-                                                        if(d_info[sub[ID_thread*10]*3+1]<d_info[sub[ID_thread*10+1]*3+1])
+                                                        if(d_info[d_ps[id*81+64]*3+1]<d_info[d_ps[id*81+65]*3+1])
                                                                 continue;
                                                 //F2-F1c
-                                                        if(d_info[sub[ID_thread*10+1]*3+1]<d_info[sub[ID_thread*10+2]*3+1]+d_primer[turn[ID_thread*8+3]*10+1])
+                                                        if(d_info[d_ps[id*81+65]*3+1]<d_info[d_ps[id*81+66]*3+1]+d_primer[turn[ID_thread*8+3]*10+1])
                                                                 continue;
                                                 //F1c-B1c
-                                                        if(d_info[sub[ID_thread*10+2]*3+1]<d_info[sub[ID_thread*10+3]*3+1]+d_primer[turn[ID_thread*8+3]*10+1])
+                                                        if(d_info[d_ps[id*81+66]*3+1]<d_info[d_ps[id*81+67]*3+1]+d_primer[turn[ID_thread*8+3]*10+1])
                                                                 continue;
                                                 //B1c-B2
-                                                        if(d_info[sub[ID_thread*10+3]*3+1]<d_info[sub[ID_thread*10+4]*3+1]+d_primer[turn[ID_thread*8+6]*10+1])
+                                                        if(d_info[d_ps[id*81+67]*3+1]<d_info[d_ps[id*81+68]*3+1]+d_primer[turn[ID_thread*8+6]*10+1])
                                                                 continue;
                                                 //B2-B3
-                                                        if(d_info[sub[ID_thread*10+4]*3+1]<d_info[sub[ID_thread*10+5]*3+1])
+                                                        if(d_info[d_ps[id*81+68]*3+1]<d_info[d_ps[id*81+69]*3+1])
                                                                 continue;
                                                 //whole
-                                                        if(d_info[sub[ID_thread*10]*3+1]-d_info[sub[ID_thread*10+5]*3+1]>1000)
+                                                        if(d_info[d_ps[id*81+64]*3+1]-d_info[d_ps[id*81+69]*3+1]>1000)
                                                                 continue;
-                                                        sub[ID_thread*10+7]=0;
+                                                        d_ps[id*81+71]=0;
 							return;
                                                 }
                                         }
@@ -1956,7 +2290,7 @@ __device__ void check_uniq(int *d_primer,int *d_info,int turn[],int ID_thread,in
                         }
                 }
         }
-        sub[ID_thread*10+7]=1;
+        d_ps[id*81+71]=1;
 }
 
 //from first to second
@@ -1994,146 +2328,261 @@ __global__ void next_one(int *d_primer,int one_start,int one_end,int two_start,i
 	__syncthreads();
 }
 
-__device__ void check_gc(char *d_seq,int start,int end,int flag,int sub[],int id)
+__device__ void check_gc(char *d_seq,int start,int end,int flag,int *d_ps,int id)
 {
-	sub[id*10+1]=0;
-        for(sub[id*10]=start;sub[id*10]<end;sub[id*10]++)
+	d_ps[id*81+65]=0;
+        for(d_ps[id*81+64]=start;d_ps[id*81+64]<end;d_ps[id*81+64]++)
         {
-                if(d_seq[sub[id*10]]=='C'||d_seq[sub[id*10]]=='G')
-                        sub[id*10+1]++;
+                if(d_seq[d_ps[id*81+64]]=='C'||d_seq[d_ps[id*81+64]]=='G')
+                        d_ps[id*81+65]++;
         }
-        if(flag==1&&(sub[id*10+1]*100.0/(end-start))>=45)
+        if(flag==1&&(d_ps[id*81+65]*100.0/(end-start))>=45)
 	{
-                sub[id*10+2]=1;
+                d_ps[id*81+66]=1;
 		return;
 	}
-        if(flag==0&&(sub[id*10+1]*100.0/(end-start))<=45)
+        if(flag==0&&(d_ps[id*81+65]*100.0/(end-start))<=45)
 	{
-                sub[id*10+2]=1;
+                d_ps[id*81+66]=1;
 		return;
 	}
-        sub[id*10+2]=0;
+        d_ps[id*81+66]=0;
 }
 
-__device__ void check_common(int *d_primer,int *d_info,int turn[],int ID_thread,int *d_result,int sub[])
+__device__ void check_common(int *d_primer,int *d_info,int turn[],int ID_thread,int id,int *d_result,int *d_ps)
 {
-	for(sub[ID_thread*10+8]=0;sub[ID_thread*10+8]<const_int[7];sub[ID_thread*10+8]++)
+	for(d_ps[id*81+72]=0;d_ps[id*81+72]<const_int[7];d_ps[id*81+72]++)
         {
-                d_result[(8+const_int[7])*turn[ID_thread*8]+8+sub[ID_thread*10+8]]=0;
+                d_result[(8+const_int[7])*turn[ID_thread*8]+8+d_ps[id*81+72]]=0;
         }
 //plus
-        for(sub[ID_thread*10+0]=d_primer[turn[ID_thread*8]*10+3];sub[ID_thread*10+0]<d_primer[turn[ID_thread*8]*10+4];sub[ID_thread*10+0]++)
+	d_ps[id*81+74]=d_primer[turn[ID_thread*8+1]*10+3]; //F2
+	d_ps[id*81+75]=d_primer[turn[ID_thread*8+3]*10+3];//F1c
+	d_ps[id*81+76]=d_primer[turn[ID_thread*8+4]*10+3];//B1c
+	d_ps[id*81+77]=d_primer[turn[ID_thread*8+6]*10+3];//B2
+	d_ps[id*81+78]=d_primer[turn[ID_thread*8+7]*10+3];//B3
+	if(turn[ID_thread*8+2]!=-1)
+		d_ps[id*81+79]=d_primer[turn[ID_thread*8+2]*10+3];//LF
+	if(turn[ID_thread*8+5]!=-1)
+		d_ps[id*81+80]=d_primer[turn[ID_thread*8+5]*10+3];
+
+        for(d_ps[id*81+64]=d_primer[turn[ID_thread*8]*10+3];d_ps[id*81+64]<d_primer[turn[ID_thread*8]*10+4];d_ps[id*81+64]++)
         {
-                if((d_info[sub[ID_thread*10+0]*3+2]&1)!=1)
+                if((d_info[d_ps[id*81+64]*3+2]&1)!=1)
                         continue;
-		sub[ID_thread*10+8]=d_info[sub[ID_thread*10+0]*3];
-                if(d_result[(8+const_int[7])*turn[ID_thread*8]+8+sub[ID_thread*10+8]]!=0)
+		d_ps[id*81+72]=d_info[d_ps[id*81+64]*3]; //gi
+                if(d_result[(8+const_int[7])*turn[ID_thread*8]+8+d_ps[id*81+72]]!=0)
                         continue;
-                for(sub[ID_thread*10+1]=d_primer[turn[ID_thread*8+1]*10+3];sub[ID_thread*10+1]<d_primer[turn[ID_thread*8+1]*10+4];sub[ID_thread*10+1]++)
+                for(d_ps[id*81+65]=d_ps[id*81+74];d_ps[id*81+65]<d_primer[turn[ID_thread*8+1]*10+4];d_ps[id*81+65]++)
                 {
-                        if(d_info[sub[ID_thread*10+1]*3]!=sub[ID_thread*10+8])
+                        if(d_info[d_ps[id*81+65]*3]<d_ps[id*81+72])
+			{
+				d_ps[id*81+74]++;
                                 continue;
-                        if((d_info[sub[ID_thread*10+1]*3+2]&1)!=1)
+			}
+			if(d_info[d_ps[id*81+65]*3]>d_ps[id*81+72])
+				break;
+                        if((d_info[d_ps[id*81+65]*3+2]&1)!=1)
+			{
+				d_ps[id*81+74]++;
                                 continue;
-                        for(sub[ID_thread*10+2]=d_primer[turn[ID_thread*8+3]*10+3];sub[ID_thread*10+2]<d_primer[turn[ID_thread*8+3]*10+4];sub[ID_thread*10+2]++)
+			}
+			if(d_info[d_ps[id*81+65]*3+1]<d_info[d_ps[id*81+64]*3+1])
                         {
-                                if(d_info[sub[ID_thread*10+2]*3]!=sub[ID_thread*10+8])
+                                d_ps[id*81+74]++;
+                                continue;
+                        }
+			if(d_info[d_ps[id*81+65]*3+1]-d_info[d_ps[id*81+64]*3+1]>300)
+				break;
+                        for(d_ps[id*81+66]=d_ps[id*81+75];d_ps[id*81+66]<d_primer[turn[ID_thread*8+3]*10+4];d_ps[id*81+66]++) //F1c
+                        {
+                                if(d_info[d_ps[id*81+66]*3]<d_ps[id*81+72])
+				{
+					d_ps[id*81+75]++;
                                         continue;
-                                if((d_info[sub[ID_thread*10+2]*3+2]&2)!=2)
+				}
+				if(d_info[d_ps[id*81+66]*3]>d_ps[id*81+72])
+					break;
+                                if((d_info[d_ps[id*81+66]*3+2]&2)!=2)
+				{
+					d_ps[id*81+75]++;
                                         continue;
-                                for(sub[ID_thread*10+3]=d_primer[turn[ID_thread*8+4]*10+3];sub[ID_thread*10+3]<d_primer[turn[ID_thread*8+4]*10+4];sub[ID_thread*10+3]++)
+				}
+				if(d_info[d_ps[id*81+66]*3+1]<d_info[d_ps[id*81+64]*3+1])
                                 {
-                                        if(d_info[sub[ID_thread*10+3]*3]!=sub[ID_thread*10+8])
+                                        d_ps[id*81+75]++;
+                                        continue;
+                                }
+				if(d_info[d_ps[id*81+66]*3+1]-d_info[d_ps[id*81+64]*3+1]>300)
+					break;
+                                for(d_ps[id*81+67]=d_ps[id*81+76];d_ps[id*81+67]<d_primer[turn[ID_thread*8+4]*10+4];d_ps[id*81+67]++) //B1c
+                                {
+                                        if(d_info[d_ps[id*81+67]*3]<d_ps[id*81+72])
+					{
+						d_ps[id*81+76]++;
                                                 continue;
-                                        if((d_info[sub[ID_thread*10+3]*3+2]&1)!=1)
+					}
+					if(d_info[d_ps[id*81+67]*3]>d_ps[id*81+72])
+						break;
+                                        if((d_info[d_ps[id*81+67]*3+2]&1)!=1)
+					{
+						d_ps[id*81+76]++;
                                                 continue;
-                                        for(sub[ID_thread*10+4]=d_primer[turn[ID_thread*8+6]*10+3];sub[ID_thread*10+4]<d_primer[turn[ID_thread*8+6]*10+4];sub[ID_thread*10+4]++)
+					}
+					if(d_info[d_ps[id*81+67]*3+1]<d_info[d_ps[id*81+64]*3+1])
                                         {
-                                                if(d_info[sub[ID_thread*10+4]*3]!=sub[ID_thread*10+8])
+                                                d_ps[id*81+76]++;
+                                                continue;
+                                        }
+					if(d_info[d_ps[id*81+67]*3+1]-d_info[d_ps[id*81+64]*3+1]>300)
+						break;
+                                        for(d_ps[id*81+68]=d_ps[id*81+77];d_ps[id*81+68]<d_primer[turn[ID_thread*8+6]*10+4];d_ps[id*81+68]++) //B2
+                                        {
+                                                if(d_info[d_ps[id*81+68]*3]<d_ps[id*81+72])
+						{
+							d_ps[id*81+77]++;
                                                         continue;
-                                                if((d_info[sub[ID_thread*10+4]*3+2]&2)!=2)
+						}
+						if(d_info[d_ps[id*81+68]*3]>d_ps[id*81+72])
+							break;
+                                                if((d_info[d_ps[id*81+68]*3+2]&2)!=2)
+						{
+							d_ps[id*81+77]++;
                                                         continue;
-                                                for(sub[ID_thread*10+5]=d_primer[turn[ID_thread*8+7]*10+3];sub[ID_thread*10+5]<d_primer[turn[ID_thread*8+7]*10+4];sub[ID_thread*10+5]++)
+						}
+						if(d_info[d_ps[id*81+68]*3+1]<d_info[d_ps[id*81+64]*3+1])
                                                 {
-                                                        if(d_info[sub[ID_thread*10+5]*3]!=sub[ID_thread*10+8])
+                                                        d_ps[id*81+77]++;
+                                                        continue;
+                                                }
+						if(d_info[d_ps[id*81+68]*3+1]-d_info[d_ps[id*81+64]*3+1]>300)
+							break;
+                                                for(d_ps[id*81+69]=d_ps[id*81+78];d_ps[id*81+69]<d_primer[turn[ID_thread*8+7]*10+4];d_ps[id*81+69]++)
+                                                {
+                                                        if(d_info[d_ps[id*81+69]*3]<d_ps[id*81+72])
+							{
+								d_ps[id*81+78]++;
                                                                 continue;
-                                                        if((d_info[sub[ID_thread*10+5]*3+2]&2)!=2)
+							}
+							if(d_info[d_ps[id*81+69]*3]>d_ps[id*81+72])
+								break;
+                                                        if((d_info[d_ps[id*81+69]*3+2]&2)!=2)
+							{
+								d_ps[id*81+78]++;
                                                                 continue;
+							}
+							if(d_info[d_ps[id*81+69]*3+1]<d_info[d_ps[id*81+64]*3+1])
+                                                        {
+                                                                d_ps[id*81+78]++;
+                                                                continue;
+                                                        }
+							if(d_info[d_ps[id*81+69]*3+1]-d_info[d_ps[id*81+64]*3+1]>300)
+								break;
                                                 //F3-F2 
-                                                        sub[ID_thread*10+7]=d_info[sub[ID_thread*10+1]*3+1]-(d_info[sub[ID_thread*10+0]*3+1]+d_primer[turn[ID_thread*8]*10+1]);
-                                                        if(sub[ID_thread*10+7]<0)
+                                                        d_ps[id*81+71]=d_info[d_ps[id*81+65]*3+1]-(d_info[d_ps[id*81+64]*3+1]+d_primer[turn[ID_thread*8]*10+1]);
+                                                        if(d_ps[id*81+71]<0)
                                                                 continue;
-                                                        if(sub[ID_thread*10+7]>20)
+                                                        if(d_ps[id*81+71]>20)
                                                                 continue;
                                                 //F2-F1c
-                                                        sub[ID_thread*10+7]=d_info[sub[ID_thread*10+2]*3+1]-d_info[sub[ID_thread*10+1]*3+1]-1;
-                                                        if(sub[ID_thread*10+7]<40)
+                                                        d_ps[id*81+71]=d_info[d_ps[id*81+66]*3+1]-d_info[d_ps[id*81+65]*3+1]-1;
+                                                        if(d_ps[id*81+71]<40)
                                                                 continue;
-                                                        if(sub[ID_thread*10+7]>60)
+                                                        if(d_ps[id*81+71]>60)
                                                                 continue;
                                                 //F1c-B1c
-                                                        sub[ID_thread*10+7]=d_info[sub[ID_thread*10+3]*3+1]-(d_info[sub[ID_thread*10+2]*3+1]+d_primer[turn[ID_thread*8+3]*10+1]-1)-1;
-                                                        if(sub[ID_thread*10+7]<0)
+                                                        d_ps[id*81+71]=d_info[d_ps[id*81+67]*3+1]-(d_info[d_ps[id*81+66]*3+1]+d_primer[turn[ID_thread*8+3]*10+1]-1)-1;
+                                                        if(d_ps[id*81+71]<0)
                                                                 continue;
                                                 //B1c-B2
-                                                        sub[ID_thread*10+7]=(d_info[sub[ID_thread*10+4]*3+1]+d_primer[turn[ID_thread*8+6]*10+1]-1)-(d_info[sub[ID_thread*10+3]*3+1]+d_primer[turn[ID_thread*8+4]*10+1]-1)-1;
-                                                        if(sub[ID_thread*10+7]<40)
+                                                        d_ps[id*81+71]=(d_info[d_ps[id*81+68]*3+1]+d_primer[turn[ID_thread*8+6]*10+1]-1)-(d_info[d_ps[id*81+67]*3+1]+d_primer[turn[ID_thread*8+4]*10+1]-1)-1;
+                                                        if(d_ps[id*81+71]<40)
                                                                 continue;
-                                                        if(sub[ID_thread*10+7]>60)
+                                                        if(d_ps[id*81+71]>60)
                                                                 continue;
                                                 //F2-B2
-                                                        sub[ID_thread*10+7]=d_info[sub[ID_thread*10+4]*3+1]+d_primer[turn[ID_thread*8+6]*10+1]-1-d_info[sub[ID_thread*10+1]*3+1]-1;
-                                                        if(sub[ID_thread*10+7]<120)
+                                                        d_ps[id*81+71]=d_info[d_ps[id*81+68]*3+1]+d_primer[turn[ID_thread*8+6]*10+1]-1-d_info[d_ps[id*81+65]*3+1]-1;
+                                                        if(d_ps[id*81+71]<120)
                                                                 continue;
-                                                        if(sub[ID_thread*10+7]>180)
+                                                        if(d_ps[id*81+71]>180)
                                                                 continue;
                                                 //B2-B3
-                                                        sub[ID_thread*10+7]=d_info[sub[ID_thread*10+5]*3+1]-(d_info[sub[ID_thread*10+4]*3+1]+d_primer[turn[ID_thread*8+6]*10+1]-1)-1;
-                                                        if(sub[ID_thread*10+7]<0)
+                                                        d_ps[id*81+71]=d_info[d_ps[id*81+69]*3+1]-(d_info[d_ps[id*81+68]*3+1]+d_primer[turn[ID_thread*8+6]*10+1]-1)-1;
+                                                        if(d_ps[id*81+71]<0)
                                                                 continue;
-                                                        if(sub[ID_thread*10+7]>20)
+                                                        if(d_ps[id*81+71]>20)
                                                                 continue;
                                                 //LF
                                                         if(turn[ID_thread*8+2]!=-1)
                                                         {
-                                                                sub[ID_thread*10+7]=0;
-                                                                for(sub[ID_thread*10+6]=d_primer[turn[ID_thread*8+2]*10+3];sub[ID_thread*10+6]<d_primer[turn[ID_thread*8+2]*10+4];sub[ID_thread*10+6]++)
+                                                                d_ps[id*81+71]=0;
+                                                                for(d_ps[id*81+70]=d_ps[id*81+79];d_ps[id*81+70]<d_primer[turn[ID_thread*8+2]*10+4];d_ps[id*81+70]++)
                                                                 {
-                                                                        if(d_info[sub[ID_thread*10+6]*3]!=sub[ID_thread*10+8])
+                                                                        if(d_info[d_ps[id*81+70]*3]<d_ps[id*81+72])
+									{
+										d_ps[id*81+79]++;
                                                                                 continue;
-                                                                        if((d_info[sub[ID_thread*10+6]*3+2]&2)!=2)
+									}
+									if(d_info[d_ps[id*81+70]*3]>d_ps[id*81+72])
+										break;
+                                                                        if((d_info[d_ps[id*81+70]*3+2]&2)!=2)
+									{
+										d_ps[id*81+79]++;
                                                                                 continue;
-                                                                        if(d_info[sub[ID_thread*10+1]*3+1]+d_primer[turn[ID_thread*8+1]*10+1]>d_info[sub[ID_thread*10+6]*3+1])
+									}
+									if(d_info[d_ps[id*81+70]*3+1]<d_info[d_ps[id*81+64]*3+1])
+									{
+										d_ps[id*81+79]++;
                                                                                 continue;
-                                                                        if(d_info[sub[ID_thread*10+6]*3+1]+d_primer[turn[ID_thread*8+2]*10+1]>d_info[sub[ID_thread*10+2]*3+1])
+                                                                        }
+									if(d_info[d_ps[id*81+70]*3+1]-d_info[d_ps[id*81+64]*3+1]>300)
+										break;
+                                                                        if(d_info[d_ps[id*81+65]*3+1]+d_primer[turn[ID_thread*8+1]*10+1]>d_info[d_ps[id*81+70]*3+1])
                                                                                 continue;
-                                                                        sub[ID_thread*10+7]=1;
+                                                                        if(d_info[d_ps[id*81+70]*3+1]+d_primer[turn[ID_thread*8+2]*10+1]>d_info[d_ps[id*81+66]*3+1])
+                                                                                continue;
+                                                                        d_ps[id*81+71]=1;
                                                                         break;
                                                                 }
-                                                                if(sub[ID_thread*10+7]==0)
+                                                                if(d_ps[id*81+71]==0)
                                                                         continue;
                                                         }
                                                 //LB
                                                         if(turn[ID_thread*8+5]!=-1)
                                                         {
-                                                                sub[ID_thread*10+7]=0;
-                                                                for(sub[ID_thread*10+6]=d_primer[turn[ID_thread*8+5]*10+3];sub[ID_thread*10+6]=d_primer[turn[ID_thread*8+5]*10+4];sub[ID_thread*10+6]++)
+                                                                d_ps[id*81+71]=0;
+                                                                for(d_ps[id*81+70]=d_ps[id*81+80];d_ps[id*81+70]=d_primer[turn[ID_thread*8+5]*10+4];d_ps[id*81+70]++)
                                                                 {
-                                                                        if(d_info[sub[ID_thread*10+6]*3]!=sub[ID_thread*10+8])
+                                                                        if(d_info[d_ps[id*81+70]*3]<d_ps[id*81+72])
+									{
+										d_ps[id*81+80]++;
                                                                                 continue;
-                                                                        if((d_info[sub[ID_thread*10+6]*3+2]&1)!=1)
+									}
+									if(d_info[d_ps[id*81+70]*3]>d_ps[id*81+72])
+										break;
+                                                                        if((d_info[d_ps[id*81+70]*3+2]&1)!=1)
+									{
+										d_ps[id*81+80]++;
                                                                                 continue;
-                                                                        if(d_info[sub[ID_thread*10+3]*3+1]+d_primer[turn[ID_thread*8+4]*10+1]>d_info[sub[ID_thread*10+6]*3+1])
+									}
+									if(d_info[d_ps[id*81+70]*3+1]<d_info[d_ps[id*81+64]*3+1])
+									{
+                                                                                d_ps[id*81+80]++;
                                                                                 continue;
-                                                                        if(d_info[sub[ID_thread*10+6]*3+1]+d_primer[turn[ID_thread*8+5]*10+1]>d_info[sub[ID_thread*10+4]*3+1])
+                                                                        }
+									if(d_info[d_ps[id*81+70]*3+1]-d_info[d_ps[id*81+64]*3+1]>300)
+										break;
+                                                                        if(d_info[d_ps[id*81+67]*3+1]+d_primer[turn[ID_thread*8+4]*10+1]>d_info[d_ps[id*81+70]*3+1])
                                                                                 continue;
-                                                                        sub[ID_thread*10+7]=1;
+                                                                        if(d_info[d_ps[id*81+70]*3+1]+d_primer[turn[ID_thread*8+5]*10+1]>d_info[d_ps[id*81+68]*3+1])
+                                                                                continue;
+                                                                        d_ps[id*81+71]=1;
                                                                         break;
                                                                 }
-                                                                if(sub[ID_thread*10+7]==0)
+                                                                if(d_ps[id*81+71]==0)
                                                                         continue;
                                                         }
-                                                        d_result[(8+const_int[7])*turn[ID_thread*8]+8+sub[ID_thread*10+8]]=1;
+                                                        d_result[(8+const_int[7])*turn[ID_thread*8]+8+d_ps[id*81+72]]=1;
                                                 }
                                         }
                                 }
@@ -2141,135 +2590,249 @@ __device__ void check_common(int *d_primer,int *d_info,int turn[],int ID_thread,
                 }
         }
 //minus
-	for(sub[ID_thread*10+0]=d_primer[turn[ID_thread*8]*10+3];sub[ID_thread*10+0]<d_primer[turn[ID_thread*8]*10+4];sub[ID_thread*10+0]++)
+	d_ps[id*81+74]=d_primer[turn[ID_thread*8+1]*10+3]; //F2
+        d_ps[id*81+75]=d_primer[turn[ID_thread*8+3]*10+3];//F1c
+        d_ps[id*81+76]=d_primer[turn[ID_thread*8+4]*10+3];//B1c
+        d_ps[id*81+77]=d_primer[turn[ID_thread*8+6]*10+3];//B2
+        d_ps[id*81+78]=d_primer[turn[ID_thread*8+7]*10+3];//B3
+        if(turn[ID_thread*8+2]!=-1)
+                d_ps[id*81+79]=d_primer[turn[ID_thread*8+2]*10+3];//LF
+        if(turn[ID_thread*8+5]!=-1)
+                d_ps[id*81+80]=d_primer[turn[ID_thread*8+5]*10+3];
+	for(d_ps[id*81+64]=d_primer[turn[ID_thread*8]*10+3];d_ps[id*81+64]<d_primer[turn[ID_thread*8]*10+4];d_ps[id*81+64]++) //F3
         {
-                if((d_info[sub[ID_thread*10+0]*3+2]&2)!=2)
+                if((d_info[d_ps[id*81+64]*3+2]&2)!=2)
                         continue;
-                sub[ID_thread*10+8]=d_info[sub[ID_thread*10+0]*3];
-                if(d_result[(8+const_int[7])*turn[ID_thread*8]+8+sub[ID_thread*10+8]]!=0)
+                d_ps[id*81+72]=d_info[d_ps[id*81+64]*3];
+                if(d_result[(8+const_int[7])*turn[ID_thread*8]+8+d_ps[id*81+72]]!=0)
                         continue;
-                for(sub[ID_thread*10+1]=d_primer[turn[ID_thread*8+1]*10+3];sub[ID_thread*10+1]<d_primer[turn[ID_thread*8+1]*10+4];sub[ID_thread*10+1]++)
+                for(d_ps[id*81+65]=d_ps[id*81+74];d_ps[id*81+65]<d_primer[turn[ID_thread*8+1]*10+4];d_ps[id*81+65]++)//F2
                 {
-                        if(d_info[sub[ID_thread*10+1]*3]!=sub[ID_thread*10+8])
-                                continue;
-                        if((d_info[sub[ID_thread*10+1]*3+2]&2)!=2)
-                                continue;
-                        for(sub[ID_thread*10+2]=d_primer[turn[ID_thread*8+3]*10+3];sub[ID_thread*10+2]<d_primer[turn[ID_thread*8+3]*10+4];sub[ID_thread*10+2]++)
+			if(d_info[d_ps[id*81+65]*3]<d_ps[id*81+72])
                         {
-                                if(d_info[sub[ID_thread*10+2]*3]!=sub[ID_thread*10+8])
-                                        continue;
-                                if((d_info[sub[ID_thread*10+2]*3+2]&1)!=1)
-                                        continue;
-                                for(sub[ID_thread*10+3]=d_primer[turn[ID_thread*8+4]*10+3];sub[ID_thread*10+3]<d_primer[turn[ID_thread*8+4]*10+4];sub[ID_thread*10+3]++)
+                                d_ps[id*81+74]++;
+                                continue;
+                        }
+                        if(d_info[d_ps[id*81+65]*3]>d_ps[id*81+72])
+                                break;
+                        if((d_info[d_ps[id*81+65]*3+2]&2)!=2)
+			{
+				d_ps[id*81+74]++;
+                                continue;
+			}
+			if(d_info[d_ps[id*81+65]*3+1]-d_info[d_ps[id*81+64]*3+1]<-300)
+                        {
+                                d_ps[id*81+74]++;
+                                continue;
+                        }
+                        if(d_info[d_ps[id*81+65]*3+1]>d_info[d_ps[id*81+64]*3+1])
+                                break;
+                        for(d_ps[id*81+66]=d_ps[id*81+75];d_ps[id*81+66]<d_primer[turn[ID_thread*8+3]*10+4];d_ps[id*81+66]++)//F1c
+                        {
+				if(d_info[d_ps[id*81+66]*3]<d_ps[id*81+72])
                                 {
-                                        if(d_info[sub[ID_thread*10+3]*3]!=sub[ID_thread*10+8])
-                                                continue;
-                                        if((d_info[sub[ID_thread*10+3]*3+2]&2)!=2)
-                                                continue;
-                                        for(sub[ID_thread*10+4]=d_primer[turn[ID_thread*8+6]*10+3];sub[ID_thread*10+4]<d_primer[turn[ID_thread*8+6]*10+4];sub[ID_thread*10+4]++)
+                                        d_ps[id*81+75]++;
+                                        continue;
+                                }
+                                if(d_info[d_ps[id*81+66]*3]>d_ps[id*81+72])
+                                        break;
+                                if((d_info[d_ps[id*81+66]*3+2]&1)!=1)
+				{
+					d_ps[id*81+75]++;
+                                        continue;
+				}
+				if(d_info[d_ps[id*81+66]*3+1]-d_info[d_ps[id*81+64]*3+1]<-300)
+                                {
+                                        d_ps[id*81+75]++;
+                                        continue;
+                                }
+                                if(d_info[d_ps[id*81+66]*3+1]>d_info[d_ps[id*81+64]*3+1])
+                                        break;
+                                for(d_ps[id*81+67]=d_ps[id*81+76];d_ps[id*81+67]<d_primer[turn[ID_thread*8+4]*10+4];d_ps[id*81+67]++)//B1c
+                                {
+					if(d_info[d_ps[id*81+67]*3]<d_ps[id*81+72])
                                         {
-                                                if(d_info[sub[ID_thread*10+4]*3]!=sub[ID_thread*10+8])
-                                                        continue;
-                                                if((d_info[sub[ID_thread*10+4]*3+2]&1)!=1)
-                                                        continue;
-                                                for(sub[ID_thread*10+5]=d_primer[turn[ID_thread*8+7]*10+3];sub[ID_thread*10+5]<d_primer[turn[ID_thread*8+7]*10+4];sub[ID_thread*10+5]++)
+                                                d_ps[id*81+76]++;
+                                                continue;
+                                        }
+                                        if(d_info[d_ps[id*81+67]*3]>d_ps[id*81+72])
+                                                break;
+                                        if((d_info[d_ps[id*81+67]*3+2]&2)!=2)
+					{
+						d_ps[id*81+76]++;
+                                                continue;
+					}
+					if(d_info[d_ps[id*81+67]*3+1]-d_info[d_ps[id*81+64]*3+1]<-300)
+                                        {
+                                                d_ps[id*81+76]++;
+                                                continue;
+                                        }
+                                        if(d_info[d_ps[id*81+67]*3+1]>d_info[d_ps[id*81+64]*3+1])
+                                                break;
+                                        for(d_ps[id*81+68]=d_ps[id*81+77];d_ps[id*81+68]<d_primer[turn[ID_thread*8+6]*10+4];d_ps[id*81+68]++)//B2
+                                        {
+						if(d_info[d_ps[id*81+68]*3]<d_ps[id*81+72])
                                                 {
-                                                        if(d_info[sub[ID_thread*10+5]*3]!=sub[ID_thread*10+8])
+                                                        d_ps[id*81+77]++;
+                                                        continue;
+                                                }
+                                                if(d_info[d_ps[id*81+68]*3]>d_ps[id*81+72])
+                                                        break;
+                                                if((d_info[d_ps[id*81+68]*3+2]&1)!=1)
+						{
+							d_ps[id*81+77]++;
+                                                        continue;
+						}
+						if(d_info[d_ps[id*81+68]*3+1]-d_info[d_ps[id*81+64]*3+1]<-300)
+                                                {
+                                                        d_ps[id*81+77]++;
+                                                        continue;
+                                                }
+                                                if(d_info[d_ps[id*81+68]*3+1]>d_info[d_ps[id*81+64]*3+1])
+                                                        break;
+                                                for(d_ps[id*81+69]=d_ps[id*81+78];d_ps[id*81+69]<d_primer[turn[ID_thread*8+7]*10+4];d_ps[id*81+69]++)
+                                                {
+							if(d_info[d_ps[id*81+69]*3]<d_ps[id*81+72])
+                                                        {
+                                                                d_ps[id*81+78]++;
                                                                 continue;
-                                                        if((d_info[sub[ID_thread*10+5]*3+2]&1)!=1)
+                                                        }
+                                                        if(d_info[d_ps[id*81+69]*3]>d_ps[id*81+72])
+                                                                break;
+                                                        if((d_info[d_ps[id*81+69]*3+2]&1)!=1)
+							{
+								d_ps[id*81+78]++;
                                                                 continue;
+							}
+							if(d_info[d_ps[id*81+69]*3+1]-d_info[d_ps[id*81+64]*3+1]<-300)
+                                                        {
+                                                                d_ps[id*81+78]++;
+                                                                continue;
+                                                        }
+                                                        if(d_info[d_ps[id*81+69]*3+1]>d_info[d_ps[id*81+64]*3+1])
+                                                                break;
                                                 //F3-F2 
-                                                        sub[ID_thread*10+7]=d_info[sub[ID_thread*10+0]*3+1]-(d_info[sub[ID_thread*10+1]*3+1]+d_primer[turn[ID_thread*8+1]*10+1]-1)-1;
-                                                        if(sub[ID_thread*10+7]<0)
+                                                        d_ps[id*81+71]=d_info[d_ps[id*81+64]*3+1]-(d_info[d_ps[id*81+65]*3+1]+d_primer[turn[ID_thread*8+1]*10+1]-1)-1;
+                                                        if(d_ps[id*81+71]<0)
                                                                 continue;
-                                                        if(sub[ID_thread*10+7]>20)
+                                                        if(d_ps[id*81+71]>20)
                                                                 continue;
                                                 //F2-F1c
-                                                        sub[ID_thread*10+7]=(d_info[sub[ID_thread*10+1]*3+1]+d_primer[turn[ID_thread*8+1]*10+1]-1)-(d_info[sub[ID_thread*10+2]*3+1]+d_primer[turn[ID_thread*8+3]*10+1]-1)-1;
-                                                        if(sub[ID_thread*10+7]<40)
+                                                        d_ps[id*81+71]=(d_info[d_ps[id*81+65]*3+1]+d_primer[turn[ID_thread*8+1]*10+1]-1)-(d_info[d_ps[id*81+66]*3+1]+d_primer[turn[ID_thread*8+3]*10+1]-1)-1;
+                                                        if(d_ps[id*81+71]<40)
                                                                 continue;
-                                                        if(sub[ID_thread*10+7]>60)
+                                                        if(d_ps[id*81+71]>60)
                                                                 continue;
                                                 //F1c-B1c
-                                                        sub[ID_thread*10+7]=d_info[sub[ID_thread*10+2]*3+1]-(d_info[sub[ID_thread*10+3]*3+1]+d_primer[turn[ID_thread*8+4]*10+1]-1)-1;
-                                                        if(sub[ID_thread*10+7]<0)
+                                                        d_ps[id*81+71]=d_info[d_ps[id*81+66]*3+1]-(d_info[d_ps[id*81+67]*3+1]+d_primer[turn[ID_thread*8+4]*10+1]-1)-1;
+                                                        if(d_ps[id*81+71]<0)
                                                                 continue;
                                                 //B1c-B2
-                                                        sub[ID_thread*10+7]=d_info[sub[ID_thread*10+3]*3+1]-d_info[sub[ID_thread*10+4]*3+1]-1;
-                                                        if(sub[ID_thread*10+7]<40)
+                                                        d_ps[id*81+71]=d_info[d_ps[id*81+67]*3+1]-d_info[d_ps[id*81+68]*3+1]-1;
+                                                        if(d_ps[id*81+71]<40)
                                                                 continue;
-                                                        if(sub[ID_thread*10+7]>60)
+                                                        if(d_ps[id*81+71]>60)
                                                                 continue;
                                                 //F2-B2
-                                                        sub[ID_thread*10+7]=d_info[sub[ID_thread*10+1]*3+1]+d_primer[turn[ID_thread*8+1]*10+1]-1-d_info[sub[ID_thread*10+4]*3+1]-1;
-                                                        if(sub[ID_thread*10+7]<120)
+                                                        d_ps[id*81+71]=d_info[d_ps[id*81+65]*3+1]+d_primer[turn[ID_thread*8+1]*10+1]-1-d_info[d_ps[id*81+68]*3+1]-1;
+                                                        if(d_ps[id*81+71]<120)
                                                                 continue;
-                                                        if(sub[ID_thread*10+7]>180)
+                                                        if(d_ps[id*81+71]>180)
                                                                 continue;
                                                 //B2-B3
-                                                        sub[ID_thread*10+7]=d_info[sub[ID_thread*10+4]*3+1]-(d_info[sub[ID_thread*10+5]*3+1]+d_primer[turn[ID_thread*8+7]*10+1]-1)-1;
-                                                        if(sub[ID_thread*10+7]<0)
+                                                        d_ps[id*81+71]=d_info[d_ps[id*81+68]*3+1]-(d_info[d_ps[id*81+69]*3+1]+d_primer[turn[ID_thread*8+7]*10+1]-1)-1;
+                                                        if(d_ps[id*81+71]<0)
                                                                 continue;
-                                                        if(sub[ID_thread*10+7]>20)
+                                                        if(d_ps[id*81+71]>20)
                                                                 continue;
                                                 //LF
                                                         if(turn[ID_thread*8+2]!=-1)
                                                         {
-                                                                sub[ID_thread*10+7]=0;
-                                                                for(sub[ID_thread*10+6]=d_primer[turn[ID_thread*8+2]*10+3];sub[ID_thread*10+6]<d_primer[turn[ID_thread*8+2]*10+4];sub[ID_thread*10+6]++)
+                                                                d_ps[id*81+71]=0;
+                                                                for(d_ps[id*81+70]=d_ps[id*81+79];d_ps[id*81+70]<d_primer[turn[ID_thread*8+2]*10+4];d_ps[id*81+70]++)
                                                                 {
-                                                                        if(d_info[sub[ID_thread*10+6]*3]!=sub[ID_thread*10+8])
+									if(d_info[d_ps[id*81+70]*3]<d_ps[id*81+72])
+                                                                        {
+                                                                                d_ps[id*81+79]++;
                                                                                 continue;
-                                                                        if((d_info[sub[ID_thread*10+6]*3+2]&1)!=1)
+                                                                        }
+                                                                        if(d_info[d_ps[id*81+70]*3]>d_ps[id*81+72])
+                                                                                break;
+                                                                        if((d_info[d_ps[id*81+70]*3+2]&1)!=1)
+									{
+										d_ps[id*81+79]++;
                                                                                 continue;
-                                                                        if(d_info[sub[ID_thread*10+2]*3+1]+d_primer[turn[ID_thread*8+3]*10+1]>d_info[sub[ID_thread*10+6]*3+1])
+									}
+									if(d_info[d_ps[id*81+70]*3+1]-d_info[d_ps[id*81+64]*3+1]<-300)
+                                                                        {
+                                                                                d_ps[id*81+79]++;
                                                                                 continue;
-                                                                        if(d_info[sub[ID_thread*10+6]*3+1]+d_primer[turn[ID_thread*8+2]*10+1]>d_info[sub[ID_thread*10+1]*3+1])
+                                                                        }
+                                                                        if(d_info[d_ps[id*81+70]*3+1]>d_info[d_ps[id*81+64]*3+1])
+                                                                                break;
+                                                                        if(d_info[d_ps[id*81+66]*3+1]+d_primer[turn[ID_thread*8+3]*10+1]>d_info[d_ps[id*81+70]*3+1])
                                                                                 continue;
-                                                                        sub[ID_thread*10+7]=1;
+                                                                        if(d_info[d_ps[id*81+70]*3+1]+d_primer[turn[ID_thread*8+2]*10+1]>d_info[d_ps[id*81+65]*3+1])
+                                                                                continue;
+                                                                        d_ps[id*81+71]=1;
                                                                         break;
                                                                 }
-                                                                if(sub[ID_thread*10+7]==0)
+                                                                if(d_ps[id*81+71]==0)
                                                                         continue;
                                                         }
                                                 //LB
                                                         if(turn[ID_thread*8+5]!=-1)
                                                         {
-                                                                sub[ID_thread*10+7]=0;
-                                                                for(sub[ID_thread*10+6]=d_primer[turn[ID_thread*8+5]*10+3];sub[ID_thread*10+6]=d_primer[turn[ID_thread*8+5]*10+4];sub[ID_thread*10+6]++)
+                                                                d_ps[id*81+71]=0;
+                                                                for(d_ps[id*81+70]=d_ps[id*81+80];d_ps[id*81+70]=d_primer[turn[ID_thread*8+5]*10+4];d_ps[id*81+70]++)
                                                                 {
-                                                                        if(d_info[sub[ID_thread*10+6]*3]!=sub[ID_thread*10+8])
+									if(d_info[d_ps[id*81+70]*3]<d_ps[id*81+72])
+                                                                        {
+                                                                                d_ps[id*81+80]++;
                                                                                 continue;
-                                                                        if((d_info[sub[ID_thread*10+6]*3+2]&2)!=2)
+                                                                        }
+                                                                        if(d_info[d_ps[id*81+70]*3]>d_ps[id*81+72])
+                                                                                break;
+                                                                        if((d_info[d_ps[id*81+70]*3+2]&2)!=2)
+									{
+										d_ps[id*81+80]++;
                                                                                 continue;
-                                                                        if(d_info[sub[ID_thread*10+4]*3+1]+d_primer[turn[ID_thread*8+6]*10+1]>d_info[sub[ID_thread*10+6]*3+1])
+									}
+									if(d_info[d_ps[id*81+70]*3+1]-d_info[d_ps[id*81+64]*3+1]<-300)
+                                                                        {
+                                                                                d_ps[id*81+80]++;
                                                                                 continue;
-                                                                        if(d_info[sub[ID_thread*10+6]*3+1]+d_primer[turn[ID_thread*8+5]*10+1]>d_info[sub[ID_thread*10+3]*3+1])
+                                                                        }
+                                                                        if(d_info[d_ps[id*81+70]*3+1]>d_info[d_ps[id*81+64]*3+1])
+                                                                                break;
+                                                                        if(d_info[d_ps[id*81+68]*3+1]+d_primer[turn[ID_thread*8+6]*10+1]>d_info[d_ps[id*81+70]*3+1])
                                                                                 continue;
-                                                                        sub[ID_thread*10+7]=1;
+                                                                        if(d_info[d_ps[id*81+70]*3+1]+d_primer[turn[ID_thread*8+5]*10+1]>d_info[d_ps[id*81+67]*3+1])
+                                                                                continue;
+                                                                        d_ps[id*81+71]=1;
                                                                         break;
                                                                 }
-                                                                if(sub[ID_thread*10+7]==0)
+                                                                if(d_ps[id*81+71]==0)
                                                                         continue;
                                                         }
-							d_result[(8+const_int[7])*turn[ID_thread*8]+8+sub[ID_thread*10+8]]=1;
+							d_result[(8+const_int[7])*turn[ID_thread*8]+8+d_ps[id*81+72]]=1;
                                                 }
                                         }
                                 }
                         }
                 }
         }
-	sub[ID_thread*10+7]=0;
-        for(sub[ID_thread*10+8]=0;sub[ID_thread*10+8]<const_int[7];sub[ID_thread*10+8]++)
+	d_ps[id*81+71]=0;
+        for(d_ps[id*81+72]=0;d_ps[id*81+72]<const_int[7];d_ps[id*81+72]++)
         {
-                sub[ID_thread*10+7]=sub[ID_thread*10+7]+d_result[(8+const_int[7])*turn[ID_thread*8]+8+sub[ID_thread*10+8]];
+                d_ps[id*81+71]=d_ps[id*81+71]+d_result[(8+const_int[7])*turn[ID_thread*8]+8+d_ps[id*81+72]];
         }
 }
 
-__device__ void design_loop(int *d_primer,char *d_seq,int *d_info,int turn[],int ID_thread,int *d_result,double *d_DPT,int id,int *d_ps,char *d_numSeq,double *d_out,int sub[])
+__device__ void design_loop(int *d_primer,char *d_seq,int *d_info,int turn[],int ID_thread,int *d_result,double *d_DPT,int id,int *d_ps,char *d_numSeq)
 {
 //LF and LB 
-        sub[ID_thread*10+9]=0;
+        d_ps[id*81+73]=0;
 	turn[ID_thread*8+2]=d_primer[turn[ID_thread*8+1]*10+9];
         while(turn[ID_thread*8+2]<const_int[2]+const_int[0]+const_int[1])
         {
@@ -2297,8 +2860,8 @@ __device__ void design_loop(int *d_primer,char *d_seq,int *d_info,int turn[],int
                 //check_common
                         if(const_int[3])
                         {
-                                check_common(d_primer,d_info,turn,ID_thread,d_result,sub);
-                                if(sub[ID_thread*10+7]<const_int[8])
+                                check_common(d_primer,d_info,turn,ID_thread,id,d_result,d_ps);
+                                if(d_ps[id*81+71]<const_int[8])
                                 {
                                         turn[ID_thread*8+5]++;
                                         continue;
@@ -2307,22 +2870,22 @@ __device__ void design_loop(int *d_primer,char *d_seq,int *d_info,int turn[],int
                 //check_structure
                         if(const_int[6])
                         {
-                                check_structure(d_seq,d_primer,turn,ID_thread,id,d_DPT,d_ps,d_numSeq,d_out,sub);
-                                if(sub[ID_thread*10+2]==0)
+                                check_structure(d_seq,d_primer,turn,ID_thread,id,d_DPT,d_ps,d_numSeq);
+                                if(d_ps[id*81+66]==0)
                                 {
                                         turn[ID_thread*8+5]++;
                                         continue;
                                 }
                         }
-                        sub[ID_thread*10+9]=1;
+                        d_ps[id*81+73]=1;
                         break;
                 }
-                if(sub[ID_thread*10+9]==1)
+                if(d_ps[id*81+73]==1)
                         break;
                 else
                         turn[ID_thread*8+2]++;
         }
-        if(sub[ID_thread*10+9]==1)
+        if(d_ps[id*81+73]==1)
                 return;
 //only LF
         turn[ID_thread*8+2]=d_primer[turn[ID_thread*8+1]*10+9];
@@ -2341,8 +2904,8 @@ __device__ void design_loop(int *d_primer,char *d_seq,int *d_info,int turn[],int
         //check_common
                 if(const_int[3])
                 {
-                        check_common(d_primer,d_info,turn,ID_thread,d_result,sub);
-                        if(sub[ID_thread*10+7]<const_int[8])
+                        check_common(d_primer,d_info,turn,ID_thread,id,d_result,d_ps);
+                        if(d_ps[id*81+71]<const_int[8])
                         {
                                 turn[ID_thread*8+2]++;
                                 continue;
@@ -2351,17 +2914,17 @@ __device__ void design_loop(int *d_primer,char *d_seq,int *d_info,int turn[],int
         //check_structure
                 if(const_int[6])
                 {
-                        check_structure(d_seq,d_primer,turn,ID_thread,id,d_DPT,d_ps,d_numSeq,d_out,sub);
-                        if(sub[ID_thread*10+2]==0)
+                        check_structure(d_seq,d_primer,turn,ID_thread,id,d_DPT,d_ps,d_numSeq);
+			if(d_ps[id*81+66]==0)
                         {
                                 turn[ID_thread*8+2]++;
                                 continue;
                         }
                 }
-                sub[ID_thread*10+9]=1;
+                d_ps[id*81+73]=1;
                 break;
         }
-        if(sub[ID_thread*10+9]==1)
+        if(d_ps[id*81+73]==1)
                 return;
 //only LB
         turn[ID_thread*8+5]=d_primer[turn[ID_thread*8+3]*10+9];
@@ -2380,8 +2943,8 @@ __device__ void design_loop(int *d_primer,char *d_seq,int *d_info,int turn[],int
         //check_common
                 if(const_int[3])
                 {
-                        check_common(d_primer,d_info,turn,ID_thread,d_result,sub);
-                        if(sub[ID_thread*10+7]<const_int[8])
+                        check_common(d_primer,d_info,turn,ID_thread,id,d_result,d_ps);
+                        if(d_ps[id*81+71]<const_int[8])
                         {
                                 turn[ID_thread*8+5]++;
                                 continue;
@@ -2390,25 +2953,24 @@ __device__ void design_loop(int *d_primer,char *d_seq,int *d_info,int turn[],int
         //check_structure
                 if(const_int[6])
                 {
-                        check_structure(d_seq,d_primer,turn,ID_thread,id,d_DPT,d_ps,d_numSeq,d_out,sub);
-                        if(sub[ID_thread*10+2]==0)
+                        check_structure(d_seq,d_primer,turn,ID_thread,id,d_DPT,d_ps,d_numSeq);
+			if(d_ps[id*81+66]==0)
                         {
                                 turn[ID_thread*8+5]++;
                                 continue;
                         }
                 }
-                sub[ID_thread*10+9]=1;
+                d_ps[id*81+73]=1;
                 break;
         }
 }
 
 //caculate
-__global__ void LAMP(char *d_seq,int *d_primer,int *d_info,int *d_result,double *d_DPT,int *d_ps,char *d_numSeq,double *d_out)
+__global__ void LAMP(char *d_seq,int *d_primer,int *d_info,int *d_result,double *d_DPT,int *d_ps,char *d_numSeq)
 //const_int: 0:numS,1:numL,2:numLp,3:common_flag,4:special_flag,5:loop_flag,6:secondary_flag,7:common_num,8:this turn common_num,9:high_GC_flag; 10:expect
 {
 	int id=blockDim.x*blockIdx.x+threadIdx.x;
-	__shared__ int turn[4096];
-	__shared__ int sub[5120];
+	__shared__ int turn[8192];
 
 	while(id<const_int[0])
 	{
@@ -2421,94 +2983,140 @@ __global__ void LAMP(char *d_seq,int *d_primer,int *d_info,int *d_result,double 
 		}
 	//combine
 		turn[threadIdx.x*8]=id; //one thread, one F3
-		sub[threadIdx.x*10+9]=0;
-		for(turn[threadIdx.x*8+1]=d_primer[id*10+7];turn[threadIdx.x*8+1]<const_int[0];turn[threadIdx.x*8+1]++) //F2
+		d_ps[id*81+73]=0;
+		for(turn[threadIdx.x*8+7]=d_primer[id*10+7];turn[threadIdx.x*8+7]<const_int[0];turn[threadIdx.x*8+7]++)  //B3
 		{
-			if(turn[threadIdx.x*8+1]==-1)
+			if(turn[threadIdx.x*8+7]==-1)
 				break;
-			if(sub[threadIdx.x*10+9]!=0)
-				break; //have find one LAMP primer
-			if((d_primer[turn[threadIdx.x*8+1]*10+2]&1)!=1)
+			if((d_primer[turn[threadIdx.x*8+7]*10+2]&2)!=2)
 				continue;
-			if(d_primer[turn[threadIdx.x*8+1]*10]-(d_primer[turn[threadIdx.x*8]*10]+d_primer[turn[threadIdx.x*8]*10+1])>20)
+			if(d_primer[turn[threadIdx.x*8+7]*10]-d_primer[id*10]<133)
+				continue;
+			if(d_primer[turn[threadIdx.x*8+7]*10]-d_primer[id*10]>250)
 				break;
-			for(turn[threadIdx.x*8+3]=d_primer[turn[threadIdx.x*8+1]*10+8];turn[threadIdx.x*8+3]<const_int[1]+const_int[0];turn[threadIdx.x*8+3]++) //F1c
+			check_gc(d_seq,d_primer[turn[threadIdx.x*8]*10],(d_primer[turn[threadIdx.x*8+7]*10]+d_primer[turn[threadIdx.x*8+7]*10+1]),const_int[9],d_ps,id);
+ 			if(d_ps[id*81+66]==0)
+				continue;
+			for(turn[threadIdx.x*8+1]=d_primer[id*10+7];turn[threadIdx.x*8+1]<const_int[0];turn[threadIdx.x*8+1]++) //F2
 			{
-				if(turn[threadIdx.x*8+3]==-1)
+				if(turn[threadIdx.x*8+1]==-1)
 					break;
-				if(sub[threadIdx.x*10+9]!=0)
+				if((d_primer[turn[threadIdx.x*8+1]*10+2]&1)!=1)
+					continue;
+			//F2-B3
+				if(d_primer[turn[threadIdx.x*8+7]*10]-d_primer[turn[threadIdx.x*8+1]*10]>205)
+					continue;
+				if(d_primer[turn[threadIdx.x*8+7]*10]-d_primer[turn[threadIdx.x*8+1]*10]<115)
 					break;
-				if((d_primer[turn[threadIdx.x*8+3]*10+2]&2)!=2)
-					continue;
-				if(d_primer[turn[threadIdx.x*8+3]*10]-d_primer[turn[threadIdx.x*8+1]*10]-1<40)
-					continue;
-                                if(d_primer[turn[threadIdx.x*8+3]*10]-d_primer[turn[threadIdx.x*8+1]*10]-1>60)
-                                	break;
-                                for(turn[threadIdx.x*8+4]=d_primer[turn[threadIdx.x*8+3]*10+7];turn[threadIdx.x*8+4]<const_int[1]+const_int[0];turn[threadIdx.x*8+4]++)   //B1c
-                                {
-                                        if(turn[threadIdx.x*8+4]==-1)
-                                        	break;
-					if(sub[threadIdx.x*10+9]!=0)
+				if(d_primer[turn[threadIdx.x*8+1]*10]-(d_primer[turn[threadIdx.x*8]*10]+d_primer[turn[threadIdx.x*8]*10+1])>20)
+					break;
+				for(turn[threadIdx.x*8+3]=d_primer[turn[threadIdx.x*8+1]*10+8];turn[threadIdx.x*8+3]<const_int[1]+const_int[0];turn[threadIdx.x*8+3]++) //F1c
+				{
+					if(turn[threadIdx.x*8+3]==-1)
 						break;
-					if((d_primer[turn[threadIdx.x*8+4]*10+2]&1)!=1)
+					if((d_primer[turn[threadIdx.x*8+3]*10+2]&2)!=2)
 						continue;
-                                        if(d_primer[turn[threadIdx.x*8+4]*10]-d_primer[turn[threadIdx.x*8+3]*10]>85)
-                                        	break;
-                                        for(turn[threadIdx.x*8+6]=d_primer[turn[threadIdx.x*8+4]*10+8];turn[threadIdx.x*8+6]<const_int[0];turn[threadIdx.x*8+6]++)   //B2
-                                        {
-                                                if(turn[threadIdx.x*8+6]==-1)
-                                                	break;
-						if(sub[threadIdx.x*10+9]!=0)
+				//F1c-B3
+					if(d_primer[turn[threadIdx.x*8+7]*10]-d_primer[turn[threadIdx.x*8+3]*10]>165)
+						continue;
+					if(d_primer[turn[threadIdx.x*8+7]*10]-d_primer[turn[threadIdx.x*8+3]*10]<55)
+						break;
+					if(d_primer[turn[threadIdx.x*8+3]*10]-d_primer[turn[threadIdx.x*8+1]*10]-1<40)
+						continue;
+	                                if(d_primer[turn[threadIdx.x*8+3]*10]-d_primer[turn[threadIdx.x*8+1]*10]-1>60)
+	                                	break;
+	                                for(turn[threadIdx.x*8+4]=d_primer[turn[threadIdx.x*8+3]*10+7];turn[threadIdx.x*8+4]<const_int[1]+const_int[0];turn[threadIdx.x*8+4]++)   //B1c
+	                                {
+	                                        if(turn[threadIdx.x*8+4]==-1)
+	                                        	break;
+						if((d_primer[turn[threadIdx.x*8+4]*10+2]&1)!=1)
+							continue;
+					//B1c-B3
+						if(d_primer[turn[threadIdx.x*8+7]*10]-d_primer[turn[threadIdx.x*8+4]*10]>110)
+							continue;
+						if(d_primer[turn[threadIdx.x*8+7]*10]-d_primer[turn[threadIdx.x*8+4]*10]<53)
 							break;
-						if((d_primer[turn[threadIdx.x*8+6]*10+2]&2)!=2)
-							continue;
-                                                if((d_primer[turn[threadIdx.x*8+6]*10]+d_primer[turn[threadIdx.x*8+6]*10+1]-1)-(d_primer[turn[threadIdx.x*8+4]*10]+d_primer[turn[threadIdx.x*8+4]*10+1])<40)
-                                                	continue;
-                                                if((d_primer[turn[threadIdx.x*8+6]*10]+d_primer[turn[threadIdx.x*8+6]*10+1]-1)-(d_primer[turn[threadIdx.x*8+4]*10]+d_primer[turn[threadIdx.x*8+4]*10+1])>60)
-                                                	break;
-                                                if(d_primer[turn[threadIdx.x*8+6]*10]+d_primer[turn[threadIdx.x*8+6]*10+1]-1-d_primer[turn[threadIdx.x*8+1]*10]-1<120)
-                                                	continue;
-                                                if(d_primer[turn[threadIdx.x*8+6]*10]+d_primer[turn[threadIdx.x*8+6]*10+1]-1-d_primer[turn[threadIdx.x*8+1]*10]-1>180)
-                                                	break;
-						if(const_int[5]&&(d_primer[turn[threadIdx.x*8+1]*10+9]==-1||(d_primer[d_primer[turn[threadIdx.x*8+1]*10+9]*10]+18>d_primer[turn[threadIdx.x*8+3]*10]))&&(d_primer[turn[threadIdx.x*8+4]*10+9]==-1||(d_primer[d_primer[turn[threadIdx.x*8+4]*10+9]*10]+18>d_primer[turn[threadIdx.x*8+6]*10])))
-							continue;
-                                                for(turn[threadIdx.x*8+7]=d_primer[turn[threadIdx.x*8+6]*10+7];turn[threadIdx.x*8+7]<const_int[0];turn[threadIdx.x*8+7]++)  //B3
-                                                {
-                                                        if(turn[threadIdx.x*8+7]==-1)
-                                                        	break;
-							if((d_primer[turn[threadIdx.x*8+7]*10+2]&2)!=2)
+	                                        if(d_primer[turn[threadIdx.x*8+4]*10]-d_primer[turn[threadIdx.x*8+3]*10]>85)
+	                                        	break;
+	                                        for(turn[threadIdx.x*8+6]=d_primer[turn[threadIdx.x*8+4]*10+8];turn[threadIdx.x*8+6]<const_int[0];turn[threadIdx.x*8+6]++)   //B2
+	                                        {
+	                                                if(turn[threadIdx.x*8+6]==-1)
+	                                                	break;
+							if((d_primer[turn[threadIdx.x*8+6]*10+2]&2)!=2)
 								continue;
+	                                                if((d_primer[turn[threadIdx.x*8+6]*10]+d_primer[turn[threadIdx.x*8+6]*10+1]-1)-(d_primer[turn[threadIdx.x*8+4]*10]+d_primer[turn[threadIdx.x*8+4]*10+1])<40)
+	                                                	continue;
+	                                                if((d_primer[turn[threadIdx.x*8+6]*10]+d_primer[turn[threadIdx.x*8+6]*10+1]-1)-(d_primer[turn[threadIdx.x*8+4]*10]+d_primer[turn[threadIdx.x*8+4]*10+1])>60)
+	                                                	break;
+	                                                if(d_primer[turn[threadIdx.x*8+6]*10]+d_primer[turn[threadIdx.x*8+6]*10+1]-1-d_primer[turn[threadIdx.x*8+1]*10]-1<120)
+	                                                	continue;
+	                                                if(d_primer[turn[threadIdx.x*8+6]*10]+d_primer[turn[threadIdx.x*8+6]*10+1]-1-d_primer[turn[threadIdx.x*8+1]*10]-1>180)
+	                                                	break;
+							if(const_int[5]&&(d_primer[turn[threadIdx.x*8+1]*10+9]==-1||(d_primer[d_primer[turn[threadIdx.x*8+1]*10+9]*10]+18>d_primer[turn[threadIdx.x*8+3]*10]))&&(d_primer[turn[threadIdx.x*8+4]*10+9]==-1||(d_primer[d_primer[turn[threadIdx.x*8+4]*10+9]*10]+18>d_primer[turn[threadIdx.x*8+6]*10])))
+								continue;
+						//B3
+							if(d_primer[turn[threadIdx.x*8+7]*10]<d_primer[turn[threadIdx.x*8+6]*10]+d_primer[turn[threadIdx.x*8+6]*10+1])
+								break;
                                                         if(d_primer[turn[threadIdx.x*8+7]*10]-(d_primer[turn[threadIdx.x*8+6]*10]+d_primer[turn[threadIdx.x*8+6]*10+1])>20)
-                                                        	break;
-							check_gc(d_seq,d_primer[turn[threadIdx.x*8]*10],(d_primer[turn[threadIdx.x*8+7]*10]+d_primer[turn[threadIdx.x*8+7]*10+1]),const_int[9],sub,threadIdx.x);
-							if(sub[threadIdx.x*10+2]==0)
-								continue;
+                                                        	continue;
 							if(const_int[4]!=0)
 							{
-								check_uniq(d_primer,d_info,turn,threadIdx.x,sub);
-								if(sub[threadIdx.x*10+7]==0)
-									continue;
+								check_uniq(d_primer,d_info,turn,threadIdx.x,id,d_ps);
+								if(d_ps[id*81+71]==0)
+								{
+									if(const_int[19])
+									{
+										d_ps[id*81+73]=1;
+										break;
+									}
+									else
+										continue;
+								}
 							}
 
 							turn[threadIdx.x*8+2]=-1;
 							turn[threadIdx.x*8+5]=-1; //loop
 							if(const_int[3])
 							{
-								check_common(d_primer,d_info,turn,threadIdx.x,d_result,sub);
-								if(sub[threadIdx.x*10+7]<const_int[8])
-									continue;
+								check_common(d_primer,d_info,turn,threadIdx.x,id,d_result,d_ps);
+								if(d_ps[id*81+71]<const_int[8])
+								{
+                                                                        if(const_int[19])
+                                                                        {
+                                                                                d_ps[id*81+73]=1;
+                                                                                break;
+                                                                        }
+                                                                        else
+                                                                                continue;
+                                                                }
 							}
 							if(const_int[6])
 							{
-								check_structure(d_seq,d_primer,turn,threadIdx.x,id,d_DPT,d_ps,d_numSeq,d_out,sub);
-								if(sub[threadIdx.x*10+2]==0)
-									continue;
+								check_structure(d_seq,d_primer,turn,threadIdx.x,id,d_DPT,d_ps,d_numSeq);
+								if(d_ps[id*81+66]==0)
+								{
+                                                                        if(const_int[19])
+                                                                        {
+                                                                                d_ps[id*81+73]=1;
+                                                                                break;
+                                                                        }
+                                                                        else
+                                                                                continue;
+                                                                }
 							}
 							if(const_int[5])
 							{
-								design_loop(d_primer,d_seq,d_info,turn,threadIdx.x,d_result,d_DPT,id,d_ps,d_numSeq,d_out,sub);
-								if(sub[threadIdx.x*10+9]==0)
-									continue;
+								design_loop(d_primer,d_seq,d_info,turn,threadIdx.x,d_result,d_DPT,id,d_ps,d_numSeq);
+								if(d_ps[id*81+73]==0)
+								{
+                                                                        if(const_int[19])
+                                                                        {
+                                                                                d_ps[id*81+73]=1;
+                                                                                break;
+                                                                        }
+                                                                        else
+                                                                                continue;
+                                                                }
 							}
 							d_result[id*(8+const_int[7])]=turn[threadIdx.x*8];
 							d_result[id*(8+const_int[7])+1]=turn[threadIdx.x*8+1];
@@ -2518,13 +3126,21 @@ __global__ void LAMP(char *d_seq,int *d_primer,int *d_info,int *d_result,double 
 							d_result[id*(8+const_int[7])+5]=turn[threadIdx.x*8+5];
 							d_result[id*(8+const_int[7])+6]=turn[threadIdx.x*8+6];
 							d_result[id*(8+const_int[7])+7]=turn[threadIdx.x*8+7];
-							sub[threadIdx.x*10+9]=1;
+							d_ps[id*81+73]=1;
 							break;
-						}
-					}
-				}
-			}
-		}
+						}//B2
+						if(d_ps[id*81+73]!=0)
+                                                        break;
+					}//B1c
+					if(d_ps[id*81+73]!=0)
+						break;
+				}//F1c
+				if(d_ps[id*81+73]!=0)
+					break;
+			}//F2
+			if(d_ps[id*81+73]!=0)
+				break;
+		}//B3
 		id=id+blockDim.x*gridDim.x;
 	}
 	__syncthreads();
@@ -2545,6 +3161,7 @@ void usage()
         printf("    -par  <string>:  the directory of storing parameter files used to check the tendency of two primers binding, default is Par/\n");
         printf("    -high/-low:      design candidate single primers in high/low GC region, high: the GC content>=45%%; low: the GC content <=45%%.\n");
         printf("    -loop:           design LAMP primer with loop primers\n");
+	printf("    -fast:           design LAMP primer set fastly, but the system couldn't guarantee check all candidate LAMP primer sets\n");
         printf("    -h/-help:        usage\n");
 }
 
@@ -2603,28 +3220,31 @@ struct INFO *read_list(char *path,int common_num[])
 
 main(int argc,char **argv)
 {
-	int i,j,flag[12],expect,circle,have,common_num[1],num[11],max_loop,min_loop,count[3],block,thread;
+	int i,j,flag[12],expect,circle,have,common_num[1],num[11],max_loop,min_loop,count[3],block,thread,threshold,before;
 	char *output,*prefix,*store_path,*path_fa,*inner,*outer,*loop,*par_path,*temp,*seq,*d_seq,primer[26],*d_numSeq;
 	FILE *fp;
 	struct Primer *headL,*headS,*headLoop,*tempL,*tempS,*tempLoop,*storeL,*storeS,*storeLoop; 
 	struct Node *p_node,*p_temp;
 	struct INFO *headList,*p_list;
-	time_t start,end;
+	time_t start,end,begin;
 	double *H_parameter;	
-	long int memory;
 	cudaDeviceProp prop;
 	int *d_primer,*d_info,*d_result;
-	int *h_primer,*h_info,*h_result,h_int[19],*h_pos,*d_ps;
+	int *h_primer,*h_info,*h_result,h_int[20],*h_pos,*d_ps;
 	double *d_DPT;
-	double *d_out,*h_out;
 	
 	expect=10; //default output max 10 LAMP primers
+	thread=256;
+	threshold=51200;
+
 	start=time(NULL);
+	begin=start;
 /////read the parameters
-        for(i=0;i<=11;i++)
+        for(i=0;i<12;i++)
                 flag[i]=0;
 	for(i=0;i<10;i++)
 		h_int[i]=0;
+	h_int[19]=0;
         flag[7]=1;
         for(i=1;i<argc;)
         {
@@ -2710,6 +3330,16 @@ main(int argc,char **argv)
                         expect=atoi(argv[i+1]);
                         i=i+2;
                 }
+		else if(strcmp(argv[i],"-thread")==0)
+                {
+                        thread=atoi(argv[i+1]);
+                        i=i+2;
+                }
+		else if(strcmp(argv[i],"-threshold")==0)
+                {
+                        threshold=atoi(argv[i+1]);
+                        i=i+2;                 
+                }
                 else if(strcmp(argv[i],"-high")==0)
                 {
                         flag[8]=1;
@@ -2726,6 +3356,11 @@ main(int argc,char **argv)
 			h_int[5]=1;
                         i++;
                 }
+		else if(strcmp(argv[i],"-fast")==0)
+		{
+			h_int[19]=1;
+			i++;
+		}
                 else if(strcmp(argv[i],"-h")==0 || strcmp(argv[i],"-help")==0)
                 {
                         usage();
@@ -2849,6 +3484,7 @@ main(int argc,char **argv)
                 }
                 strcat(par_path,"Par/");
         }
+
         if(flag[7])
         {
                 H_parameter=(double *)malloc(5730*sizeof(double));
@@ -2874,6 +3510,7 @@ main(int argc,char **argv)
 		h_int[17]=1;
 		h_int[18]=1;
         }
+
 //F3's pos 
 	h_pos=(int *)malloc(expect*sizeof(int));
 	for(i=0;i<expect;i++)
@@ -2969,11 +3606,11 @@ main(int argc,char **argv)
                 j++;
         }
         free(temp);
+
 	num[0]=j; //the length of genome
 	cudaMalloc((void **)&d_seq,num[0]);
 	cudaMemset(d_seq,'\0',num[0]);
 	cudaMemcpy(d_seq,seq,num[0],cudaMemcpyHostToDevice);
-
 //common-list
         if(flag[5])
         {
@@ -2995,7 +3632,6 @@ main(int argc,char **argv)
                 max_loop=tempLoop->pos;
 		min_loop=headLoop->pos;
         }
-
 //common statistics
         if(flag[5])
         {
@@ -3004,9 +3640,15 @@ main(int argc,char **argv)
                 if(flag[10])
                         how_many(headLoop,common_num[0]);
         }
-
 	cudaGetDeviceProperties(&prop,0); //read parameters
-	thread=512;
+	if(thread>prop.maxThreadsPerBlock||thread>1024)
+        {
+                printf("Warning: the thread number is too big!\n");
+                thread=prop.maxThreadsPerBlock;
+                if(thread>1024)
+                        thread=1024;
+                printf("    Now the thread number is set to be %d.\n",thread);
+        }
 	fp=fopen(output,"w");
         if(fp==NULL)
         {
@@ -3014,16 +3656,17 @@ main(int argc,char **argv)
                 exit(1);
         }
 	have=1;
-        end=time(NULL);
-        printf("The prepare time is %0.1f seconds!\n",difftime(end,start));
+	before=1;
+	end=time(NULL);
+        printf("It takes %0.1f seconds to prepare data.\n",difftime(end,start));
         start=time(NULL);
-
 //LAMP-GPU
 	for(circle=common_num[0];circle>=1;circle--)
 	{
-	printf("now circle is %d\n",circle);
 		if(have>expect)
 			break;
+		if(common_num[0]>1)
+			printf("Running: expect common number is %d.\n",circle);
 		storeL=headL;
 		storeS=headS;
 		while((storeL->pos<=storeS->pos+18)&&storeL!=NULL)
@@ -3045,13 +3688,12 @@ main(int argc,char **argv)
 			{
 				num[i]=0;
 			}
-			memory=num[0]/2;
 		//statistics	
 			tempL=storeL;
 			tempS=storeS;
 			if(flag[10])
 				tempLoop=storeLoop;
-			while(tempS&&(memory<prop.totalGlobalMem/6))
+			while(tempS&&num[2]<threshold)
 			{
 				if(flag[10]&&(tempS->pos+200)<min_loop)
 					continue;
@@ -3071,16 +3713,9 @@ main(int argc,char **argv)
 					}
 					num[1]++;
 					if(flag[5])
-					{
 						num[3]=num[3]+tempL->total_common;
-						memory=memory+3*tempL->total_common; 
-					}
 					if(flag[6])
-					{
 						num[4]=num[4]+tempL->total_special;
-						memory=memory+3*tempL->total_special;
-					}
-					memory=memory+10; //one primer, 10 int
 					tempL=tempL->next;
 				}
 				
@@ -3093,28 +3728,15 @@ main(int argc,char **argv)
                                         }
                                         num[7]++;
                                         if(flag[5])
-                                        {
                                                 num[8]=num[8]+tempLoop->total_common;
-                                                memory=memory+3*tempLoop->total_common; 
-                                        }
-                                        memory=memory+10;
                                         tempLoop=tempLoop->next;
                                 }
 
 				num[2]++;
 				if(flag[5])
-				{
 					num[5]=num[5]+tempS->total_common;
-					memory=memory+3*tempS->total_common;
-				}
 				if(flag[6])
-				{
 					num[6]=num[6]+tempS->total_special;
-					memory=memory+3*tempS->total_special;
-				}
-				memory=memory+18+common_num[0];//18=10(primers)+8(result_turn)
-				if(flag[7])
-					memory=memory+5000+50+27+12+13*4; //one double=4 int, DPT; 50: ps1+ps2; 27: numSeq1+numSeq2, char
 				tempS=tempS->next;
 			}
 			if(num[2]<4||num[1]<2||(flag[10]&&num[7]<1)) //don't have enough primers
@@ -3124,8 +3746,6 @@ main(int argc,char **argv)
 			}
 			if(tempS==NULL)  //check all primers
 				num[10]=1;	
-
-			printf("memory is %ld\n",2*memory);
 		//malloc
 			h_primer=(int *)malloc(10*(num[2]+num[1]+num[7])*sizeof(int));
 			cudaMalloc((void **)&d_primer,10*(num[2]+num[1]+num[7])*sizeof(int));
@@ -3293,22 +3913,28 @@ main(int argc,char **argv)
 				h_int[2]=num[7];
                         }
 	//run
-			if(num[2]%thread==0)
-                                block=num[2]/thread;
-                        else
-                                block=(num[2]-num[2]%thread)/thread+1;
-
-			if(block>prop.maxGridSize[0]/2)
-				block=prop.maxGridSize[0]/2;
-
 			cudaMemcpy(d_primer,h_primer,10*count[0]*sizeof(int),cudaMemcpyHostToDevice);
 			if(flag[5]||flag[6])
 			{
 				cudaMemcpy(d_info,h_info,3*count[1]*sizeof(int),cudaMemcpyHostToDevice);
 				free(h_info);
 			}
+			if(count[0]%thread==0)
+                                block=count[0]/thread;
+                        else
+                                block=(count[0]-count[0]%thread)/thread+1;
+
+                        if(block>prop.maxGridSize[0])
+                                block=prop.maxGridSize[0];
 		//next primer
-		printf("block is %d,thread is %d\n",block,thread);
+			if(num[2]%thread==0)
+                                block=num[2]/thread;
+                        else
+                                block=(num[2]-num[2]%thread)/thread+1;
+
+                        if(block>prop.maxGridSize[0])
+                                block=prop.maxGridSize[0];
+			printf("block is %d,thread is %d\n",block,thread);
 			next_one<<<block,thread>>>(d_primer,0,num[2],0,num[2],7);//outer-self
 			next_one<<<block,thread>>>(d_primer,num[2],(num[1]+num[2]),num[2],(num[1]+num[2]),7);//inner-self
 			next_one<<<block,thread>>>(d_primer,0,num[2],num[2],(num[1]+num[2]),8);//outer_to_inner
@@ -3321,18 +3947,12 @@ main(int argc,char **argv)
 			}
 		//calculate
 			h_int[8]=circle;
-			cudaMemcpyToSymbol(const_int,h_int,19*sizeof(int));
+			cudaMemcpyToSymbol(const_int,h_int,20*sizeof(int));
 			cudaMalloc((void **)&d_result,num[2]*(8+common_num[0])*sizeof(int));
 			cudaMalloc((void **)&d_DPT,num[2]*1264*sizeof(double));
-			cudaMalloc((void **)&d_ps,num[2]*64*sizeof(int));
+			cudaMalloc((void **)&d_ps,num[2]*81*sizeof(int));
 			cudaMalloc((void **)&d_numSeq,num[2]*54*sizeof(char));
-		cudaMalloc((void **)&d_out,num[2]*2*sizeof(double));
-			LAMP<<<block,thread>>>(d_seq,d_primer,d_info,d_result,d_DPT,d_ps,d_numSeq,d_out);
-		h_out=(double *)malloc(num[2]*2*sizeof(double));
-		cudaMemcpy(h_out,d_out,num[2]*2*sizeof(double),cudaMemcpyDeviceToHost);
-		printf("TH1: %lf\nTH2: %lf\n",h_out[0],h_out[1]);
-		cudaFree(d_out);
-		free(h_out);
+			LAMP<<<block,thread>>>(d_seq,d_primer,d_info,d_result,d_DPT,d_ps,d_numSeq);
 			cudaFree(d_DPT);
 			cudaFree(d_ps);
 			cudaFree(d_numSeq);
@@ -3421,6 +4041,13 @@ main(int argc,char **argv)
 			}
 			free(h_result);
 			free(h_primer);
+			if(have>before)
+                        {
+                                end=time(NULL);
+                                printf("It takes %0.1f seconds to design %d LAMP primer sets successfully.\n",difftime(end,start),(have-before));
+                                before=have;
+                                start=time(NULL);
+                        }
 			if(have>expect)
 				break;
 		//new primer start
@@ -3528,5 +4155,6 @@ main(int argc,char **argv)
                 }
         }	
 	end=time(NULL);
-        printf("the time for design is %0.1f seconds!\n",difftime(end,start));
+	printf("It takes %0.1f seconds to free memory.\n",difftime(end,start));
+	printf("\nIt takes total %0.1f seconds to finish this design.\n",difftime(end,begin));
 }
