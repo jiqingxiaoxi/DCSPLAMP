@@ -2822,18 +2822,37 @@ __global__ void candidate_primer(char *d_seq,int *d_pos,int *d_len,int *d_rev_le
 
 void usage()
 {
-        printf("Usage:\n");
-        printf("    single  -in <fasta_file>  -out <primers_file_name>  -high[-low] [options]*\n\n");
-        printf("    -in   <string>:  the reference sequence file, fasta formate\n");
-        printf("    -out  <string>:  the prefix of output files, those files store candidate single primers\n");
-        printf("    -dir  <string>:  the directory to store candidate single primers. default is current directory\n");
-        printf("    -stab <string>:  the parameter file used in calculating the primers' stability. default is stab_parameter.txt in Par/ directory\n");
-        printf("    -tm   <string>:  the parameter file used in calcalating Tm and second structure. default is stab_parameter.txt in Par/ directory\n");
-	printf("    -check   <int>:  0: don't check primers' secondary structure; !=0: check, default is 1\n");
-        printf("    -par  <string>:  the directory of storing parameter files used to check primers' secondary structure, default is Par/\n");
-        printf("    -high/-low:      design candidate single primers in high/low GC region. high: the GC content>=45%%; low: the GC content <=45%%.\n");
-        printf("    -loop:           design candidate loop single primers\n");
-        printf("    -h/-help:        print usage\n");
+	printf("USAGE:\n");
+        printf("  Single  -in <ref_genome>  -out <file_out>  -high[-low] [options]*\n\n");
+        printf("ARGUMENTS:\n");
+        printf("  -in <ref_genome>\n");
+        printf("    reference genome, fasta formate\n");
+        printf("  -out <file_out>\n");
+        printf("    output file name\n");
+        printf("  -dir <directory>\n");
+        printf("    the directory for output file\n");
+        printf("    default: current directory\n");
+        printf("  -high[-low]\n");
+        printf("    identify candidate single primer regions from high/low GC reference genome region\n");
+        printf("    high: the GC content >= 45%%\n");
+        printf("    low: the GC content <= 45%%\n");
+        printf("  -loop\n");
+        printf("    identifiy candidate single primer regions for loop primers\n");
+        printf("  -stab <stability_file>\n");
+        printf("    the parameter file used in calculating the primers' stability\n");
+        printf("    default: the stab_parameter.txt file under GLAPD/Par/ directory\n");
+        printf("  -tm <tm_file>\n");
+        printf("    the thermodynamic values file used in calculating melting temperature\n");
+        printf("    default: the tm_nn_parameter.txt file under GLAPD/Par/ directory\n");
+        printf("  -check <int>\n");
+        printf("    check single primers' secondary structure or not\n");
+        printf("    0: don't check secondary structure; other values: check\n");
+        printf("    default: 1\n");
+        printf("  -par <par_directory>\n");
+        printf("    parameter files under the directory are used to check primers' secondary structure\n");
+        printf("    default: GLAPD/Par/\n");
+        printf("  -h[-help]\n");
+        printf("    print usage\n");
 }
 
 int create_file(char *prefix,char *dir,char *seq,int *pos,int *len,int *rev_len,int length)
@@ -3384,7 +3403,7 @@ main(int argc, char **argv)
         if(flag[7]==1 && num_loop<1)
                 printf("Warning: there don't have enough primers(>=1) used as LF/LB. But you can design LAMP primers without loop primer.\n");
 	end=time(NULL);
-        printf("It takes %d seconds to design candidate single primers.\n",(int)difftime(end,start));
+        printf("It takes %d seconds to identify candidate single primer regions.\n",(int)difftime(end,start));
 
 	free(store_path);
 	free(prefix);
