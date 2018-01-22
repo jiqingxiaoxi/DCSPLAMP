@@ -44,23 +44,49 @@ my $take;
 my $num_common=0;
 my $num_special=0;
 
-$help="usage is: perl $0 parameters\n
-	--in <string>: The name of candidate primer files, generate from the single program.
-	--ref <string>: The reference genome fasta file, used in designing single primers.
-	--dir <string>: The directory to store candidate single primers. default is current directory.
-	--common <string>: The file contains the name of genomes, the LAMP primers should be used in those genomes.
-	--special <string>: The file contains the name of genomes, the LAMP primers should not be used in those genomes.
-	--left: The LAMP primers should not be used in all the genomes beside in common file.
-	--bowtie <string>: The bowtie program (include the directory).
-	--index <string>: Comma-separated index files used in bowtie.
-	--par_special <int>: The max mismatches in primer, 0-3, default is 2. The bigger, the more strict in specifity.
-	--par_common <int>: The max mismatches in primer, 0-3, default is 0 and <= par_special. The smaller, the more strict in common.
-	--threads <int>: Number of alignment threads to launch used in bowtie, default is 1.
-	--help|--h Print help information.
-	--high/--low: Design LAMP primers in high/low GC region. high: the GC content>=45\%; low: the GC content <=45\%.
-	--loop: Design LAMP primers with loop single primers.\n";
+$help="USAGE:
+  perl $0 --in <sinlge_primers_file> --ref <ref_genome> --high[--low] --conserved[--specific] <genomes_list> --bowtie <bowtie> --index <database> [options]*\n
+ARGUMENTS:
+  --in <single_primers_file>
+    the file name of candidate single primer regions, files are generated from Single program
+  --ref <ref_genome>
+    reference genome, fasta formate
+  --dir <directory>
+    dirctory for files of candidate single primer regions
+    default: current directory
+  --high[--low]
+    candidate single primer regions from high/low GC genome region
+    high: the GC content >= 45%
+    low: the GC content <= 45%
+  --loop
+    include loop primers
+  --conserved <genomes_list>
+    the genomes in the file(target genomes) are expected to be amplified by LAMP primer sets
+  --specific <genomes_list>
+    the genomes in the file(background genomes) are not expected to be amplified by LAMP primer sets
+  --left
+    the rest genomes in the database expect for those in conserved genomes list are not expected to be amplified by LAMP primer sets
+    used with --conserved
+    invalid if exist --specific
+  --bowtie <bowtie>
+    the bowtie program
+  --index <database>
+    bowtie index file name, comma-separated
+  --mis_s <int>
+    the max number of mismatches allowed when align single primers to background genomes
+    this value between 0 and 3. the bigger of the value, the more specific
+    default: 2
+  --mis_c <int>
+    the max number of mismatches allowed when align single primers to target genomes
+    this value between 0 and 3. the smaller of the value, the more conserved
+    default: 0
+  --threads <int>
+    number of threads to launch when align
+    default: 1
+  --help|--h
+    print help information\n";
 
-$check=GetOptions("in=s"=>\$prefix,"ref=s"=>\$ref,"dir=s"=>\$dir,"common=s"=>\$common_file,"special=s"=>\$special_file,"left"=>\$left,"bowtie=s"=>\$path_bowtie,"index=s"=>\$index,"par_common=i"=>\$par_common,"par_special=i"=>\$par_special,"threads=i"=>\$thread,"help|h"=>\$flag,"high"=>\$high,"low"=>\$low,"loop"=>\$loop);
+$check=GetOptions("in=s"=>\$prefix,"ref=s"=>\$ref,"dir=s"=>\$dir,"conserved=s"=>\$common_file,"specific=s"=>\$special_file,"left"=>\$left,"bowtie=s"=>\$path_bowtie,"index=s"=>\$index,"mis_c=i"=>\$par_common,"mis_s=i"=>\$par_special,"threads=i"=>\$thread,"help|h"=>\$flag,"high"=>\$high,"low"=>\$low,"loop"=>\$loop);
 
 if($check==0)
 {
@@ -102,7 +128,7 @@ else
 
 if((!$common_file) && (!$special_file) && (!$left))
 {
-	print "Error!\nOne of --common, --special and --left should be existed.\n";
+	print "Error!\nOne of --conserved, --specific and --left should be existed.\n";
 	exit;
 }
 
@@ -136,7 +162,7 @@ else
 {
 	if($par_common<0 ||$par_common>3)
 	{
-		print "The argument of --par_common must be int between 0 and 3!\n";
+		print "The argument of --mis_c must be int between 0 and 3!\n";
 		exit;
 	}
 }
@@ -149,14 +175,14 @@ else
 {
         if($par_special<0 || $par_special>3) 
         {
-                print "The argument of --par_special must be int between 0 and 3!\n";
+                print "The argument of --mis_s must be int between 0 and 3!\n";
                 exit;
         }
 }
 
 if($par_common>$par_special)
 {
-	print "Error!\nThe argument of --par_common (now is $par_common) must <= the argument of --par_special (now is $par_special)!\n";
+	print "Error!\nThe argument of --mis_c (now is $par_common) must <= the argument of --mis_s (now is $par_special)!\n";
 	exit;
 }
 
@@ -183,7 +209,7 @@ if($high && $low)
 ###################################prepare
 if($common_file)
 {
-	open(IN,"<$common_file") or die "Can't open the $common_file inputed from --common!\n";
+	open(IN,"<$common_file") or die "Can't open the $common_file inputed from --conserved!\n";
 	while(<IN>)
 	{
 		chomp;
@@ -222,7 +248,7 @@ if($common_file)
 
 if($special_file)
 {
-	open(IN,"<$special_file") or die "Can't open the $special_file file inputed from --special!\n";
+	open(IN,"<$special_file") or die "Can't open the $special_file file inputed from --specific!\n";
 	while(<IN>)
 	{
 		chomp;
@@ -318,7 +344,7 @@ for($i=0;$i<@list;$i++)
 	{
 		if($i==0)
 		{
-			$file[1]=$list[$i]."-common_list.txt";
+			$file[1]=$list[$i]."-conserved_list.txt";
 			open(LIST,">$file[1]") or die "Can't create $file[1] file!\n";
 			for($j=0;$j<$num_common;$j++)
 			{
@@ -326,12 +352,12 @@ for($i=0;$i<@list;$i++)
 			}
 			close LIST;
 		}
-		$file[1]=$list[$i]."-common.txt";
+		$file[1]=$list[$i]."-conserved.txt";
 		open(COMMON,">$file[1]") or die "Can't create $file[1] file!\n";
 	}
 	if($special_file || $left)
 	{
-		$file[2]=$list[$i]."-special.txt";
+		$file[2]=$list[$i]."-specific.txt";
 		open(SPECIAL,">$file[2]") or die "Can't create $file[2] file!\n";
 	}
 
