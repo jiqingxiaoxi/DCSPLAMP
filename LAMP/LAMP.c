@@ -2457,21 +2457,42 @@ int file_size2(char *filename)
 
 void usage()
 {
-        printf("Usage:\n");
-        printf("    LAMP_CPU  -in <name>  -out <result>  -high[-low] [options]*\n\n");
-        printf("    -in   <string>:  the name of candidate single primers file\n");
-        printf("    -out  <string>:  the result file of LAMP primers\n");
-        printf("    -dir  <string>:  the directory to store candidate single primers, default is current directory\n");
-        printf("    -ref  <string>:  the reference sequence file used in single program, fasta format\n");
-	printf("    -expect  <int>:  the number of LAMP primers needed to be design, default is 10\n"); 
-        printf("    -common:         design common LAMP primers\n");
-	printf("    -special:        design special LAMP primers\n");
-	printf("    -check   <int>:  0: don't check tendency of the left primer to bind to the right primer; !=0: check, default is 1\n");
-        printf("    -par  <string>:  the directory of storing parameter files used to check the tendency of two primers binding, default is Par/\n");
-        printf("    -high/-low:      design candidate single primers in high/low GC region, high: the GC content>=45%%; low: the GC content <=45%%.\n");
-        printf("    -loop:           design LAMP primer with loop primers\n");
-	printf("    -fast:           design LAMP primer set fastly, but the system couldn't guarantee check all candidate LAMP primer sets\n");
-        printf("    -h/-help:        usage\n");
+        printf("USAGE:\n");
+        printf("  LAMP_CPU  -in <sinlge_primers_file>  -ref <ref_genome> -out <result> -high[-low] [options]*\n\n");
+	printf("ARGUMENTS:\n");
+        printf("  -in <single_primers_file>\n");
+	printf("    the file name of candidate single primer regions, files are generated from Single program\n");
+	printf("  -ref <ref_genome>\n");
+	printf("    reference genome, fasta formate\n");
+	printf("  -dir <directory>\n");
+        printf("    the directory for output file\n");
+        printf("    default: current directory\n");
+        printf("  -out <result>\n");
+	printf("    output file name\n");
+	printf("  -num <int>\n");
+	printf("    the expected output number of LAMP primer sets\n");
+	printf("    default: 10\n");
+	printf("  -high[-low]\n");
+        printf("    design LAMP primer sets from high/low GC reference genome region\n");
+        printf("    high: the GC content >= 45%%\n");
+        printf("    low: the GC content <= 45%%\n");
+        printf("  -loop\n");
+        printf("    design LAMP primer sets with loop primers\n");
+	printf("  -conserved\n");
+	printf("    design conserved LAMP primer sets those can amplify more than one target genomes\n");
+	printf("  -specific\n");
+	printf("    design specific LAMP primer sets those can't amplify any background genomes\n");
+	printf("  -check <int>\n");
+	printf("    check primers' tendency of binding to another in one LAMP primer set or not\n");
+        printf("    0: don't check; other values: check\n");
+        printf("    default: 1\n");
+        printf("  -par <par_directory>\n");
+        printf("    parameter files under the directory are used to check primers' binding tendency\n");
+        printf("    default: GLAPD/Par/\n");
+	printf("  -fast\n");
+	printf("    fast mode to design LAMP primer sets, in this mode GLAPD may lost some right results\n");
+        printf("  -h/-help\n");
+	printf("    print usage\n");
 }
 
 void generate_primer(char *seq,char primer[],int start,int length,int flag) //flag=0:plus
@@ -2719,7 +2740,7 @@ main(int argc,char **argv)
                         strcpy(path_fa,argv[i+1]);
                         i=i+2;
                 }
-                else if(strcmp(argv[i],"-expect")==0)
+                else if(strcmp(argv[i],"-num")==0)
                 {
                         flag[4]=1;
                         if(i+1==argc)
@@ -2792,12 +2813,12 @@ main(int argc,char **argv)
                         }
                         i=i+2;
                 }
-		else if(strcmp(argv[i],"-common")==0)
+		else if(strcmp(argv[i],"-conserved")==0)
 		{
 			flag[5]=1;
 			i++;
 		}
-		else if(strcmp(argv[i],"-special")==0)
+		else if(strcmp(argv[i],"-specific")==0)
 		{
 			flag[6]=1;
 			i++;
@@ -2863,10 +2884,10 @@ main(int argc,char **argv)
                 free(temp);
 
 		j--;
-		while(par_path[j]!='/'&&j>=0)
+		if(par_path[j]!='/')
                 {
-                        par_path[j]='\0';
-                        j--;
+                        par_path[j+1]='/';
+			par_path[j+2]='\0';
                 }
                 strcat(par_path,"Par/");
         }
@@ -3058,7 +3079,7 @@ main(int argc,char **argv)
 	for(j=common_num[0];j>=1;j--)
 	{
 		if(common_num[0]>1)
-			printf("Running: expect common number is %d.\n",j);
+			printf("Running: amplify %d target genome.\n",j);
         	for(p_F3=headS;p_F3;p_F3=p_F3->next)   //F3
         	{
 			if(flag[10]&&(p_F3->pos+200)<min_loop)
@@ -3560,7 +3581,7 @@ struct Primer *read_par(char *path,int common_flag,int special_flag)
 		in=(char *)malloc(i+20);
         	memset(in,'\0',i+20);
         	strcpy(in,path);
-        	strcat(in,"-common.txt"); //suffix of parameter
+        	strcat(in,"-conserved.txt"); //suffix of parameter
 		if(access(in,0)==-1)
 		{
 			printf("Error! Don't have the %s file!\n",in);
@@ -3657,7 +3678,7 @@ struct Primer *read_par(char *path,int common_flag,int special_flag)
 		in=(char *)malloc(i+20);
 		memset(in,'\0',i+20);
         	strcpy(in,path);
-        	strcat(in,"-special.txt"); //suffix of parameter
+        	strcat(in,"-specific.txt"); //suffix of parameter
 		if(access(in,0)==-1)
 		{
 			printf("Error! Don't have the %s file!\n",in);
@@ -3760,7 +3781,7 @@ struct INFO *read_list(char *path,int common_num[])
 	in=(char *)malloc(i+20);
 	memset(in,'\0',i+20);
 	strcpy(in,path);
-	strcat(in,"-common_list.txt");
+	strcat(in,"-conserved_list.txt");
         if(access(in,0)==-1)
         {
                 printf("Error! Don't have the %s file!\n",in);
@@ -3877,10 +3898,7 @@ int check_common(struct Primer *F3,struct Primer *F2,struct Primer *F1c,struct P
 			if(c_F2->gi>c_F3->gi)
 				break;
 			if(c_F2->plus!=1)
-			{
-				b_F2=c_F2->next;
 				continue;
-			}
 			if(c_F2->pos<c_F3->pos)
 			{
 				b_F2=c_F2->next;
@@ -3898,10 +3916,7 @@ int check_common(struct Primer *F3,struct Primer *F2,struct Primer *F1c,struct P
 				if(c_F1c->gi>c_F3->gi)
 					break;
 				if(c_F1c->minus!=1)
-				{
-					b_F1c=c_F1c->next;
 					continue;
-				}
 				if(c_F1c->pos<c_F3->pos)
 				{
 					b_F1c=c_F1c->next;
@@ -3919,10 +3934,7 @@ int check_common(struct Primer *F3,struct Primer *F2,struct Primer *F1c,struct P
 					if(c_B1c->gi>c_F3->gi)
 						break;
 					if(c_B1c->plus!=1)
-					{
-						b_B1c=c_B1c->next;
 						continue;
-					}
 					if(c_B1c->pos<c_F3->pos)
 					{
 						b_B1c=c_B1c->next;
@@ -3940,10 +3952,7 @@ int check_common(struct Primer *F3,struct Primer *F2,struct Primer *F1c,struct P
 						if(c_B2->gi>c_F3->gi)
 							break;
 						if(c_B2->minus!=1)
-						{
-							b_B2=c_B2->next;
 							continue;
-						}
 						if(c_B2->pos<c_F3->pos)
 						{
 							b_B2=c_B2->next;
@@ -3961,10 +3970,7 @@ int check_common(struct Primer *F3,struct Primer *F2,struct Primer *F1c,struct P
 							if(c_B3->gi>c_F3->gi)
 								break;
 							if(c_B3->minus!=1)
-							{
-								b_B3=c_B3->next;
 								continue;
-							}
 							if(c_B3->pos<c_F3->pos)
 							{
 								b_B3=c_B3->next;
@@ -4036,10 +4042,7 @@ int check_common(struct Primer *F3,struct Primer *F2,struct Primer *F1c,struct P
                         if(c_F2->gi>c_F3->gi)
                                 break;
                         if(c_F2->minus!=1)
-			{
-				b_F2=c_F2->next;
                                 continue;
-			}
 			if(c_F2->pos>c_F3->pos)
 				break;
 			if(c_F2->pos-c_F3->pos<-300)
@@ -4057,10 +4060,7 @@ int check_common(struct Primer *F3,struct Primer *F2,struct Primer *F1c,struct P
                                 if(c_F1c->gi>c_F3->gi)
                                         break;
                                 if(c_F1c->plus!=1)
-				{
-					b_F1c=c_F1c->next;
                                         continue;
-				}
 				if(c_F1c->pos>c_F3->pos)
 					break;
 				if(c_F1c->pos-c_F3->pos<-300)
@@ -4078,10 +4078,7 @@ int check_common(struct Primer *F3,struct Primer *F2,struct Primer *F1c,struct P
                                         if(c_B1c->gi>c_F3->gi)
                                                 break;
                                         if(c_B1c->minus!=1)
-					{
-						b_B1c=c_B1c->next;
                                                 continue;
-					}
 					if(c_B1c->pos>c_F3->pos)
 						break;
 					if(c_B1c->pos-c_F3->pos<-300)
@@ -4099,10 +4096,7 @@ int check_common(struct Primer *F3,struct Primer *F2,struct Primer *F1c,struct P
                                                 if(c_B2->gi>c_F3->gi)
                                                         break;
                                                 if(c_B2->plus!=1)
-						{
-							b_B2=c_B2->next;
                                                         continue;
-						}
 						if(c_B2->pos>c_F3->pos)
 							break;
 						if(c_B2->pos-c_F3->pos<-300)
@@ -4120,10 +4114,7 @@ int check_common(struct Primer *F3,struct Primer *F2,struct Primer *F1c,struct P
                                                         if(c_B3->gi>c_F3->gi)
                                                                 break;
                                                         if(c_B3->plus!=1)
-							{
-								b_B3=c_B3->next;
                                                                 continue;
-							}
 							if(c_B3->pos>c_F3->pos)
 								break;
 							if(c_B3->pos-c_F3->pos<-300)
@@ -4888,11 +4879,10 @@ int check_uniq(struct Primer *F3,struct Primer *F2,struct Primer *F1c,struct Pri
 				b_F2=b_F2->next;
                                 continue;
                         }
+			if(s_F2->pos-s_F3->pos>1000)
+				break;
                         if(s_F2->plus!=1)
-			{
-				b_F2=b_F2->next;
                                 continue;
-			}
                         for(s_F1c=b_F1c;s_F1c;s_F1c=s_F1c->next)
                         {
                                 if(s_F1c->gi<s_F3->gi)
@@ -4907,11 +4897,10 @@ int check_uniq(struct Primer *F3,struct Primer *F2,struct Primer *F1c,struct Pri
                                         b_F1c=b_F1c->next;
                                         continue;
                                 }
+				if(s_F1c->pos-s_F3->pos>1000)
+					break;
                                 if(s_F1c->minus!=1)
-				{
-					b_F1c=b_F1c->next;
                                         continue;
-				}
                                 for(s_B1c=b_B1c;s_B1c;s_B1c=s_B1c->next)
                                 {
                                         if(s_B1c->gi<s_F3->gi)
@@ -4926,11 +4915,10 @@ int check_uniq(struct Primer *F3,struct Primer *F2,struct Primer *F1c,struct Pri
 						b_B1c=b_B1c->next;
                                                 continue;
                                         }
+					if(s_B1c->pos-s_F3->pos>1000)
+						break;
                                         if(s_B1c->plus!=1)
-					{
-						b_B1c=b_B1c->next;
                                                 continue;
-					}
                                         for(s_B2=b_B2;s_B2;s_B2=s_B2->next)
                                         {
                                                 if(s_B2->gi<s_F3->gi)
@@ -4945,11 +4933,10 @@ int check_uniq(struct Primer *F3,struct Primer *F2,struct Primer *F1c,struct Pri
 							b_B2=b_B2->next;
                                                         continue;
                                                 }
+						if(s_B2->pos-s_F3->pos>1000)
+							break;
                                                 if(s_B2->minus!=1)
-						{
-							b_B2=b_B2->next;
                                                         continue;
-						}
                                                 for(s_B3=b_B3;s_B3;s_B3=s_B3->next)
                                                 {
                                                         if(s_B3->gi<s_F3->gi)
@@ -4964,11 +4951,10 @@ int check_uniq(struct Primer *F3,struct Primer *F2,struct Primer *F1c,struct Pri
                                                                 b_B3=b_B3->next;
                                                                 continue;
                                                         }
+							if(s_B3->pos-s_F3->pos>1000)
+								break;
                                                         if(s_B3->minus!=1)
-							{
-								b_B3=b_B3->next;
                                                                 continue;
-							}
                                                 //F3-F2 
                                                         if(s_F2->pos<s_F3->pos)
                                                                 continue;
@@ -5015,11 +5001,13 @@ int check_uniq(struct Primer *F3,struct Primer *F2,struct Primer *F1c,struct Pri
 				break;
 			if(s_F2->pos>s_F3->pos)
 				break;
-                        if(s_F2->minus!=1)
+			if(s_F2->pos-s_F3->pos<-1000)
 			{
-				b_F2=b_F2->next;
+                                b_F2=b_F2->next;
                                 continue;
-			}
+                        }
+                        if(s_F2->minus!=1)
+                                continue;
                         for(s_F1c=b_F1c;s_F1c;s_F1c=s_F1c->next)
                         {
                                 if(s_F1c->gi<s_F3->gi)
@@ -5031,11 +5019,13 @@ int check_uniq(struct Primer *F3,struct Primer *F2,struct Primer *F1c,struct Pri
 					break;
 				if(s_F1c->pos>s_F3->pos)
 					break;
-                                if(s_F1c->plus!=1)
+				if(s_F1c->pos-s_F3->pos<-1000)
 				{
-					b_F1c=b_F1c->next;
+                                        b_F1c=b_F1c->next;
                                         continue;
-				}
+                                }
+                                if(s_F1c->plus!=1)
+                                        continue;
                                 for(s_B1c=b_B1c;s_B1c;s_B1c=s_B1c->next)
                                 {
                                         if(s_B1c->gi<s_F3->gi)
@@ -5047,11 +5037,13 @@ int check_uniq(struct Primer *F3,struct Primer *F2,struct Primer *F1c,struct Pri
 						break;
 					if(s_B1c->pos>s_F3->pos)
 						break;
-                                        if(s_B1c->minus!=1)
+					if(s_B1c->pos-s_F3->pos<-1000)
 					{
-						b_B1c=b_B1c->next;
+                                                b_B1c=b_B1c->next;
                                                 continue;
-					}
+                                        }
+                                        if(s_B1c->minus!=1)
+                                                continue;
                                         for(s_B2=b_B2;s_B2;s_B2=s_B2->next)
                                         {
                                                 if(s_B2->gi<s_F3->gi)
@@ -5063,11 +5055,13 @@ int check_uniq(struct Primer *F3,struct Primer *F2,struct Primer *F1c,struct Pri
 							break;
 						if(s_B2->pos>s_F3->pos)
 							break;
-                                                if(s_B2->plus!=1)
+						if(s_B2->pos-s_F3->pos<-1000)
 						{
-							b_B2=b_B2->next;
+                                                        b_B2=b_B2->next;
                                                         continue;
-						}
+                                                }
+                                                if(s_B2->plus!=1)
+                                                        continue;
                                                 for(s_B3=b_B3;s_B3;s_B3=s_B3->next)
                                                 {
                                                         if(s_B3->gi<s_F3->gi)
@@ -5079,11 +5073,13 @@ int check_uniq(struct Primer *F3,struct Primer *F2,struct Primer *F1c,struct Pri
 								break;
 							if(s_B3->pos>s_F3->pos)
 								break;
-                                                        if(s_B3->plus!=1)
+							if(s_B3->pos-s_F3->pos<-1000)
 							{
-								b_B3=b_B3->next;
+                                                                b_B3=b_B3->next;
                                                                 continue;
-							}
+                                                        }
+                                                        if(s_B3->plus!=1)
+                                                                continue;
                                                 //F3-F2 
                                                         if(s_F3->pos<s_F2->pos)
                                                                 continue;
