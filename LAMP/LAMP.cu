@@ -1794,7 +1794,7 @@ struct Primer *read_par(char *path,int common_flag,int special_flag)
                 in=(char *)malloc(i+20);
                 memset(in,'\0',i+20);
                 strcpy(in,path);
-                strcat(in,"-common.txt"); //suffix of parameter
+                strcat(in,"-conserved.txt"); //suffix of parameter
                 if(access(in,0)==-1)
                 {
                         printf("Error! Don't have the %s file!\n",in);
@@ -1898,7 +1898,7 @@ struct Primer *read_par(char *path,int common_flag,int special_flag)
                 in=(char *)malloc(i+20);
                 memset(in,'\0',i+20);
                 strcpy(in,path);
-                strcat(in,"-special.txt"); //suffix of parameter
+                strcat(in,"-specific.txt"); //suffix of parameter
                 if(access(in,0)==-1)
                 {
                         printf("Error! Don't have the %s file!\n",in);
@@ -2032,10 +2032,7 @@ __device__ void check_uniq(int *d_primer,int *d_info,int turn[],int ID_thread,in
 			if(d_info[d_ps[id*81+65]*3+1]-d_info[d_ps[id*81+64]*3+1]>1000)
 				break;
                         if((d_info[d_ps[id*81+65]*3+2]&1)!=1)
-			{
-				d_ps[id*81+74]++;
 				continue;
-			}
                         for(d_ps[id*81+66]=d_ps[id*81+75];d_ps[id*81+66]<d_primer[turn[ID_thread*8+3]*10+6];d_ps[id*81+66]++) //F1c
                         {
 			//check
@@ -2054,10 +2051,7 @@ __device__ void check_uniq(int *d_primer,int *d_info,int turn[],int ID_thread,in
 				if(d_info[d_ps[id*81+66]*3+1]-d_info[d_ps[id*81+64]*3+1]>1000)
 					break;
                                 if((d_info[d_ps[id*81+66]*3+2]&2)!=2)
-				{
-					d_ps[id*81+75]++;
                                         continue;
-				}
                                 for(d_ps[id*81+67]=d_ps[id*81+76];d_ps[id*81+67]<d_primer[turn[ID_thread*8+4]*10+6];d_ps[id*81+67]++) //B1c
                                 {
 					if(d_info[d_ps[id*81+67]*3]<d_ps[id*81+70])
@@ -2075,10 +2069,7 @@ __device__ void check_uniq(int *d_primer,int *d_info,int turn[],int ID_thread,in
 					if(d_info[d_ps[id*81+67]*3+1]-d_info[d_ps[id*81+64]*3+1]>1000)
 						break;
                                         if((d_info[d_ps[id*81+67]*3+2]&1)!=1)
-					{
-						d_ps[id*81+76]++;
                                                 continue;
-					}
                                         for(d_ps[id*81+68]=d_ps[id*81+77];d_ps[id*81+68]<d_primer[turn[ID_thread*8+6]*10+6];d_ps[id*81+68]++) //B2
                                         {
                                                 if(d_info[d_ps[id*81+68]*3]<d_ps[id*81+70])
@@ -2096,10 +2087,7 @@ __device__ void check_uniq(int *d_primer,int *d_info,int turn[],int ID_thread,in
 						if(d_info[d_ps[id*81+68]*3+1]-d_info[d_ps[id*81+64]*3+1]>1000)
 							break;
                                                 if((d_info[d_ps[id*81+68]*3+2]&2)!=2)
-						{
-							d_ps[id*81+77]++;
                                                         continue;
-						}
                                                 for(d_ps[id*81+69]=d_ps[id*81+78];d_ps[id*81+69]<d_primer[turn[ID_thread*8+7]*10+6];d_ps[id*81+69]++)
                                                 {
                                                         if(d_info[d_ps[id*81+69]*3]<d_ps[id*81+70])
@@ -2117,10 +2105,7 @@ __device__ void check_uniq(int *d_primer,int *d_info,int turn[],int ID_thread,in
 							if(d_info[d_ps[id*81+69]*3+1]-d_info[d_ps[id*81+64]*3+1]>1000)
 								break;
                                                         if((d_info[d_ps[id*81+69]*3+2]&2)!=2)
-							{
-								d_ps[id*81+78]++;
                                                                 continue;
-							}
                                                 //F3-F2 
                                                         if(d_info[d_ps[id*81+65]*3+1]<d_info[d_ps[id*81+64]*3+1])
                                                                 continue;
@@ -2131,7 +2116,7 @@ __device__ void check_uniq(int *d_primer,int *d_info,int turn[],int ID_thread,in
                                                         if(d_info[d_ps[id*81+67]*3+1]<d_info[d_ps[id*81+66]*3+1]+d_primer[turn[ID_thread*8+3]*10+1])
                                                                 continue;
                                                 //B1c-B2
-                                                        if(d_info[d_ps[id*81+68]*3+1]<d_info[d_ps[id*81+67]*3+1]+d_primer[turn[ID_thread*8+3]*10+1])
+                                                        if(d_info[d_ps[id*81+68]*3+1]<d_info[d_ps[id*81+67]*3+1]+d_primer[turn[ID_thread*8+4]*10+1])
                                                                 continue;
                                                 //B2-B3
                                                         if(d_info[d_ps[id*81+69]*3+1]<d_info[d_ps[id*81+68]*3+1])
@@ -2176,10 +2161,7 @@ __device__ void check_uniq(int *d_primer,int *d_info,int turn[],int ID_thread,in
                                 continue;
                         }
                         if((d_info[d_ps[id*81+65]*3+2]&2)!=2)
-			{
-				d_ps[id*81+74]++;
                                 continue;
-			}
                         for(d_ps[id*81+66]=d_ps[id*81+75];d_ps[id*81+66]<d_primer[turn[ID_thread*8+3]*10+6];d_ps[id*81+66]++)
                         {
 				if(d_info[d_ps[id*81+66]*3]<d_ps[id*81+70])
@@ -2197,10 +2179,7 @@ __device__ void check_uniq(int *d_primer,int *d_info,int turn[],int ID_thread,in
                                 if(d_info[d_ps[id*81+66]*3+1]>d_info[d_ps[id*81+64]*3+1])
 					break;				
                                 if((d_info[d_ps[id*81+66]*3+2]&1)!=1)
-				{
-					d_ps[id*81+75]++;
                                         continue;
-				}
                                 for(d_ps[id*81+67]=d_ps[id*81+76];d_ps[id*81+67]<d_primer[turn[ID_thread*8+4]*10+6];d_ps[id*81+67]++)
                                 {
 					if(d_info[d_ps[id*81+67]*3]<d_ps[id*81+70])
@@ -2218,10 +2197,7 @@ __device__ void check_uniq(int *d_primer,int *d_info,int turn[],int ID_thread,in
                                         if(d_info[d_ps[id*81+67]*3+1]>d_info[d_ps[id*81+64]*3+1])
 						break;
                                         if((d_info[d_ps[id*81+67]*3+2]&2)!=2)
-					{
-						d_ps[id*81+76]++;
                                                 continue;
-					}
                                         for(d_ps[id*81+68]=d_ps[id*81+77];d_ps[id*81+68]<d_primer[turn[ID_thread*8+6]*10+6];d_ps[id*81+68]++)
                                         {
 						if(d_info[d_ps[id*81+68]*3]<d_ps[id*81+70])
@@ -2239,10 +2215,7 @@ __device__ void check_uniq(int *d_primer,int *d_info,int turn[],int ID_thread,in
                                                 if(d_info[d_ps[id*81+68]*3+1]>d_info[d_ps[id*81+64]*3+1])
 							break;
                                                 if((d_info[d_ps[id*81+68]*3+2]&1)!=1)
-						{
-							d_ps[id*81+77]++;
                                                         continue;
-						}
                                                 for(d_ps[id*81+69]=d_ps[id*81+78];d_ps[id*81+69]<d_primer[turn[ID_thread*8+7]*10+6];d_ps[id*81+69]++)
                                                 {
 							if(d_info[d_ps[id*81+69]*3]<d_ps[id*81+70])
@@ -2260,10 +2233,7 @@ __device__ void check_uniq(int *d_primer,int *d_info,int turn[],int ID_thread,in
                                                         if(d_info[d_ps[id*81+69]*3+1]>d_info[d_ps[id*81+64]*3+1])
 								break;
                                                         if((d_info[d_ps[id*81+69]*3+2]&1)!=1)
-							{
-								d_ps[id*81+78]++;
                                                                 continue;
-							}
                                                 //F3-F2 
                                                         if(d_info[d_ps[id*81+64]*3+1]<d_info[d_ps[id*81+65]*3+1])
                                                                 continue;
@@ -2271,7 +2241,7 @@ __device__ void check_uniq(int *d_primer,int *d_info,int turn[],int ID_thread,in
                                                         if(d_info[d_ps[id*81+65]*3+1]<d_info[d_ps[id*81+66]*3+1]+d_primer[turn[ID_thread*8+3]*10+1])
                                                                 continue;
                                                 //F1c-B1c
-                                                        if(d_info[d_ps[id*81+66]*3+1]<d_info[d_ps[id*81+67]*3+1]+d_primer[turn[ID_thread*8+3]*10+1])
+                                                        if(d_info[d_ps[id*81+66]*3+1]<d_info[d_ps[id*81+67]*3+1]+d_primer[turn[ID_thread*8+4]*10+1])
                                                                 continue;
                                                 //B1c-B2
                                                         if(d_info[d_ps[id*81+67]*3+1]<d_info[d_ps[id*81+68]*3+1]+d_primer[turn[ID_thread*8+6]*10+1])
@@ -2383,10 +2353,7 @@ __device__ void check_common(int *d_primer,int *d_info,int turn[],int ID_thread,
 			if(d_info[d_ps[id*81+65]*3]>d_ps[id*81+72])
 				break;
                         if((d_info[d_ps[id*81+65]*3+2]&1)!=1)
-			{
-				d_ps[id*81+74]++;
                                 continue;
-			}
 			if(d_info[d_ps[id*81+65]*3+1]<d_info[d_ps[id*81+64]*3+1])
                         {
                                 d_ps[id*81+74]++;
@@ -2404,10 +2371,7 @@ __device__ void check_common(int *d_primer,int *d_info,int turn[],int ID_thread,
 				if(d_info[d_ps[id*81+66]*3]>d_ps[id*81+72])
 					break;
                                 if((d_info[d_ps[id*81+66]*3+2]&2)!=2)
-				{
-					d_ps[id*81+75]++;
                                         continue;
-				}
 				if(d_info[d_ps[id*81+66]*3+1]<d_info[d_ps[id*81+64]*3+1])
                                 {
                                         d_ps[id*81+75]++;
@@ -2425,10 +2389,7 @@ __device__ void check_common(int *d_primer,int *d_info,int turn[],int ID_thread,
 					if(d_info[d_ps[id*81+67]*3]>d_ps[id*81+72])
 						break;
                                         if((d_info[d_ps[id*81+67]*3+2]&1)!=1)
-					{
-						d_ps[id*81+76]++;
                                                 continue;
-					}
 					if(d_info[d_ps[id*81+67]*3+1]<d_info[d_ps[id*81+64]*3+1])
                                         {
                                                 d_ps[id*81+76]++;
@@ -2446,10 +2407,7 @@ __device__ void check_common(int *d_primer,int *d_info,int turn[],int ID_thread,
 						if(d_info[d_ps[id*81+68]*3]>d_ps[id*81+72])
 							break;
                                                 if((d_info[d_ps[id*81+68]*3+2]&2)!=2)
-						{
-							d_ps[id*81+77]++;
                                                         continue;
-						}
 						if(d_info[d_ps[id*81+68]*3+1]<d_info[d_ps[id*81+64]*3+1])
                                                 {
                                                         d_ps[id*81+77]++;
@@ -2467,10 +2425,7 @@ __device__ void check_common(int *d_primer,int *d_info,int turn[],int ID_thread,
 							if(d_info[d_ps[id*81+69]*3]>d_ps[id*81+72])
 								break;
                                                         if((d_info[d_ps[id*81+69]*3+2]&2)!=2)
-							{
-								d_ps[id*81+78]++;
                                                                 continue;
-							}
 							if(d_info[d_ps[id*81+69]*3+1]<d_info[d_ps[id*81+64]*3+1])
                                                         {
                                                                 d_ps[id*81+78]++;
@@ -2526,10 +2481,7 @@ __device__ void check_common(int *d_primer,int *d_info,int turn[],int ID_thread,
 									if(d_info[d_ps[id*81+70]*3]>d_ps[id*81+72])
 										break;
                                                                         if((d_info[d_ps[id*81+70]*3+2]&2)!=2)
-									{
-										d_ps[id*81+79]++;
                                                                                 continue;
-									}
 									if(d_info[d_ps[id*81+70]*3+1]<d_info[d_ps[id*81+64]*3+1])
 									{
 										d_ps[id*81+79]++;
@@ -2561,10 +2513,7 @@ __device__ void check_common(int *d_primer,int *d_info,int turn[],int ID_thread,
 									if(d_info[d_ps[id*81+70]*3]>d_ps[id*81+72])
 										break;
                                                                         if((d_info[d_ps[id*81+70]*3+2]&1)!=1)
-									{
-										d_ps[id*81+80]++;
                                                                                 continue;
-									}
 									if(d_info[d_ps[id*81+70]*3+1]<d_info[d_ps[id*81+64]*3+1])
 									{
                                                                                 d_ps[id*81+80]++;
@@ -2616,10 +2565,7 @@ __device__ void check_common(int *d_primer,int *d_info,int turn[],int ID_thread,
                         if(d_info[d_ps[id*81+65]*3]>d_ps[id*81+72])
                                 break;
                         if((d_info[d_ps[id*81+65]*3+2]&2)!=2)
-			{
-				d_ps[id*81+74]++;
                                 continue;
-			}
 			if(d_info[d_ps[id*81+65]*3+1]-d_info[d_ps[id*81+64]*3+1]<-300)
                         {
                                 d_ps[id*81+74]++;
@@ -2637,10 +2583,7 @@ __device__ void check_common(int *d_primer,int *d_info,int turn[],int ID_thread,
                                 if(d_info[d_ps[id*81+66]*3]>d_ps[id*81+72])
                                         break;
                                 if((d_info[d_ps[id*81+66]*3+2]&1)!=1)
-				{
-					d_ps[id*81+75]++;
                                         continue;
-				}
 				if(d_info[d_ps[id*81+66]*3+1]-d_info[d_ps[id*81+64]*3+1]<-300)
                                 {
                                         d_ps[id*81+75]++;
@@ -2658,10 +2601,7 @@ __device__ void check_common(int *d_primer,int *d_info,int turn[],int ID_thread,
                                         if(d_info[d_ps[id*81+67]*3]>d_ps[id*81+72])
                                                 break;
                                         if((d_info[d_ps[id*81+67]*3+2]&2)!=2)
-					{
-						d_ps[id*81+76]++;
                                                 continue;
-					}
 					if(d_info[d_ps[id*81+67]*3+1]-d_info[d_ps[id*81+64]*3+1]<-300)
                                         {
                                                 d_ps[id*81+76]++;
@@ -2679,10 +2619,7 @@ __device__ void check_common(int *d_primer,int *d_info,int turn[],int ID_thread,
                                                 if(d_info[d_ps[id*81+68]*3]>d_ps[id*81+72])
                                                         break;
                                                 if((d_info[d_ps[id*81+68]*3+2]&1)!=1)
-						{
-							d_ps[id*81+77]++;
                                                         continue;
-						}
 						if(d_info[d_ps[id*81+68]*3+1]-d_info[d_ps[id*81+64]*3+1]<-300)
                                                 {
                                                         d_ps[id*81+77]++;
@@ -2700,10 +2637,7 @@ __device__ void check_common(int *d_primer,int *d_info,int turn[],int ID_thread,
                                                         if(d_info[d_ps[id*81+69]*3]>d_ps[id*81+72])
                                                                 break;
                                                         if((d_info[d_ps[id*81+69]*3+2]&1)!=1)
-							{
-								d_ps[id*81+78]++;
                                                                 continue;
-							}
 							if(d_info[d_ps[id*81+69]*3+1]-d_info[d_ps[id*81+64]*3+1]<-300)
                                                         {
                                                                 d_ps[id*81+78]++;
@@ -2759,10 +2693,7 @@ __device__ void check_common(int *d_primer,int *d_info,int turn[],int ID_thread,
                                                                         if(d_info[d_ps[id*81+70]*3]>d_ps[id*81+72])
                                                                                 break;
                                                                         if((d_info[d_ps[id*81+70]*3+2]&1)!=1)
-									{
-										d_ps[id*81+79]++;
                                                                                 continue;
-									}
 									if(d_info[d_ps[id*81+70]*3+1]-d_info[d_ps[id*81+64]*3+1]<-300)
                                                                         {
                                                                                 d_ps[id*81+79]++;
@@ -2794,10 +2725,7 @@ __device__ void check_common(int *d_primer,int *d_info,int turn[],int ID_thread,
                                                                         if(d_info[d_ps[id*81+70]*3]>d_ps[id*81+72])
                                                                                 break;
                                                                         if((d_info[d_ps[id*81+70]*3+2]&2)!=2)
-									{
-										d_ps[id*81+80]++;
                                                                                 continue;
-									}
 									if(d_info[d_ps[id*81+70]*3+1]-d_info[d_ps[id*81+64]*3+1]<-300)
                                                                         {
                                                                                 d_ps[id*81+80]++;
@@ -3148,21 +3076,48 @@ __global__ void LAMP(char *d_seq,int *d_primer,int *d_info,int *d_result,double 
 
 void usage()
 {
-        printf("Usage:\n");
-        printf("    LAMP_GPU  -in <name>  -out <result>  -high[-low] [options]*\n\n");
-        printf("    -in   <string>:  the name of candidate single primers file\n");
-        printf("    -out  <string>:  the result file of LAMP primers\n");
-        printf("    -dir  <string>:  the directory to store candidate single primers, default is current directory\n");
-        printf("    -ref  <string>:  the reference sequence file used in single program, fasta format\n");
-        printf("    -expect  <int>:  the number of LAMP primers needed to be design, default is 10\n"); 
-        printf("    -common:         design common LAMP primers\n");
-        printf("    -special:        design special LAMP primers\n");
-        printf("    -check   <int>:  0: don't check tendency of the left primer to bind to the right primer; !=0: check, default is 1\n");
-        printf("    -par  <string>:  the directory of storing parameter files used to check the tendency of two primers binding, default is Par/\n");
-        printf("    -high/-low:      design candidate single primers in high/low GC region, high: the GC content>=45%%; low: the GC content <=45%%.\n");
-        printf("    -loop:           design LAMP primer with loop primers\n");
-	printf("    -fast:           design LAMP primer set fastly, but the system couldn't guarantee check all candidate LAMP primer sets\n");
-        printf("    -h/-help:        usage\n");
+	printf("USAGE:\n");
+        printf("  LAMP_GPU  -in <sinlge_primers_file>  -ref <ref_genome> -out <result> -high[-low] [options]*\n\n");
+        printf("ARGUMENTS:\n");
+        printf("  -in <single_primers_file>\n");
+        printf("    the file name of candidate single primer regions, files are generated from Single program\n");
+        printf("  -ref <ref_genome>\n");
+        printf("    reference genome, fasta formate\n");
+        printf("  -dir <directory>\n");
+        printf("    the directory for output file\n");
+        printf("    default: current directory\n");
+        printf("  -out <result>\n");
+        printf("    output file name\n");
+        printf("  -num <int>\n");
+        printf("    the expected output number of LAMP primer sets\n");
+        printf("    default: 10\n");
+        printf("  -high[-low]\n");
+        printf("    design LAMP primer sets from high/low GC reference genome region\n");
+        printf("    high: the GC content >= 45%%\n");
+        printf("    low: the GC content <= 45%%\n");
+        printf("  -loop\n");
+        printf("    design LAMP primer sets with loop primers\n");
+        printf("  -conserved\n");
+        printf("    design conserved LAMP primer sets those can amplify more than one target genomes\n");
+        printf("  -specific\n");
+        printf("    design specific LAMP primer sets those can't amplify any background genomes\n");
+        printf("  -check <int>\n");
+        printf("    check primers' tendency of binding to another in one LAMP primer set or not\n");
+        printf("    0: don't check; other values: check\n");
+        printf("    default: 1\n");
+        printf("  -par <par_directory>\n");
+        printf("    parameter files under the directory are used to check primers' binding tendency\n");
+        printf("    default: GLAPD/Par/\n");
+	printf("  -thread <int>\n");
+	printf("    the number of threads in one block, max is 1024\n");
+	printf("    default: 256\n");
+	printf("  -threshold <int>\n");
+	printf("    the number of designing LAMP primer sets simultaneously\n");
+	printf("    default: 51200\n");
+        printf("  -fast\n");
+        printf("    fast mode to design LAMP primer sets, in this mode GLAPD may lost some right results\n");
+        printf("  -h/-help\n");
+        printf("    print usage\n");
 }
 
 struct INFO *read_list(char *path,int common_num[])  
@@ -3176,7 +3131,7 @@ struct INFO *read_list(char *path,int common_num[])
         in=(char *)malloc(i+20);              
         memset(in,'\0',i+20);
         strcpy(in,path);
-        strcat(in,"-common_list.txt");
+        strcat(in,"-conserved_list.txt");
         if(access(in,0)==-1)  
         {
                 printf("Error! Don't have the %s file!\n",in);
@@ -3318,7 +3273,7 @@ main(int argc,char **argv)
                         strcpy(path_fa,argv[i+1]);
                         i=i+2;
                 }
-                else if(strcmp(argv[i],"-expect")==0)
+                else if(strcmp(argv[i],"-num")==0)
                 {
                         flag[4]=1;
                         if(i+1==argc)
@@ -3402,13 +3357,13 @@ main(int argc,char **argv)
                         }
                         i=i+2;
                 }
-                else if(strcmp(argv[i],"-common")==0)
+                else if(strcmp(argv[i],"-conserved")==0)
                 {
                         flag[5]=1;
 			h_int[3]=1;
                         i++;
                 }
-                else if(strcmp(argv[i],"-special")==0)
+                else if(strcmp(argv[i],"-specific")==0)
                 {
                         flag[6]=1;
 			h_int[4]=1;
@@ -3666,7 +3621,7 @@ main(int argc,char **argv)
 		if(have>expect)
 			break;
 		if(common_num[0]>1)
-			printf("Running: expect common number is %d.\n",circle);
+			printf("Running: amplify %d target genomes.\n",circle);
 		storeL=headL;
 		storeS=headS;
 		while((storeL->pos<=storeS->pos+18)&&storeL!=NULL)
@@ -4017,24 +3972,21 @@ main(int argc,char **argv)
 					j=0;
 		                        fprintf(fp,"  This set of LAMP primers could be used in %d genomes, there are: ",circle);
 		                        p_list=headList;
-                        		for(j=0;j<common_num[0];j++)
-                        		{
-                                		if(h_result[i*(8+common_num[0])+8+j]==0)
-                                		        continue;
-                                		while(p_list)
-                                		{
-                                		        if(p_list->turn==j)
-                                		                break;
-                                		        else
-                                		                p_list=p_list->next;
-                                		}
-                                		if(j==0)
-                                		        fprintf(fp,"%s",p_list->name);
-                                		else
-                                		        fprintf(fp,", %s",p_list->name);
-                                		j++;
-	       	                 	}
-		                        fprintf(fp,"\n");
+					while(p_list)
+					{
+						if(h_result[i*(8+common_num[0])+8+p_list->turn]==0)
+						{
+							p_list=p_list->next;
+							continue;
+						}
+						if(j==0)
+							fprintf(fp,"%s",p_list->name);
+						else
+							fprintf(fp,", %s",p_list->name);
+						j++;
+						p_list=p_list->next;
+					}
+					fprintf(fp,"\n");
 				}
 				h_pos[have-1]=h_primer[h_result[i*(8+common_num[0])]*10];
 				have++;
