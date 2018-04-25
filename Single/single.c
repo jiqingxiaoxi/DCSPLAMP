@@ -2634,16 +2634,16 @@ int candidate_primer(char *seq,char *prefix,char *dir,float stab[],float deltah[
 			check=words(seq,circle,i);
 			if(check==0)
                                 break;
-
 			memset(primer,'\0',30);
 			generate(seq,primer,circle,i);
+
+			check=check_long_ploy(primer,i);
+                        if(check==0)
+                                break;
 			check=gc(primer,i);
 			if(check==0)
 				continue;
 
-			check=check_long_ploy(primer,i);
-			if(check==0)
-				continue;
 			check=tm(primer,deltah,deltas,i,max_tm,min_tm);
 			if(check==0)
 				continue;
@@ -2712,12 +2712,12 @@ int candidate_primer(char *seq,char *prefix,char *dir,float stab[],float deltah[
 void usage()
 {
 	printf("USAGE:\n");
-	printf("  Single  -in <ref_genome>  -out <file_out>  -high[-low] [options]*\n\n");
+	printf("  Single  -in <ref_genome>  -out <single_primers>  -high[-low] [options]*\n\n");
 	printf("ARGUMENTS:\n");
 	printf("  -in <ref_genome>\n");
 	printf("    reference genome, fasta formate\n");
-	printf("  -out <file_out>\n");
-	printf("    output file name\n");
+	printf("  -out <single_primers>\n");
+	printf("    output the candidate single primers\n");
 	printf("  -dir <directory>\n");
 	printf("    the directory for output file\n");
 	printf("    default: current directory\n");
