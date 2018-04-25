@@ -2744,13 +2744,12 @@ __global__ void candidate_primer(char *d_seq,int *d_pos,int *d_len,int *d_rev_le
 			if(test[threadIdx.x*6+3]==0)
                                 break;
 
+			test[threadIdx.x*6+3]=check_long_ploy(d_seq,test[threadIdx.x*6+2],test[threadIdx.x*6+1]);
+			if(test[threadIdx.x*6+3]==0)
+				break;
 			test[threadIdx.x*6+3]=gc(d_seq,test[threadIdx.x*6+2],test[threadIdx.x*6+1]);
 			if(test[threadIdx.x*6+3]==0)
 				continue;
-
-			test[threadIdx.x*6+3]=check_long_ploy(d_seq,test[threadIdx.x*6+2],test[threadIdx.x*6+1]);
-			if(test[threadIdx.x*6+3]==0)
-                                continue;
 
 			test[threadIdx.x*6+3]=tm(d_seq,test[threadIdx.x*6+2],test[threadIdx.x*6+1],max_tm,min_tm);
 			if(test[threadIdx.x*6+3]==0)
@@ -2823,12 +2822,12 @@ __global__ void candidate_primer(char *d_seq,int *d_pos,int *d_len,int *d_rev_le
 void usage()
 {
 	printf("USAGE:\n");
-        printf("  Single  -in <ref_genome>  -out <file_out>  -high[-low] [options]*\n\n");
+        printf("  Single  -in <ref_genome>  -out <single_primers>  -high[-low] [options]*\n\n");
         printf("ARGUMENTS:\n");
         printf("  -in <ref_genome>\n");
         printf("    reference genome, fasta formate\n");
-        printf("  -out <file_out>\n");
-        printf("    output file name\n");
+        printf("  -out <single_primers>\n");
+        printf("    output the candidate single primers\n");
         printf("  -dir <directory>\n");
         printf("    the directory for output file\n");
         printf("    default: current directory\n");
