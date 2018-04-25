@@ -2458,7 +2458,7 @@ int file_size2(char *filename)
 void usage()
 {
         printf("USAGE:\n");
-        printf("  LAMP_CPU  -in <sinlge_primers_file>  -ref <ref_genome> -out <result> -high[-low] [options]*\n\n");
+        printf("  LAMP_CPU  -in <sinlge_primers_file>  -ref <ref_genome> -out <LAMP_primer_sets> -high[-low] [options]*\n\n");
 	printf("ARGUMENTS:\n");
         printf("  -in <single_primers_file>\n");
 	printf("    the file name of candidate single primer regions, files are generated from Single program\n");
@@ -2467,8 +2467,8 @@ void usage()
 	printf("  -dir <directory>\n");
         printf("    the directory for output file\n");
         printf("    default: current directory\n");
-        printf("  -out <result>\n");
-	printf("    output file name\n");
+        printf("  -out <LAMP_primer_sets>\n");
+	printf("    output successfully designed LAMP primer sets\n");
 	printf("  -num <int>\n");
 	printf("    the expected output number of LAMP primer sets\n");
 	printf("    default: 10\n");
@@ -2478,8 +2478,8 @@ void usage()
         printf("    low: the GC content <= 45%%\n");
         printf("  -loop\n");
         printf("    design LAMP primer sets with loop primers\n");
-	printf("  -conserved\n");
-	printf("    design conserved LAMP primer sets those can amplify more than one target genomes\n");
+	printf("  -common\n");
+	printf("    design common LAMP primer sets those can amplify more than one target genomes\n");
 	printf("  -specific\n");
 	printf("    design specific LAMP primer sets those can't amplify any background genomes\n");
 	printf("  -check <int>\n");
@@ -2813,7 +2813,7 @@ main(int argc,char **argv)
                         }
                         i=i+2;
                 }
-		else if(strcmp(argv[i],"-conserved")==0)
+		else if(strcmp(argv[i],"-common")==0)
 		{
 			flag[5]=1;
 			i++;
@@ -3581,7 +3581,7 @@ struct Primer *read_par(char *path,int common_flag,int special_flag)
 		in=(char *)malloc(i+20);
         	memset(in,'\0',i+20);
         	strcpy(in,path);
-        	strcat(in,"-conserved.txt"); //suffix of parameter
+        	strcat(in,"-common.txt"); //suffix of parameter
 		if(access(in,0)==-1)
 		{
 			printf("Error! Don't have the %s file!\n",in);
@@ -3781,7 +3781,7 @@ struct INFO *read_list(char *path,int common_num[])
 	in=(char *)malloc(i+20);
 	memset(in,'\0',i+20);
 	strcpy(in,path);
-	strcat(in,"-conserved_list.txt");
+	strcat(in,"-common_list.txt");
         if(access(in,0)==-1)
         {
                 printf("Error! Don't have the %s file!\n",in);
